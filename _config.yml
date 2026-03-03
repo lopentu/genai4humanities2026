@@ -1,0 +1,21 @@
+title: "生成式 AI 的人文導論"
+title_en: "Introducing Generative AI for the Humanities"
+description: "專為人文領域設計的生成式 AI 入門課程"
+semester: "Spring 2026 | 114-2"
+instructor: "謝舒凱"
+course_code: "LING5004"
+baseurl: "/genai4humanities2026"
+url: "https://lopentu.github.io"
+
+# Build
+markdown: kramdown
+highlighter: rouge
+permalink: pretty
+
+# Exclude
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - docs/
+  - "*.docx"
+  - "*.xlsx"
