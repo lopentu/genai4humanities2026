@@ -1,0 +1,18 @@
+<!-- _includes/nav.html -->
+<nav class="site-nav" role="navigation">
+  <div class="container">
+    <a class="nav-logo" href="{{ site.baseurl }}/">
+      <span>✦</span> {{ site.title }}
+    </a>
+    <button class="nav-toggle" aria-label="Toggle menu" onclick="document.querySelector('.nav-links').classList.toggle('open')">
+      ☰
+    </button>
+    <ul class="nav-links">
+      <li><a href="{{ site.baseurl }}/"          {% if page.url == '/' or page.url == '/index.html' %}class="active"{% endif %}>首頁</a></li>
+      <li><a href="{{ site.baseurl }}/schedule/" {% if page.url contains 'schedule' %}class="active"{% endif %}>課程進度</a></li>
+      <li><a href="{{ site.baseurl }}/assignments/" {% if page.url contains 'assignments' %}class="active"{% endif %}>課堂作業</a></li>
+      <li><a href="{{ site.baseurl }}/project/"  {% if page.url contains 'project' %}class="active"{% endif %}>期末專案</a></li>
+      <li><a href="{{ site.baseurl }}/resources/" {% if page.url contains 'resources' %}class="active"{% endif %}>學習資源</a></li>
+    </ul>
+  </div>
+</nav>
