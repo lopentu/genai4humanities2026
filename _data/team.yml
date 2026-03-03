@@ -1,0 +1,15 @@
+# _data/team.yml
+instructor:
+  name: "謝舒凱"
+  name_en: "Shu-Kai Hsieh"
+  title: "教授 ｜ 語言學研究所"
+  lab: "LOPE Lab"
+  github: "shukaihsieh"
+  avatar: "/assets/images/instructor.jpg"
+
+tas: []
+# Add TAs like:
+# - name: "TA Name"
+#   github: "github-handle"
+#   avatar: "/assets/images/ta-name.jpg"
+#   role: "Teaching Assistant"

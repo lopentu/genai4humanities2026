@@ -1,0 +1,44 @@
+# _data/resources.yml
+sections:
+  - title: "學習平台"
+    icon: "🎓"
+    items:
+      - name: "NTU COOL 課程頁面"
+        url: "https://cool.ntu.edu.tw"
+        desc: "課程作業、討論與公告"
+      - name: "YouTube 課程頻道"
+        url: "#"
+        desc: "課程錄影與補充資源"
+
+  - title: "AI 工具"
+    icon: "🤖"
+    items:
+      - name: "Claude (Anthropic)"
+        url: "https://claude.ai"
+        desc: "主要使用的對話式AI"
+      - name: "ChatGPT (OpenAI)"
+        url: "https://chatgpt.com"
+        desc: ""
+      - name: "Gemini (Google)"
+        url: "https://gemini.google.com"
+        desc: ""
+
+  - title: "參考書目"
+    icon: "📚"
+    items:
+      - name: "Build a Large Language Model from Scratch"
+        url: "https://www.manning.com/books/build-a-large-language-model-from-scratch"
+        desc: "Raschka, S. (2024). Manning."
+      - name: "Learn AI-assisted Python Programming"
+        url: "https://www.manning.com/books/learn-ai-assisted-python-programming"
+        desc: "Porter & Zingaro (2024). Manning."
+      - name: "AI 世界的底層邏輯和生存法則"
+        url: "#"
+        desc: "程世嘉 (2024). 天下文化."
+
+  - title: "認證"
+    icon: "🏅"
+    items:
+      - name: "NVIDIA DLI 認證"
+        url: "https://learn.nvidia.com"
+        desc: "修課學生可申請 NVIDIA Deep Learning Institute 認證"

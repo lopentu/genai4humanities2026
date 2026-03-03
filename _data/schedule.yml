@@ -1,0 +1,175 @@
+# _data/schedule.yml
+- week: 1
+  date: "2026-02-27"
+  title: "國定假日"
+  subtitle: ""
+  cluster: ""
+  holiday: true
+  objectives: []
+
+- week: 2
+  date: "2026-03-06"
+  title: "和生成式AI模型說話：提示的語言工程 (1)"
+  subtitle: "Prompting"
+  cluster: "prompting"
+  holiday: false
+  objectives:
+    - "探討如何透過設計有效提示來影響生成式 AI 模型的輸出"
+    - "了解提示詞語言的結構與技巧，掌握提示設計的原則"
+
+- week: 3
+  date: "2026-03-13"
+  title: "和生成式AI模型說話：提示的語言工程 (2)"
+  subtitle: "Prompting & Style Alignment + Vibe Coding 基礎"
+  cluster: "prompting"
+  holiday: false
+  objectives:
+    - "認識各種提示類型與策略"
+    - "風格與情境的敘事提示：引導 AI 產出符合特定文學風格、歷史背景、藝術情緒的內容"
+    - "Vibe Coding 基礎實踐"
+
+- week: 4
+  date: "2026-03-20"
+  title: "生成式AI / 大型語言模型原理 (1)"
+  subtitle: "Tokenization and Embeddings Explained"
+  cluster: "llm"
+  holiday: false
+  objectives:
+    - "介紹符元化（Tokenization）與嵌入向量作為語言模型資料表徵的核心概念"
+    - "探討嵌入向量如何捕捉詞語之間的語義關係"
+    - "實作：利用向量視覺化工具觀察詞語在嵌入空間中的位置分佈"
+
+- week: 5
+  date: "2026-03-27"
+  title: "生成式AI / 大型語言模型原理與進展 (2)"
+  subtitle: "Transformer Explained and Recent Developments"
+  cluster: "llm"
+  holiday: false
+  objectives:
+    - "介紹 Transformer 架構，強調自注意力機制（Self-Attention）特性"
+    - "探討模型的推理能力訓練與進展"
+    - "了解常見基準測試（BLEU、ROUGE、Perplexity）"
+
+- week: 6
+  date: "2026-04-03"
+  title: "兒童節補假"
+  subtitle: ""
+  cluster: ""
+  holiday: true
+  objectives: []
+
+- week: 7
+  date: "2026-04-10"
+  title: "讓生成式AI模型（們）一起合作"
+  subtitle: "Agentic Network"
+  cluster: "agent"
+  holiday: false
+  objectives:
+    - "介紹 Agent 的概念：讓多個生成式 AI 模型彼此交互、協作處理任務"
+    - "探討 Agent 間的角色分配、職責與階層組織"
+    - "設計多個 AI Agent：不僅是分工，更是角色扮演和視角模擬"
+
+- week: 8
+  date: "2026-04-17"
+  title: "讓生成式AI模型少說錯"
+  subtitle: "Context Engineering (RAG)"
+  cluster: "agent"
+  holiday: false
+  objectives:
+    - "探討如何運用檢索增強生成（RAG）技術從外部知識庫獲取精確資訊"
+    - "了解向量資料庫（VectorDB）的基本原理與語義搜索"
+    - "透過 RAG 框架整合生成式 AI 與即時檢索，支持動態回應、減少錯誤"
+
+- week: 9
+  date: "2026-04-24"
+  title: "讓生成式AI模型學點新東西"
+  subtitle: "Fine-Tune（或邀請演講：台灣主權AI）"
+  cluster: "agent"
+  holiday: false
+  objectives:
+    - "介紹微調（Fine-Tune）技術，透過額外訓練資料更新模型參數"
+    - "了解如何選擇與準備高質量資料"
+    - "分析不同微調方法對生成品質的影響（少樣本微調 vs. 零樣本學習）"
+
+- week: 10
+  date: "2026-05-01"
+  title: "勞動節放假"
+  subtitle: ""
+  cluster: ""
+  holiday: true
+  objectives: []
+
+- week: 11
+  date: "2026-05-08"
+  title: "跨界策展：用 AI 進行文學／藝術的數位轉譯與風格混搭"
+  subtitle: "AI × Arts & Digital Curation"
+  cluster: "humanities"
+  holiday: false
+  objectives:
+    - "介紹生成式 AI 如何模擬藝術風格與音樂結構，創造具個性化的視覺與聲音作品"
+    - "探討風格轉移（Style Transfer）和自動編曲技術"
+    - "了解多模態模型如何整合視覺、聽覺數據進行多感官藝術創作"
+
+- week: 12
+  date: "2026-05-15"
+  title: "AI連結人文 (I)"
+  subtitle: "AI and the Humanities (I)"
+  cluster: "humanities"
+  holiday: false
+  objectives:
+    - "語音與聲音的情感設計：生成符合特定戲劇情境的情感語音與背景音樂"
+    - "從技術分析轉向策展與再創作：歷史畫作、文學場景的數位轉譯"
+    - "討論偏見、公平性、深度偽造（Deepfakes）的倫理議題"
+
+- week: 13
+  date: "2026-05-22"
+  title: "AI連結人文 (II)"
+  subtitle: "AI and the Humanities (II)"
+  cluster: "humanities"
+  holiday: false
+  objectives:
+    - "延續 AI × 人文主題的深度探討"
+    - "學生專題進度分享與討論"
+
+- week: 14
+  date: "2026-05-29"
+  title: "數位分身智能代理的社會學與倫理"
+  subtitle: "Digital Avatar"
+  cluster: "ethics"
+  holiday: false
+  objectives:
+    - "介紹數位分身概念：透過虛擬形象將個人特徵、行為模式數位化"
+    - "探討人機共存的未來圖景，數位分身作為代理協助日常任務"
+    - "分析人機互動中的倫理與隱私挑戰"
+
+- week: 15
+  date: "2026-06-05"
+  title: "人類價值與倫理議題"
+  subtitle: "Alignment and Ethical AI"
+  cluster: "ethics"
+  holiday: false
+  objectives:
+    - "介紹對齊（Alignment）的概念：讓 AI 的行為與人類價值觀保持一致"
+    - "探討倫理 AI 的核心議題：隱私、偏見、透明度"
+    - "實作討論：針對特定 AI 應用進行倫理分析"
+
+- week: 16
+  date: "2026-06-12"
+  title: "期末專案實作討論與第一輪展演"
+  subtitle: "Final Project Workshop"
+  cluster: "final"
+  holiday: false
+  objectives:
+    - "期末專案進度報告與互評"
+    - "第一輪展演與回饋"
+
+- week: 17
+  date: "2026-06-15"
+  title: "期末專案聯合展演與人文AI競賽頒獎"
+  subtitle: "Final Showcase（補課）"
+  cluster: "final"
+  holiday: false
+  objectives:
+    - "Vibe-Driven Project 展演：文學場景再現、社會議題模擬等"
+    - "邀請校內外評審提供建設性回饋"
+    - "人文AI競賽頒獎"
