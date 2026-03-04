@@ -1,20 +1,23 @@
 # 網站內容維護指南
 
 > 所有課程內容集中在 `_data/` 資料夾的 YAML 檔案中。
-> **一般維護完全不需要碰 HTML/CSS/JS。**
+> **一般維護完全不需要碰 HTML/CSS/JS，也不用在本機安裝 Ruby 或 Jekyll。**
 
 ---
 
-## 快速開始：更新後發布
+## 更新方式（就這三步）
 
-```bash
-git add .
-git commit -m "content: 說明你更新了什麼"
-git push
-```
+1. **編輯** — 用編輯器改 `_data/` 裡的 YAML 或 `pages/` 裡的 Markdown（見下方各節）。
+2. **提交** — 在專案目錄執行：
+   ```bash
+   git add .
+   git commit -m "content: 說明你更新了什麼"
+   git push
+   ```
+3. **完成** — 約 2 分鐘後網站會自動更新：  
+   `https://lopentu.github.io/genai4humanities2026/`
 
-推送後約 2 分鐘，GitHub Actions 自動重建並發布至：
-`https://lopentu.github.io/genai4humanities2026/`
+**不用在本機跑 Jekyll。** 改完 push，到上面網址看結果即可。
 
 ---
 
@@ -92,16 +95,18 @@ tas:
 
 ---
 
-## 5. 本機預覽（選用）
+## 5. 本機預覽（可略過）
 
-> **前提：** 需先在終端機執行一次 `sudo xcodebuild -license accept` 以啟用編譯器。
+平常**不需要**本機預覽：改完 push，等 2 分鐘到正式站看即可。
 
-```bash
-cd /Users/shukai/academics/GenAI4Humanities/2026/website
-bundle install          # 第一次需要
-bundle exec jekyll serve --baseurl ""
-# 開啟 http://localhost:4000 預覽
-```
+若真的想在 push 前先看效果，有兩種方式：
+
+| 方式 | 優點 | 做法 |
+|------|------|------|
+| **Docker** | 不用裝 Ruby，一條指令 | 本機先裝 [Docker Desktop](https://www.docker.com/products/docker-desktop/)，在 `website` 目錄執行：<br>`docker run --rm -p 4000:4000 -v "$(pwd):/srv/jekyll" jekyll/jekyll:4 jekyll serve --baseurl ""`<br>瀏覽器開 http://localhost:4000 |
+| **本機 Ruby** | 與 GitHub 建置環境一致 | `bundle install` 後執行 `bundle exec jekyll serve --baseurl ""`（需 Xcode Command Line Tools，且建議用系統或 Homebrew 的 Ruby，不要用 conda 的 Ruby） |
+
+不想搞環境的話，直接略過本機預覽，改完 push 到線上檢查即可。
 
 ---
 

@@ -2,10 +2,10 @@
 instructor:
   name: "謝舒凱"
   name_en: "Shu-Kai Hsieh"
-  title: "教授 ｜ 語言學研究所"
+  title: "教授 ｜ 語言學研究所/腦與心智"
   lab: "LOPE Lab"
-  github: "shukaihsieh"
-  avatar: "/assets/images/instructor.jpg"
+  github: "loperntu"
+  avatar: "/assets/images/shukai-zen.png"
 
 tas: []
 # Add TAs like:
