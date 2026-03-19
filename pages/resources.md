@@ -32,7 +32,7 @@ permalink: /resources/
 
   <div style="border: 1px solid var(--c-border); border-radius: 12px; overflow: hidden;">
     <iframe
-      src="https://lopentu.github.io/genai4humanities/vc/session1-kana-memory-v2-embed.html"
+      src="https://lopentu.github.io/genai4humanities/vc/session1-kana-memory-v2-embed/"
       title="仮名メモリー（假名配對遊戲）"
       style="width: 100%; height: 900px; border: 0; display: block;"
       loading="lazy"
