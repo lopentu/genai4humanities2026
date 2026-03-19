@@ -32,18 +32,11 @@ permalink: /resources/
 
   <div style="border: 1px solid var(--c-border); border-radius: 12px; overflow: hidden;">
     <iframe
-      src="https://lopentu.github.io/genai4humanities/vc/session1-kana-memory-v2/"
+      src="https://lopentu.github.io/genai4humanities/vc/session1-kana-memory-v2-embed.html"
       title="仮名メモリー（假名配對遊戲）"
       style="width: 100%; height: 900px; border: 0; display: block;"
       loading="lazy"
       allowfullscreen>
     </iframe>
   </div>
-
-  <p style="margin-top: var(--space-sm); font-size: 0.9rem; color: var(--c-text-muted); font-family: var(--font-sans);">
-    若無法載入，請直接開啟：
-    <a href="https://lopentu.github.io/genai4humanities/vc/session1-kana-memory-v2/" target="_blank" rel="noopener">
-      仮名メモリー（假名配對遊戲）
-    </a>
-  </p>
 </div>
