@@ -62,16 +62,6 @@ permalink: /resources/
       第一個專案練習
     </h3>
 
-    <div style="border: 1px solid var(--c-border); border-radius: 12px; overflow: hidden; margin-bottom: var(--space-md);">
-      <iframe
-        src="https://lopentu.github.io/genai4humanities/vc/session1-kana-memory-v2-embed.html"
-        title="仮名メモリー（假名配對遊戲）"
-        style="width: 100%; height: 900px; border: 0; display: block;"
-        loading="lazy"
-        allowfullscreen>
-      </iframe>
-    </div>
-
     <div style="border: 1px solid var(--c-border); border-radius: 12px; overflow: hidden;">
       <iframe
         src="https://lopentu.github.io/genai4humanities/vc/session1-challenge-card-interactive-embed.html"
@@ -101,4 +91,15 @@ permalink: /resources/
       tabVibe.style.borderColor = !isKana ? "rgba(232,160,69,0.8)" : "var(--c-border)";
     }
   };
+</script>
+
+<script>
+  // Support header nav click: /resources/?practice=vibe
+  (function () {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const tab = params.get("practice");
+      if (tab === "vibe" && window.__practiceTab) window.__practiceTab("vibe");
+    } catch (e) {}
+  })();
 </script>
