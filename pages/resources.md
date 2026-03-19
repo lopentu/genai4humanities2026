@@ -39,4 +39,10 @@ permalink: /resources/
       allowfullscreen>
     </iframe>
   </div>
+
+  <div style="margin-top: var(--space-md);">
+    <a href="{{ site.baseurl }}/vibe-coding-practice/" style="display:inline-block; padding: 0.75rem 1.2rem; border-radius: 8px; border: 1px solid var(--c-border); color: var(--c-text); text-decoration: none; font-family: var(--font-sans);">
+      vibe coding practice →
+    </a>
+  </div>
 </div>
