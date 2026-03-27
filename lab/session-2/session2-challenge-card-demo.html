@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>日語單字卡 挑戰卡 — Session 2</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Noto+Serif+JP:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pop { 0% { transform: scale(1); } 40% { transform: scale(1.25); } 100% { transform: scale(1); } }
+  @keyframes confettiFall { 0% { transform: translateY(-10px) rotate(0); opacity: 1; } 100% { transform: translateY(calc(100vh + 20px)) rotate(720deg); opacity: 0.6; } }
+  @keyframes scoreFlash { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+  @keyframes checkmark { 0% { transform: scale(0) rotate(-45deg); opacity: 0; } 60% { transform: scale(1.2) rotate(0); opacity: 1; } 100% { transform: scale(1) rotate(0); opacity: 1; } }
+
+  .confetti-piece {
+    position: fixed;
+    top: -10px;
+    z-index: 999;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<div id="confetti-root"></div>
+<div id="app-root"></div>
+
+<script>
+(function () {
+  const CHALLENGES = [
+    { level: 1, levelLabel: "Web Literacy", levelIcon: "🧠", levelColor: { bg: "#e8eef8", text: "#3a5a8a", border: "#a0bce0", light: "#f0f4fc" }, title: "說出三層的名字", desc: "看完 Web Literacy 教材後，說出網頁三層結構的名稱和比喻", prompt: "（口頭回答）HTML = ？、CSS = ？、JS = ？", oral: true },
+    { level: 1, levelLabel: "Web Literacy", levelIcon: "🧠", levelColor: { bg: "#e8eef8", text: "#3a5a8a", border: "#a0bce0", light: "#f0f4fc" }, title: "動手改一行 HTML", desc: "在教材的即時編輯器中，成功改一個顏色或一個文字", prompt: "把 #c87a90 改成 #4a90d9，或把「あ」改成「か」" },
+    { level: 2, levelLabel: "起步 Prompt", levelIcon: "🚀", levelColor: { bg: "#e8f4e0", text: "#4a7a3a", border: "#b8d8a0", light: "#f4faf0" }, title: "生出第一版單字卡", desc: "用自然語言讓 AI 幫你做出日語單字卡", prompt: "幫我做一個日語單字卡 App。用純 HTML 寫成一個檔案。包含至少 5 個打招呼用語，每張卡正面是日文假名和羅馬拼音，點擊翻面顯示中文意思。" },
+    { level: 2, levelLabel: "起步 Prompt", levelIcon: "🚀", levelColor: { bg: "#e8f4e0", text: "#4a7a3a", border: "#b8d8a0", light: "#f4faf0" }, title: "存檔到電腦", desc: "把 AI 生出的 HTML 存成檔案，用瀏覽器打開確認能用", prompt: "（操作步驟）複製全部程式碼 → 貼到文字編輯器 → 存成 .html → 雙擊打開" },
+    { level: 3, levelLabel: "加入語音", levelIcon: "🔊", levelColor: { bg: "#f4e4f0", text: "#7a4a6a", border: "#d0a8c4", light: "#faf2f8" }, title: "點擊播放發音", desc: "讓單字卡可以唸出日文發音", prompt: "幫我加一個發音按鈕。點按鈕時用瀏覽器的語音合成（Web Speech API）唸出日文假名，語言設為 ja-JP。" },
+    { level: 3, levelLabel: "加入語音", levelIcon: "🔊", levelColor: { bg: "#f4e4f0", text: "#7a4a6a", border: "#d0a8c4", light: "#faf2f8" }, title: "調整語速", desc: "讓使用者可以選慢速或快速播放", prompt: "加入語速選擇：慢速（0.5 倍）、普通、快速（1.2 倍），讓學習者可以切換" },
+    { level: 4, levelLabel: "功能擴充", levelIcon: "⚡", levelColor: { bg: "#f8ece0", text: "#8a5a2a", border: "#d8b888", light: "#fcf6f0" }, title: "加入更多分類", desc: "擴充單字卡的內容，加入不同主題", prompt: "除了打招呼，再加一個分類「數字」（いち、に、さん⋯），讓使用者可以切換分類" },
+    { level: 4, levelLabel: "功能擴充", levelIcon: "⚡", levelColor: { bg: "#f8ece0", text: "#8a5a2a", border: "#d8b888", light: "#fcf6f0" }, title: "加入例句", desc: "每個單字的背面，除了意思還要有一句例句", prompt: "在每張卡片的背面加一個例句區，顯示一句使用這個單字的日文例句和中文翻譯" },
+    { level: 5, levelLabel: "自由創作", levelIcon: "🌟", levelColor: { bg: "#e8e0f4", text: "#5a4a7a", border: "#b8a8d0", light: "#f4f0fa" }, title: "你的原創功能 ①", desc: "發揮想像力！加入任何你覺得實用的功能", prompt: "（自由發揮）靈感：學習進度追蹤？單字隨機測驗？我的最愛清單？", freeform: true },
+    { level: 5, levelLabel: "自由創作", levelIcon: "🌟", levelColor: { bg: "#e8e0f4", text: "#5a4a7a", border: "#b8a8d0", light: "#f4f0fa" }, title: "你的原創功能 ②", desc: "再來一個！讓你的單字卡 App 獨一無二", prompt: "（自由發揮）靈感：深色/淺色主題？自動播放模式？手寫練習？動畫翻牌效果？", freeform: true },
+  ];
+
+  const TIPS = [
+    { icon: "💡", text: "新技巧——在 prompt 裡說「用純 HTML 寫成一個檔案」，AI 就會產出可存檔的單頁版本" },
+    { icon: "🔍", text: "AI 出錯時，試著說「你漏掉了 CSS」或「JS 的部分有 bug」——用你今天學到的三層名詞" },
+    { icon: "💾", text: "養成習慣：每做出滿意的版本就存一個檔案（v1, v2, v3⋯），這樣壞掉可以回去" },
+    { icon: "🎨", text: "挑戰自己：描述一個你在其他 App 上看過的功能，看 AI 能不能做出來" },
+  ];
+
+  const levelColors = { 1: "#4a6a9a", 2: "#5a8a4a", 3: "#8a4a6a", 4: "#8a6a2a", 5: "#5a4a8a" };
+  const confettiPalette = ["#e8a0b4", "#a0b4e8", "#a0e8b4", "#e8d4a0", "#d4a0e8", "#ff8a9e", "#8ab8ff"];
+
+  let checked = new Array(10).fill(false);
+  let showConfetti = false;
+  let confettiTimer = null;
+
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function buildGrouped() {
+    const levels = [...new Set(CHALLENGES.map(function (c) { return c.level; }))];
+    return levels.map(function (lv) {
+      var first = CHALLENGES.find(function (c) { return c.level === lv; });
+      return {
+        level: lv,
+        bg: first.levelColor.bg,
+        text: first.levelColor.text,
+        border: first.levelColor.border,
+        light: first.levelColor.light,
+        label: first.levelLabel,
+        icon: first.levelIcon,
+        items: CHALLENGES.map(function (c, i) {
+          var o = {};
+          for (var k in c) o[k] = c[k];
+          o.index = i;
+          return o;
+        }).filter(function (c) { return c.level === lv; }),
+      };
+    });
+  }
+
+  function levelScore(lv) {
+    return CHALLENGES.map(function (c, i) {
+      return { level: c.level, done: checked[i] };
+    }).filter(function (c) {
+      return c.level === lv && c.done;
+    }).length;
+  }
+
+  function renderConfetti() {
+    var root = document.getElementById("confetti-root");
+    root.innerHTML = "";
+    if (!showConfetti) return;
+    for (var i = 0; i < 40; i++) {
+      var el = document.createElement("div");
+      el.className = "confetti-piece";
+      var w = Math.random() * 8 + 4;
+      var h = Math.random() * 8 + 4;
+      var br = i % 3 === 0 ? "50%" : i % 3 === 1 ? "2px" : "0";
+      el.style.left = Math.random() * 100 + "%";
+      el.style.width = w + "px";
+      el.style.height = h + "px";
+      el.style.borderRadius = br;
+      el.style.background = confettiPalette[i % 7];
+      el.style.animation = "confettiFall " + (2 + Math.random() * 2) + "s " + Math.random() + "s linear forwards";
+      root.appendChild(el);
+    }
+  }
+
+  function renderApp() {
+    var score = checked.filter(Boolean).length * 10;
+    var allDone = checked.every(Boolean);
+    var grouped = buildGrouped();
+    var scoreAnim = score > 0 ? "scoreFlash .4s" : "none";
+
+    var dotsHtml = checked.map(function (c, i) {
+      var ch = CHALLENGES[i];
+      var col = levelColors[ch.level] || "#888";
+      return '<div style="width:14px;height:14px;border-radius:4px;transition:all .3s;background:' +
+        (c ? col : "#e4dcd4") + ";animation:" + (c ? "pop .3s" : "none") + '"></div>';
+    }).join("");
+
+    var challengesHtml = grouped.map(function (g) {
+      var itemsHtml = g.items.map(function (item) {
+        var done = checked[item.index];
+        var promptBoxBg = item.freeform ? "#fdf8f0" : item.oral ? "#f0f4fc" : "#f4f8f0";
+        var promptBoxBorder = item.freeform ? "1px solid #e8d8c0" : item.oral ? "1px solid #d0dce8" : "1px solid #dce8d4";
+        var promptFont = item.freeform ? "'Noto Sans TC',sans-serif" : "'JetBrains Mono',monospace";
+        var promptColor = item.freeform ? "#8a7a5a" : item.oral ? "#4a6a8a" : "#6a8a5a";
+        var promptStyle = item.freeform ? "italic" : "normal";
+        var oralBadge = item.oral
+          ? '<span style="font-size:9px;padding:2px 6px;border-radius:4px;background:rgba(74,106,154,0.1);color:#4a6a9a;font-family:\'JetBrains Mono\',monospace">口頭</span>'
+          : "";
+        var checkSvg = done
+          ? '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="animation:checkmark .35s both"><path d="M3.5 8.5L6.5 11.5L12.5 4.5" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+          : "";
+
+        return (
+          '<div role="button" tabindex="0" data-challenge-index="' + item.index + '" class="challenge-row" style="display:grid;grid-template-columns:36px 1fr;gap:12px;align-items:start;cursor:pointer;user-select:none;padding:14px 16px;border-radius:12px;background:' +
+          (done ? g.light : "#fdfbf8") +
+          ";border:" +
+          (done ? "2px solid " + g.border : "1px solid #ece4da") +
+          ";transition:all .25s;opacity:" +
+          (done ? 0.85 : 1) +
+          '">' +
+          '<div style="width:28px;height:28px;border-radius:8px;margin-top:1px;border:' +
+          (done ? "2px solid " + g.text : "2px solid #d0c4b8") +
+          ";background:" +
+          (done ? g.text : "#fff") +
+          ';display:flex;align-items:center;justify-content:center;transition:all .25s">' +
+          checkSvg +
+          "</div>" +
+          "<div>" +
+          '<div style="display:flex;align-items:center;gap:8px">' +
+          '<span style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:' +
+          (done ? g.text : "#b0a090") +
+          ';font-weight:500">#' +
+          (item.index + 1) +
+          "</span>" +
+          '<span style="font-size:14px;font-weight:600;color:' +
+          (done ? "#8a7a6a" : "#3a2e28") +
+          ";text-decoration:" +
+          (done ? "line-through" : "none") +
+          ';transition:all .25s">' +
+          escapeHtml(item.title) +
+          "</span>" +
+          oralBadge +
+          '<span style="font-family:\'JetBrains Mono\',monospace;font-size:11px;font-weight:700;color:' +
+          (done ? g.text : "#c0b0a0") +
+          ';margin-left:auto">' +
+          (done ? "+10" : "10pt") +
+          "</span>" +
+          "</div>" +
+          '<div style="font-size:12px;color:#a09080;margin-top:2px">' +
+          escapeHtml(item.desc) +
+          "</div>" +
+          '<div style="margin-top:8px;padding:8px 12px;border-radius:8px;background:' +
+          promptBoxBg +
+          ";border:" +
+          promptBoxBorder +
+          ";font-family:" +
+          promptFont +
+          ";font-size:12px;color:" +
+          promptColor +
+          ";line-height:1.6;font-style:" +
+          promptStyle +
+          '">💬 ' +
+          escapeHtml(item.prompt) +
+          "</div>" +
+          "</div>" +
+          "</div>"
+        );
+      }).join("");
+
+      return (
+        '<div style="margin-top:28px">' +
+        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">' +
+        '<div style="width:34px;height:34px;border-radius:10px;background:' +
+        g.bg +
+        ';display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">' +
+        g.icon +
+        "</div>" +
+        '<div style="flex:1"><div style="font-size:15px;font-weight:700;color:' +
+        g.text +
+        '">Level ' +
+        g.level +
+        "：" +
+        escapeHtml(g.label) +
+        "</div></div>" +
+        '<div style="font-family:\'JetBrains Mono\',monospace;font-size:12px;font-weight:500;color:' +
+        g.text +
+        ";background:" +
+        g.bg +
+        ';padding:3px 10px;border-radius:8px">' +
+        levelScore(g.level) * 10 +
+        " / " +
+        g.items.length * 10 +
+        "</div>" +
+        "</div>" +
+        '<div style="display:flex;flex-direction:column;gap:8px">' +
+        itemsHtml +
+        "</div>" +
+        "</div>"
+      );
+    }).join("");
+
+    var tipsHtml = TIPS.map(function (tip) {
+      return (
+        '<div style="display:flex;gap:10px;align-items:flex-start">' +
+        '<span style="font-size:14px;flex-shrink:0;margin-top:1px">' +
+        tip.icon +
+        "</span>" +
+        '<span style="font-size:13px;color:#6a5a4a;line-height:1.7">' +
+        escapeHtml(tip.text) +
+        "</span>" +
+        "</div>"
+      );
+    }).join("");
+
+    var allDoneBanner = allDone
+      ? '<div style="margin:14px 32px 0;padding:14px 20px;background:linear-gradient(135deg,#f0faf0,#eaf8ea);border-radius:12px;border:1px solid #b0d8a0;text-align:center;animation:fadeIn .5s both"><span style="font-size:20px">🎊</span><span style="font-size:15px;font-weight:700;color:#3a7a3a;margin-left:8px">滿分！你的單字卡 App 已經是完整的作品了！</span></div>'
+      : "";
+
+    document.getElementById("app-root").innerHTML =
+      '<div style="min-height:100vh;background:#f5f0eb;font-family:\'Noto Sans TC\',\'Helvetica Neue\',sans-serif;color:#2a2420;padding:24px 16px">' +
+      '<div style="max-width:720px;margin:0 auto;background:#fffcf8;border-radius:20px;padding:0 0 36px;overflow:hidden;box-shadow:0 2px 24px rgba(0,0,0,.06)">' +
+      '<div style="height:5px;background:linear-gradient(90deg, #a0b4e8, #a0e8b4, #e8a0b4, #e8d4a0, #b4a0e8)"></div>' +
+      '<div style="padding:28px 32px 0;text-align:center">' +
+      '<div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;letter-spacing:4px;color:#b89a8a;text-transform:uppercase">Session 2 · Vibe Coding Workshop</div>' +
+      '<h1 style="font-size:26px;font-weight:900;color:#3a2e28;margin:8px 0 4px"><span style="font-family:\'Noto Serif JP\',serif;font-weight:700;color:#4a6a9a">日語單字卡</span> 挑戰卡</h1>' +
+      '<p style="font-size:13px;color:#8a7a6a">認識 HTML/CSS/JS → 用 Vibe Coding 做有聲單字卡 → 存成自己的檔案</p>' +
+      "</div>" +
+      '<div style="margin:20px 32px 0;padding:18px 24px;border-radius:14px;background:' +
+      (allDone ? "linear-gradient(135deg,#f0faf0,#faf0fa)" : "#f8f6f2") +
+      ";border:" +
+      (allDone ? "2px solid #a0d8a0" : "1px solid #ece4da") +
+      ';display:flex;align-items:center;justify-content:space-between;transition:all .4s">' +
+      "<div>" +
+      '<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;letter-spacing:2px;color:#a09080;margin-bottom:4px">SCORE</div>' +
+      '<div style="font-family:\'JetBrains Mono\',monospace;font-size:36px;font-weight:700;color:' +
+      (allDone ? "#3a8a3a" : score > 0 ? "#5a4a3a" : "#c0b0a0") +
+      ";animation:" +
+      scoreAnim +
+      '">' +
+      score +
+      '<span style="font-size:16px;font-weight:400;color:#b0a090"> / 100</span></div>' +
+      "</div>" +
+      '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">' +
+      '<div style="display:flex;gap:3px">' +
+      dotsHtml +
+      "</div>" +
+      '<div style="width:160px;height:6px;border-radius:3px;background:#ece4da;overflow:hidden">' +
+      '<div style="width:' +
+      score +
+      "%;height:100%;border-radius:3px;background:linear-gradient(90deg,#a0b4e8,#a0e8b4,#e8a0b4);transition:width .5s cubic-bezier(.4,0,.2,1)\"></div>" +
+      "</div>" +
+      '<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:#b0a090">' +
+      checked.filter(Boolean).length +
+      " / 10 完成</div>" +
+      "</div>" +
+      "</div>" +
+      allDoneBanner +
+      '<div style="margin:24px 32px 0;padding:18px 22px;border-radius:14px;background:rgba(74,106,154,0.06);border:1px solid rgba(74,106,154,0.15)">' +
+      '<div style="font-size:14px;font-weight:700;color:#4a6a9a;margin-bottom:8px">🆕 今天的新概念</div>' +
+      '<div style="font-size:13px;color:#6a5a4a;line-height:1.8"><strong>HTML</strong> = 🦴 骨架（內容）、<strong>CSS</strong> = 👔 衣服（外觀）、<strong>JS</strong> = 💪 肌肉（互動）<br/>一個 <code style="background:#f0ece8;padding:2px 6px;border-radius:4px;font-family:\'JetBrains Mono\',monospace;font-size:12px">.html</code> 檔案可以包含這三者，存下來就是一個獨立的網頁 App！</div>' +
+      "</div>" +
+      '<div style="padding:0 32px">' +
+      challengesHtml +
+      "</div>" +
+      '<div style="margin:32px 32px 0;padding:20px 22px;background:#f8f4f0;border-radius:14px;border:1px solid #e8dcd0">' +
+      '<div style="font-size:14px;font-weight:700;color:#6a5a4a;margin-bottom:12px">🔑 Session 2 新技巧</div>' +
+      '<div style="display:flex;flex-direction:column;gap:8px">' +
+      tipsHtml +
+      "</div>" +
+      "</div>" +
+      '<div style="margin-top:24px;text-align:center;font-family:\'JetBrains Mono\',monospace;font-size:11px;color:#c0b0a0;letter-spacing:1px">AI 日語家教 · Vibe Coding Workshop · Session 2</div>' +
+      "</div>" +
+      "</div>";
+
+    document.querySelectorAll(".challenge-row").forEach(function (row) {
+      var idx = parseInt(row.getAttribute("data-challenge-index"), 10);
+      row.addEventListener("click", function () {
+        toggle(idx);
+      });
+      row.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          toggle(idx);
+        }
+      });
+    });
+
+    renderConfetti();
+  }
+
+  function toggle(i) {
+    checked[i] = !checked[i];
+    var allDone = checked.every(Boolean);
+    if (allDone) {
+      showConfetti = true;
+      if (confettiTimer) clearTimeout(confettiTimer);
+      confettiTimer = setTimeout(function () {
+        showConfetti = false;
+        renderApp();
+      }, 4000);
+    } else {
+      showConfetti = false;
+      if (confettiTimer) {
+        clearTimeout(confettiTimer);
+        confettiTimer = null;
+      }
+    }
+    renderApp();
+  }
+
+  renderApp();
+})();
+</script>
+</body>
+</html>

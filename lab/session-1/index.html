@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>謝舒凱 · 個人數位名片</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --card-bg: #ffffff;
+      --page-bg: #f6f5f7;
+      --text-main: #111827;
+      --text-subtle: #6b7280;
+      --border-subtle: #e5e7eb;
+      --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background-color: var(--page-bg);
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-font-smoothing: antialiased;
+      transition: background-color 0.4s ease;
+    }
+
+    .page {
+      width: 100%;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 16px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid var(--border-subtle);
+      padding: 40px 40px 32px;
+      max-width: 420px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 18px;
+      cursor: default;
+    }
+
+    .avatar {
+      width: 160px;
+      height: 160px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 20%, #ffe4e6, #f3f4f6);
+      border: 1px solid #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: #9ca3af;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .name {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .subtitle {
+      font-size: 15px;
+      color: var(--text-subtle);
+      line-height: 1.7;
+      max-width: 18em;
+    }
+
+    .actions {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 18px;
+      height: 42px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background-color 0.2s ease-out, color 0.2s ease-out, box-shadow 0.2s ease-out, transform 0.08s ease-out, border-color 0.2s ease-out;
+      white-space: nowrap;
+    }
+
+    .action-btn--ig {
+      background: #fef2f2;
+      color: #b91c1c;
+      border-color: #fecaca;
+    }
+
+    .action-btn--ig:hover {
+      background: #fee2e2;
+      box-shadow: 0 10px 25px rgba(248, 113, 113, 0.25);
+      transform: translateY(-1px);
+    }
+
+    .action-btn--linkedin {
+      background: #e0f2fe;
+      color: #075985;
+      border-color: #bae6fd;
+    }
+
+    .action-btn--linkedin:hover {
+      background: #dbeafe;
+      box-shadow: 0 10px 25px rgba(59, 130, 246, 0.2);
+      transform: translateY(-1px);
+    }
+
+    .action-btn--email {
+      background: #fefce8;
+      color: #854d0e;
+      border-color: #fef9c3;
+    }
+
+    .action-btn--email:hover {
+      background: #fef3c7;
+      box-shadow: 0 10px 25px rgba(245, 158, 11, 0.18);
+      transform: translateY(-1px);
+    }
+
+    .action-btn:focus-visible {
+      outline: 2px solid #4b5563;
+      outline-offset: 2px;
+    }
+
+    .hint {
+      margin-top: 18px;
+      font-size: 12px;
+      color: #9ca3af;
+      line-height: 1.6;
+    }
+
+    .hint span {
+      font-weight: 500;
+      color: #6b7280;
+    }
+
+    @media (max-width: 480px) {
+      .card {
+        padding: 28px 20px 24px;
+        border-radius: 14px;
+      }
+
+      .avatar {
+        width: 132px;
+        height: 132px;
+      }
+
+      .name {
+        font-size: 24px;
+      }
+
+      .subtitle {
+        font-size: 14px;
+      }
+
+      .actions {
+        flex-direction: column;
+      }
+
+      .action-btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page" id="page">
+    <section class="card" id="card">
+      <div class="avatar">Your Photo</div>
+      <h1 class="name">謝舒凱</h1>
+      <p class="subtitle">我是熱愛設計的大學生</p>
+      <nav class="actions" aria-label="社群與聯絡方式">
+        <a class="action-btn action-btn--ig" href="#" target="_blank" rel="noreferrer">Instagram</a>
+        <a class="action-btn action-btn--linkedin" href="#" target="_blank" rel="noreferrer">LinkedIn</a>
+        <a class="action-btn action-btn--email" href="#" target="_blank" rel="noreferrer">Email</a>
+      </nav>
+      <p class="hint">
+        小彩蛋：<span>點擊背景</span>，會有隨機粉嫩色系的驚喜。
+      </p>
+    </section>
+  </div>
+
+  <script>
+    (function () {
+      const page = document.getElementById('page');
+      const card = document.getElementById('card');
+
+      if (!page || !card) return;
+
+      const pastelColors = [
+        '#ffe4e6', // 淡粉紅
+        '#ffe9f0', // 藕粉
+        '#fce7f3', // 淡紫粉
+        '#e0f2fe', // 淡天藍
+        '#e0f7fa', // 淺薄荷藍綠
+        '#fef9c3'  // 淡奶油黃
+      ];
+
+      let currentColor = getComputedStyle(document.body).backgroundColor;
+
+      card.addEventListener('click', function (event) {
+        event.stopPropagation();
+      });
+
+      page.addEventListener('click', function () {
+        const currentComputed = getComputedStyle(document.body).backgroundColor;
+        currentColor = currentComputed || currentColor;
+
+        const candidates = pastelColors.filter(function (hex) {
+          return true;
+        });
+
+        const nextColor = pastelColors[Math.floor(Math.random() * pastelColors.length)];
+        document.body.style.backgroundColor = nextColor;
+        currentColor = nextColor;
+      });
+    })();
+  </script>
+</body>
+</html>

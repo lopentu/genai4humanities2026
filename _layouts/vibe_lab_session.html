@@ -1,0 +1,33 @@
+---
+layout: default
+---
+{% assign s = site.data.vibe_lab.sessions | where: "id", page.session_id | first %}
+<div class="page-hero">
+  <div class="container">
+    <h1 class="section-title">{{ page.title }}</h1>
+    {% if s.subtitle %}<p>{{ s.subtitle }}</p>{% endif %}
+  </div>
+</div>
+
+<div class="section">
+  <div class="container">
+    <p class="fade-up" style="margin-bottom: var(--space-md);">
+      <a href="{{ site.baseurl }}/practice/vibe/">← 返回 vibe coding practice</a>
+    </p>
+
+    <div class="highlights-grid fade-up">
+      {% for item in s.items %}
+      <a
+        href="{{ site.baseurl }}/lab/{{ page.session_id }}/{{ item.file }}"
+        class="highlight-card"
+        style="display: block; color: inherit; text-decoration: none;"
+      >
+        <h3 class="card-title" style="font-size: 1rem;">{{ item.name }}</h3>
+        {% if item.desc and item.desc != "" %}
+        <p class="card-desc">{{ item.desc }}</p>
+        {% endif %}
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</div>

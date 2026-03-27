@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>日語單字卡 — AI　の 日語家教</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+JP:wght@400;700&family=DM+Mono:wght@400;500&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f0a18;
+    --surface: #1a1028;
+    --pink: #ffb7c5;
+    --blue: #b7d4ff;
+    --green: #7dffb3;
+    --text: #e8e0f0;
+    --muted: rgba(255,255,255,0.35);
+    --jp: 'Noto Serif JP', serif;
+    --mono: 'DM Mono', monospace;
+    --body: 'Noto Sans TC', sans-serif;
+  }
+
+  body {
+    font-family: var(--body);
+    background: linear-gradient(160deg, var(--bg) 0%, #1a0e2e 40%, #12081f 100%);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 16px;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .header .tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: rgba(255,183,197,0.5);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .header h1 {
+    font-family: var(--jp);
+    font-size: 28px;
+    background: linear-gradient(135deg, var(--pink), var(--blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* ── CATEGORY TABS ── */
+  .tabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  .tab {
+    padding: 8px 16px;
+    border-radius: 10px;
+    border: 2px solid rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.02);
+    color: var(--muted);
+    cursor: pointer;
+    font-family: var(--body);
+    font-size: 13px;
+    transition: all 0.25s;
+  }
+  .tab:hover { border-color: rgba(255,255,255,0.15); }
+  .tab.active {
+    border-color: rgba(255,183,197,0.4);
+    background: rgba(255,183,197,0.08);
+    color: var(--pink);
+    font-weight: 600;
+  }
+
+  /* ── CARD CONTAINER ── */
+  .card-area {
+    width: 100%;
+    max-width: 400px;
+    perspective: 800px;
+    margin-bottom: 20px;
+  }
+
+  .card {
+    width: 100%;
+    min-height: 280px;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+  }
+  .card.flipped { transform: rotateY(180deg); }
+
+  .card-face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    border-radius: 20px;
+    padding: 32px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  /* Front */
+  .card-front {
+    background: linear-gradient(145deg, #2d1b3d, #1a1028);
+    border: 2px solid rgba(255,183,197,0.15);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.3);
+  }
+  .card-front .kana {
+    font-family: var(--jp);
+    font-size: 72px;
+    color: var(--pink);
+    line-height: 1;
+  }
+  .card-front .reading {
+    font-family: var(--mono);
+    font-size: 20px;
+    color: var(--blue);
+    letter-spacing: 2px;
+  }
+  .card-front .category-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    background: rgba(255,255,255,0.04);
+    padding: 4px 12px;
+    border-radius: 6px;
+  }
+  .card-front .tap-hint {
+    font-size: 11px;
+    color: rgba(255,255,255,0.15);
+    margin-top: 8px;
+  }
+
+  /* Back */
+  .card-back {
+    background: linear-gradient(145deg, #1b2d3d, #102028);
+    border: 2px solid rgba(183,212,255,0.15);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.3);
+    transform: rotateY(180deg);
+  }
+  .card-back .meaning-zh {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--blue);
+  }
+  .card-back .meaning-en {
+    font-family: var(--mono);
+    font-size: 16px;
+    color: var(--muted);
+  }
+  .card-back .example {
+    margin-top: 8px;
+    padding: 12px 18px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+    text-align: center;
+  }
+  .card-back .example .jp {
+    font-family: var(--jp);
+    font-size: 18px;
+    color: var(--pink);
+    margin-bottom: 4px;
+  }
+  .card-back .example .tr {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* ── CONTROLS ── */
+  .controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .ctrl-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    border: 2px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.03);
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s;
+  }
+  .ctrl-btn:hover {
+    border-color: rgba(255,255,255,0.2);
+    color: var(--text);
+  }
+  .ctrl-btn.speak-btn {
+    width: 60px; height: 60px; border-radius: 50%;
+    border-color: rgba(255,183,197,0.3);
+    background: rgba(255,183,197,0.08);
+    color: var(--pink);
+    font-size: 24px;
+  }
+  .ctrl-btn.speak-btn:hover {
+    background: rgba(255,183,197,0.15);
+    box-shadow: 0 0 20px rgba(255,183,197,0.1);
+  }
+  .ctrl-btn.speak-btn.speaking {
+    animation: pulse 0.6s ease infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255,183,197,0.3); }
+    50% { box-shadow: 0 0 0 12px rgba(255,183,197,0); }
+  }
+
+  /* ── PROGRESS ── */
+  .progress {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .progress-bar {
+    width: 140px;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.06);
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--pink), var(--blue));
+    transition: width 0.4s ease;
+  }
+  .progress-text {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* ── MASTERY DOTS ── */
+  .mastery {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+  .mastery-dot {
+    width: 10px; height: 10px; border-radius: 3px;
+    transition: all 0.3s;
+  }
+  .mastery-dot.unseen { background: rgba(255,255,255,0.06); }
+  .mastery-dot.current { background: var(--pink); box-shadow: 0 0 8px rgba(255,183,197,0.3); }
+  .mastery-dot.seen { background: rgba(255,183,197,0.3); }
+
+  /* ── SPEED SELECTOR ── */
+  .speed-row {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    margin-bottom: 8px;
+  }
+  .speed-btn {
+    padding: 4px 12px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.02);
+    color: var(--muted);
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 11px;
+    transition: all 0.2s;
+  }
+  .speed-btn.active {
+    border-color: rgba(183,212,255,0.3);
+    background: rgba(183,212,255,0.08);
+    color: var(--blue);
+  }
+
+  .footer {
+    margin-top: auto;
+    padding-top: 20px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: rgba(255,255,255,0.12);
+    letter-spacing: 1px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="tag">Session 2 — AI の　日語家教</div>
+  <h1>日語單字卡</h1>
+</div>
+
+<!-- Category Tabs -->
+<div class="tabs" id="tabs"></div>
+
+<!-- Mastery dots -->
+<div class="mastery" id="mastery"></div>
+
+<!-- Progress -->
+<div class="progress">
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <span class="progress-text" id="progressText">1 / 5</span>
+</div>
+
+<!-- Card -->
+<div class="card-area">
+  <div class="card" id="card" onclick="flipCard()">
+    <div class="card-face card-front" id="cardFront"></div>
+    <div class="card-face card-back" id="cardBack"></div>
+  </div>
+</div>
+
+<!-- Speed -->
+<div class="speed-row" id="speedRow"></div>
+
+<!-- Controls -->
+<div class="controls">
+  <button class="ctrl-btn" onclick="prevCard()" title="上一張">←</button>
+  <button class="ctrl-btn speak-btn" id="speakBtn" onclick="speakWord()" title="聽發音">🔊</button>
+  <button class="ctrl-btn" onclick="nextCard()" title="下一張">→</button>
+</div>
+
+<div class="footer">可存成 .html 檔，離線也能使用</div>
+
+<script>
+// ─── VOCABULARY DATA ───
+const VOCAB = {
+  greetings: {
+    label: "🙋 打招呼",
+    words: [
+      { kana: "おはよう", romaji: "ohayou", zh: "早安", en: "Good morning", example: "おはようございます。", exTr: "早安（敬語）" },
+      { kana: "こんにちは", romaji: "konnichiwa", zh: "你好", en: "Hello", example: "こんにちは、元気ですか？", exTr: "你好，你好嗎？" },
+      { kana: "こんばんは", romaji: "konbanwa", zh: "晚上好", en: "Good evening", example: "こんばんは。今日は暑いですね。", exTr: "晚上好，今天很熱呢。" },
+      { kana: "さようなら", romaji: "sayounara", zh: "再見", en: "Goodbye", example: "じゃ、さようなら。", exTr: "那，再見了。" },
+      { kana: "ありがとう", romaji: "arigatou", zh: "謝謝", en: "Thank you", example: "ありがとうございます。", exTr: "非常感謝（敬語）" },
+    ],
+  },
+  numbers: {
+    label: "🔢 數字",
+    words: [
+      { kana: "いち", romaji: "ichi", zh: "一", en: "One (1)", example: "いちばんすきです。", exTr: "最喜歡了。" },
+      { kana: "に", romaji: "ni", zh: "二", en: "Two (2)", example: "にじです。", exTr: "兩點了。" },
+      { kana: "さん", romaji: "san", zh: "三", en: "Three (3)", example: "さんにんいます。", exTr: "有三個人。" },
+      { kana: "よん", romaji: "yon", zh: "四", en: "Four (4)", example: "よんかいです。", exTr: "四樓。" },
+      { kana: "ご", romaji: "go", zh: "五", en: "Five (5)", example: "ごふんまって。", exTr: "等五分鐘。" },
+    ],
+  },
+  daily: {
+    label: "🍙 日常",
+    words: [
+      { kana: "すみません", romaji: "sumimasen", zh: "不好意思", en: "Excuse me / Sorry", example: "すみません、トイレはどこですか？", exTr: "不好意思，廁所在哪裡？" },
+      { kana: "おいしい", romaji: "oishii", zh: "好吃", en: "Delicious", example: "このラーメンはおいしい！", exTr: "這碗拉麵好好吃！" },
+      { kana: "かわいい", romaji: "kawaii", zh: "可愛", en: "Cute", example: "このねこ、かわいい！", exTr: "這隻貓好可愛！" },
+      { kana: "だいじょうぶ", romaji: "daijoubu", zh: "沒問題", en: "It's OK / Are you OK?", example: "だいじょうぶですか？", exTr: "你還好嗎？" },
+      { kana: "おねがいします", romaji: "onegaishimasu", zh: "拜託了", en: "Please", example: "みず、おねがいします。", exTr: "請給我水。" },
+    ],
+  },
+};
+
+// ─── STATE ───
+let currentCategory = 'greetings';
+let currentIndex = 0;
+let isFlipped = false;
+let seenSet = new Set();
+let speechRate = 0.8;
+
+// ─── RENDER ───
+function renderTabs() {
+  const el = document.getElementById('tabs');
+  el.innerHTML = '';
+  Object.entries(VOCAB).forEach(([key, cat]) => {
+    const btn = document.createElement('button');
+    btn.className = 'tab' + (key === currentCategory ? ' active' : '');
+    btn.textContent = cat.label;
+    btn.onclick = () => { currentCategory = key; currentIndex = 0; isFlipped = false; seenSet.clear(); render(); };
+    el.appendChild(btn);
+  });
+}
+
+function renderCard() {
+  const words = VOCAB[currentCategory].words;
+  const w = words[currentIndex];
+  const card = document.getElementById('card');
+
+  card.classList.remove('flipped');
+  isFlipped = false;
+
+  // Front
+  document.getElementById('cardFront').innerHTML = `
+    <div class="category-tag">${VOCAB[currentCategory].label}</div>
+    <div class="kana">${w.kana}</div>
+    <div class="reading">${w.romaji}</div>
+    <div class="tap-hint">← 點卡片翻面看意思 →</div>
+  `;
+
+  // Back
+  document.getElementById('cardBack').innerHTML = `
+    <div class="meaning-zh">${w.zh}</div>
+    <div class="meaning-en">${w.en}</div>
+    <div class="example">
+      <div class="jp">${w.example}</div>
+      <div class="tr">${w.exTr}</div>
+    </div>
+  `;
+
+  // Mark seen
+  seenSet.add(currentIndex);
+}
+
+function renderMastery() {
+  const words = VOCAB[currentCategory].words;
+  const el = document.getElementById('mastery');
+  el.innerHTML = '';
+  words.forEach((_, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'mastery-dot ' + (i === currentIndex ? 'current' : seenSet.has(i) ? 'seen' : 'unseen');
+    dot.onclick = () => { currentIndex = i; isFlipped = false; render(); };
+    dot.style.cursor = 'pointer';
+    el.appendChild(dot);
+  });
+}
+
+function renderProgress() {
+  const words = VOCAB[currentCategory].words;
+  const pct = ((currentIndex + 1) / words.length) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = `${currentIndex + 1} / ${words.length}`;
+}
+
+function renderSpeed() {
+  const el = document.getElementById('speedRow');
+  el.innerHTML = '';
+  [{ rate: 0.5, label: '慢速 🐢' }, { rate: 0.8, label: '普通' }, { rate: 1.2, label: '快速 🐇' }].forEach(s => {
+    const btn = document.createElement('button');
+    btn.className = 'speed-btn' + (speechRate === s.rate ? ' active' : '');
+    btn.textContent = s.label;
+    btn.onclick = () => { speechRate = s.rate; renderSpeed(); };
+    el.appendChild(btn);
+  });
+}
+
+function render() {
+  renderTabs();
+  renderCard();
+  renderMastery();
+  renderProgress();
+  renderSpeed();
+}
+
+// ─── ACTIONS ───
+function flipCard() {
+  isFlipped = !isFlipped;
+  document.getElementById('card').classList.toggle('flipped', isFlipped);
+}
+
+function nextCard() {
+  const words = VOCAB[currentCategory].words;
+  currentIndex = (currentIndex + 1) % words.length;
+  isFlipped = false;
+  render();
+}
+
+function prevCard() {
+  const words = VOCAB[currentCategory].words;
+  currentIndex = (currentIndex - 1 + words.length) % words.length;
+  isFlipped = false;
+  render();
+}
+
+function speakWord() {
+  const w = VOCAB[currentCategory].words[currentIndex];
+  const text = isFlipped ? w.example : w.kana;
+  const btn = document.getElementById('speakBtn');
+
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'ja-JP';
+  u.rate = speechRate;
+
+  btn.classList.add('speaking');
+  u.onend = () => btn.classList.remove('speaking');
+  u.onerror = () => btn.classList.remove('speaking');
+
+  speechSynthesis.speak(u);
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight') nextCard();
+  if (e.key === 'ArrowLeft') prevCard();
+  if (e.key === ' ') { e.preventDefault(); flipCard(); }
+  if (e.key === 'Enter') speakWord();
+});
+
+// ─── INIT ───
+render();
+</script>
+</body>
+</html>

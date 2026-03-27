@@ -1,0 +1,40 @@
+# vibe coding practice — lab 週次（檔案在 /lab/{id}/…）
+sessions:
+  - id: session-0
+    title: "Session 0"
+    blurb: "暖身與小遊戲：熟悉 HTML／互動概念"
+    subtitle: "入門練習與遊戲化互動"
+    items:
+      - name: "Hangman"
+        file: "hangman.html"
+        desc: "猜字遊戲範例頁"
+
+  - id: session-1
+    title: "Session 1"
+    blurb: "數位名片與版面：單頁式個人展示"
+    subtitle: "個人數位名片實作"
+    items:
+      - name: "個人數位名片（範例）"
+        file: "index.html"
+        desc: "單頁名片版型與樣式參考"
+
+  - id: session-2
+    title: "Session 2"
+    blurb: "後訓練、詞彙卡與 AI 素養主題"
+    subtitle: "進階主題與課堂示範"
+    items:
+      - name: "Post-training 概覽"
+        file: "post-training.html"
+        desc: "訓練後階段（RLHF 等）概念整理"
+      - name: "RLHF 互動"
+        file: "RLHF.html"
+        desc: "人類回饋與強化學習相關說明"
+      - name: "網路素養（合併版）"
+        file: "session2-web-literacy-merged.html"
+        desc: "生成式 AI 使用與判讀"
+      - name: "挑戰卡示範"
+        file: "session2-challenge-card-demo.html"
+        desc: "學習挑戰卡互動示範"
+      - name: "詞彙卡示範"
+        file: "session2-vocab-card-demo.html"
+        desc: "詞彙卡版型示範"

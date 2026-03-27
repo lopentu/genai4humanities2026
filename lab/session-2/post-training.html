@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM 智能煉金術 PRO | 互動 SPA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Noto+Sans+TC:wght@300;400;700;900&family=Fira+Code:wght@400;500&display=swap');
+        
+        :root {
+            --bg-app: #020617;
+            --sidebar-w: 260px;
+            --accent: #06b6d4;
+        }
+
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            background-color: var(--bg-app);
+            color: #e2e8f0;
+            overflow: hidden;
+        }
+
+        .view-content {
+            height: 100vh;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+            padding-bottom: 5rem;
+        }
+
+        .glass-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(51, 65, 85, 0.4);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-link.active {
+            background: rgba(6, 182, 212, 0.15);
+            color: var(--accent);
+            border-right: 4px solid var(--accent);
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            max-height: 400px;
+            margin: 0 auto;
+        }
+
+        .math-font { font-family: 'Fira Code', monospace; }
+
+        /* 動畫效果 */
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .view-hidden { display: none; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+    </style>
+</head>
+<body class="antialiased">
+
+<!-- Chosen Palette: Deep Slate #020617 with Cyan #06b6d4 accents. Professional Dark UI. -->
+<!-- Application Structure Plan: 
+1. Sidebar-based SPA structure using Vanilla JS view switching.
+2. Centralized 'state' object to manage Loss, Weights, and History.
+3. Chart.js integration with real-time data push from Forge to Dashboard.
+4. Corrected all ID references to prevent script errors.
+-->
+<!-- Visualization & Content Choices:
+- Dashboard: Real-time loss history and status metrics.
+- Embedding: 2D semantic clustering visualization.
+- Attention: Interactive context weight demonstration.
+- Forge: Live weight matrix update simulation.
+- Alignment: Post-training capability radar.
+-->
+<!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <div class="flex h-screen overflow-hidden">
+        
+        <!-- Sidebar -->
+        <aside class="w-64 bg-slate-950 border-r border-slate-800 hidden md:flex flex-col z-50">
+            <div class="p-6">
+                <div class="flex items-center space-x-3 mb-8">
+                    <span class="text-3xl text-cyan-400">🧪</span>
+                    <span class="font-black text-lg tracking-tighter uppercase text-white">煉金術 PRO</span>
+                </div>
+                
+                <nav class="space-y-2">
+                    <button onclick="switchView('dashboard')" id="nav-dashboard" class="nav-link w-full text-left px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-slate-900 transition flex items-center space-x-3 active">
+                        <span>📊</span> <span>總覽控制台</span>
+                    </button>
+                    <div class="text-[10px] uppercase text-slate-600 font-bold px-4 pt-4 pb-2 tracking-widest">階段 01：準備</div>
+                    <button onclick="switchView('embeddings')" id="nav-embeddings" class="nav-link w-full text-left px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-slate-900 transition flex items-center space-x-3">
+                        <span>💎</span> <span>語義嵌入</span>
+                    </button>
+                    <div class="text-[10px] uppercase text-slate-600 font-bold px-4 pt-4 pb-2 tracking-widest">階段 02：結構</div>
+                    <button onclick="switchView('attention')" id="nav-attention" class="nav-link w-full text-left px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-slate-900 transition flex items-center space-x-3">
+                        <span>⚙️</span> <span>注意力引擎</span>
+                    </button>
+                    <div class="text-[10px] uppercase text-slate-600 font-bold px-4 pt-4 pb-2 tracking-widest">階段 03：鍛造</div>
+                    <button onclick="switchView('forge')" id="nav-forge" class="nav-link w-full text-left px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-slate-900 transition flex items-center space-x-3">
+                        <span>🔥</span> <span>梯度動力學</span>
+                    </button>
+                    <div class="text-[10px] uppercase text-slate-600 font-bold px-4 pt-4 pb-2 tracking-widest">階段 04：靈魂</div>
+                    <button onclick="switchView('alignment')" id="nav-alignment" class="nav-link w-full text-left px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-slate-900 transition flex items-center space-x-3">
+                        <span>🎖️</span> <span>對齊與優化</span>
+                    </button>
+                </nav>
+            </div>
+            
+            <div class="mt-auto p-6 border-t border-slate-900">
+                <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+                    <div class="text-xs text-slate-500 mb-1">模型穩定度</div>
+                    <div class="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                        <div id="stabilityBar" class="h-full bg-cyan-500 transition-all duration-1000" style="width: 45%"></div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 relative overflow-hidden bg-slate-950">
+            
+            <!-- Dashboard View -->
+            <div id="view-dashboard" class="view-content p-8 md:p-12 fade-in">
+                <header class="mb-12">
+                    <h1 class="text-4xl font-black text-white mb-2">煉金實驗室狀態</h1>
+                    <p class="text-slate-500">歡迎回來，首席煉金師。目前模型正在實時鍛造中。</p>
+                </header>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                    <div class="glass-card p-6 rounded-2xl">
+                        <div class="text-slate-500 text-xs font-bold uppercase mb-2">當前 Loss</div>
+                        <div class="text-3xl font-black text-cyan-400 math-font" id="dashLoss">10.0000</div>
+                        <div class="text-xs text-emerald-500 mt-2" id="lossTrend">↑ 監控中</div>
+                    </div>
+                    <div class="glass-card p-6 rounded-2xl">
+                        <div class="text-slate-500 text-xs font-bold uppercase mb-2">訓練步數 (Steps)</div>
+                        <div class="text-3xl font-black text-white math-font" id="dashSteps">0</div>
+                        <div class="text-xs text-slate-500 mt-2">累計優化次數</div>
+                    </div>
+                    <div class="glass-card p-6 rounded-2xl">
+                        <div class="text-slate-500 text-xs font-bold uppercase mb-2">GPU 叢集負載</div>
+                        <div class="text-3xl font-black text-amber-500 math-font">98%</div>
+                        <div class="text-xs text-slate-500 mt-2">H100 x 8192 集群</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="glass-card p-8 rounded-3xl">
+                        <h3 class="font-bold text-xl mb-6 flex items-center"><span class="mr-2">📈</span> 即時損失曲線</h3>
+                        <div class="chart-container">
+                            <canvas id="dashLossChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="glass-card p-8 rounded-3xl">
+                        <h3 class="font-bold text-xl mb-4 flex items-center"><span class="mr-2">📖</span> 系統日誌</h3>
+                        <div id="logConsole" class="space-y-4 text-sm font-mono text-slate-400 h-64 overflow-y-auto pr-2">
+                            <div class="border-l-2 border-cyan-500 pl-4 py-1">
+                                <span class="text-slate-600">[系統]</span> 初始化煉金環境...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Embeddings View -->
+            <div id="view-embeddings" class="view-content p-8 md:p-12 view-hidden fade-in">
+                <header class="mb-12">
+                    <h2 class="text-3xl font-bold text-white mb-2 italic">01. 語義嵌入 (Embeddings)</h2>
+                    <p class="text-slate-500">將破碎的符號映射到高維意義空間。</p>
+                </header>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                    <div class="space-y-6">
+                        <div class="glass-card p-8 rounded-3xl">
+                            <h4 class="font-bold mb-4">輸入實驗文字</h4>
+                            <input type="text" id="tokenInput" value="數據即是新的黃金。" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-xl outline-none focus:ring-2 focus:ring-cyan-500 transition text-white" oninput="updateTokens()">
+                            <div id="tokenOutput" class="flex flex-wrap gap-2 mt-6 p-4 bg-black/30 rounded-xl min-h-[80px]"></div>
+                        </div>
+                        <div class="bg-cyan-500/5 border border-cyan-500/20 p-6 rounded-2xl">
+                            <h5 class="text-cyan-400 font-bold mb-2">原理：語義向量化</h5>
+                            <p class="text-sm text-slate-400 leading-relaxed">
+                                模型不認識「金子」，但它知道「金子」在向量空間中靠近「價值」、「閃亮」與「財富」。
+                            </p>
+                        </div>
+                    </div>
+                    <div class="glass-card p-8 rounded-3xl">
+                        <h4 class="font-bold mb-6 text-center">語義聚類分佈</h4>
+                        <div class="chart-container">
+                            <canvas id="embedChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attention View -->
+            <div id="view-attention" class="view-content p-8 md:p-12 view-hidden fade-in">
+                <header class="mb-12 text-center">
+                    <h2 class="text-3xl font-bold text-white mb-2">02. 自注意力機制 (Attention)</h2>
+                    <p class="text-slate-500">解構 Transformer 如何在長序列中捕捉重點。</p>
+                </header>
+
+                <div class="glass-card p-10 rounded-[3rem] border-cyan-500/20 max-w-5xl mx-auto">
+                    <div id="attentionWords" class="flex flex-wrap justify-center gap-4 mb-12"></div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                        <div class="bg-black/50 p-6 rounded-2xl border border-slate-800 font-mono text-sm h-48 flex flex-col justify-center">
+                            <div class="text-cyan-400">// 注意力矩陣分析</div>
+                            <div id="attInfo" class="text-slate-400 mt-4 italic">點擊單字觀察聯繫...</div>
+                        </div>
+                        <div class="space-y-4 text-sm text-slate-400">
+                            <p>模型會為每個詞計算 <strong>Query (問)</strong>, <strong>Key (答)</strong> 與 <strong>Value (值)</strong>。</p>
+                            <p>透過點積運算，模型能知道「它」在句子中到底是指代哪個名詞。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Forge View -->
+            <div id="view-forge" class="view-content p-8 md:p-12 view-hidden fade-in">
+                <header class="mb-12">
+                    <h2 class="text-3xl font-bold text-white mb-2">03. 梯度鍛造 (The Forge)</h2>
+                    <p class="text-slate-500">手動觸發參數優化過程。</p>
+                </header>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2 glass-card p-8 rounded-3xl">
+                        <div class="flex justify-between items-center mb-6">
+                            <h4 class="font-bold text-cyan-400 uppercase tracking-widest text-sm">權重矩陣 W (實時更新)</h4>
+                            <div class="text-xs text-slate-500 math-font font-bold">STEPS: <span id="forgeStep" class="text-white">0</span></div>
+                        </div>
+                        <div id="weightGrid" class="grid grid-cols-10 gap-1 h-64 bg-black p-2 rounded-lg border border-slate-800"></div>
+                        <div class="mt-8 flex items-center space-x-6">
+                            <button onclick="runTraining()" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-black px-10 py-4 rounded-xl transition shadow-xl shadow-cyan-900/40 active:scale-95">
+                                觸發優化步 (Optimization)
+                            </button>
+                            <div class="flex-1">
+                                <div class="flex justify-between text-[10px] text-slate-500 mb-2 uppercase font-bold">學習率 (η)</div>
+                                <input type="range" id="lrControl" min="0.01" max="0.5" step="0.01" value="0.1" class="w-full accent-cyan-500">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="glass-card p-8 rounded-3xl flex flex-col justify-between">
+                        <div>
+                            <h4 class="font-bold mb-6">當前鍛造狀態</h4>
+                            <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 math-font text-cyan-300 text-lg mb-4">
+                                Loss: <span id="forgeLossDisplay">10.0000</span>
+                            </div>
+                            <p class="text-xs text-slate-500 leading-relaxed">
+                                每次點擊都會根據梯度方向微調權重矩陣。格子的色澤變化代表權重正在發生數值位移。
+                            </p>
+                        </div>
+                        <div class="border-t border-slate-800 pt-6 mt-6">
+                            <div class="text-xs text-slate-500 mb-2">訓練進度</div>
+                            <div class="h-2 w-full bg-slate-800 rounded-full">
+                                <div id="progressFill" class="h-full bg-cyan-500 transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alignment View -->
+            <div id="view-alignment" class="view-content p-8 md:p-12 view-hidden fade-in">
+                <header class="mb-12">
+                    <h2 class="text-3xl font-bold text-white mb-2 italic">04. 靈魂對齊 (Alignment)</h2>
+                    <p class="text-slate-500">透過強化學習，讓模型與人類價值觀一致。</p>
+                </header>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                    <div class="glass-card p-8 rounded-3xl">
+                        <h4 class="text-center font-bold text-slate-400 mb-8 uppercase tracking-widest text-xs">模型人格分析</h4>
+                        <div class="chart-container">
+                            <canvas id="radarChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="p-5 rounded-xl bg-slate-900 border border-slate-800">
+                            <h5 class="text-indigo-400 font-bold mb-1">指令遵循 (Instruction Following)</h5>
+                            <p class="text-xs text-slate-500">模型能夠準確理解並執行複雜的人類指令，而非單純的文字補完。</p>
+                        </div>
+                        <div class="p-5 rounded-xl bg-slate-900 border border-slate-800">
+                            <h5 class="text-cyan-400 font-bold mb-1">安全性 (Safety)</h5>
+                            <p class="text-xs text-slate-500">拒絕生成有害、偏見或非法內容，這是 AI 進入社會的必備底線。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // --- 1. Global State Management ---
+        const state = {
+            currentView: 'dashboard',
+            loss: 10.0,
+            step: 0,
+            history: [10.0],
+            weights: Array.from({length: 100}, () => Math.random() * 2 - 1)
+        };
+
+        function switchView(viewId) {
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+            const navBtn = document.getElementById(`nav-${viewId}`);
+            if(navBtn) navBtn.classList.add('active');
+
+            document.querySelectorAll('.view-content').forEach(el => el.classList.add('view-hidden'));
+            document.getElementById(`view-${viewId}`).classList.remove('view-hidden');
+            
+            state.currentView = viewId;
+            // 每次切換視圖確保圖表有正確重繪大小
+            Object.values(charts).forEach(chart => chart.resize());
+        }
+
+        // --- 2. Charts Logic ---
+        let charts = {};
+
+        function initCharts() {
+            // Dashboard Chart
+            const dashCtx = document.getElementById('dashLossChart').getContext('2d');
+            charts.loss = new Chart(dashCtx, {
+                type: 'line',
+                data: {
+                    labels: ['0'],
+                    datasets: [{
+                        label: 'Loss History',
+                        data: [10.0],
+                        borderColor: '#06b6d4',
+                        backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 2,
+                        pointRadius: 2
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    scales: { 
+                        x: { display: true, grid: { display: false }, ticks: { color: '#475569' } }, 
+                        y: { grid: { color: '#1e293b' }, ticks: { color: '#475569' } } 
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // Embedding Chart
+            const embedCtx = document.getElementById('embedChart').getContext('2d');
+            charts.embed = new Chart(embedCtx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Semantic Space',
+                        data: [
+                            {x: 8, y: 8, l: '財富'}, {x: 8.2, y: 7.5, l: '金子'}, 
+                            {x: 2, y: 2, l: '貓'}, {x: 2.1, y: 1.8, l: '狗'},
+                            {x: 5, y: 5, l: '抽象概念'}
+                        ],
+                        backgroundColor: '#06b6d4',
+                        pointRadius: 6
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { tooltip: { callbacks: { label: (c) => c.raw.l } }, legend: { display: false } }, 
+                    scales: { x: { display: false }, y: { display: false } } 
+                }
+            });
+
+            // Alignment Radar
+            const radarCtx = document.getElementById('radarChart').getContext('2d');
+            charts.radar = new Chart(radarCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['邏輯', '事實', '安全', '幽默', '創意', '遵循'],
+                    datasets: [
+                        { label: '預訓練 (Base)', data: [80, 70, 20, 10, 50, 20], borderColor: '#475569', backgroundColor: 'rgba(71, 85, 105, 0.2)' },
+                        { label: '對齊 (RLHF)', data: [90, 85, 95, 80, 85, 95], borderColor: '#06b6d4', backgroundColor: 'rgba(6, 182, 212, 0.3)' }
+                    ]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    scales: { r: { grid: { color: '#1e293b' }, angleLines: { color: '#1e293b' }, pointLabels: { color: '#94a3b8' }, ticks: { display: false } } }, 
+                    plugins: { legend: { labels: { color: '#f1f5f9' } } } 
+                }
+            });
+        }
+
+        // --- 3. Functional Logic ---
+
+        function updateTokens() {
+            const input = document.getElementById('tokenInput').value;
+            const output = document.getElementById('tokenOutput');
+            const tokens = input.match(/[\u4e00-\u9fa5]|[\w]+|[^\s\w\u4e00-\u9fa5]/g) || [];
+            output.innerHTML = '';
+            tokens.forEach(t => {
+                const span = document.createElement('span');
+                span.className = 'px-3 py-1 bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-mono rounded-md';
+                span.innerText = t;
+                output.appendChild(span);
+            });
+        }
+
+        const attentionWords = ["煉金", "大模型", "需要", "海量", "算力", "支持"];
+        function initAttention() {
+            const container = document.getElementById('attentionWords');
+            attentionWords.forEach(word => {
+                const btn = document.createElement('button');
+                btn.className = 'px-4 py-2 bg-slate-900 border border-slate-800 text-slate-400 font-bold rounded-lg transition-all hover:border-cyan-500';
+                btn.innerText = word;
+                btn.onclick = () => {
+                    document.querySelectorAll('#attentionWords button').forEach(el => {
+                        el.className = 'px-4 py-2 bg-slate-900 border border-slate-800 text-slate-400 font-bold rounded-lg transition-all';
+                        el.style.opacity = Math.random() * 0.4 + 0.2;
+                    });
+                    btn.className = 'px-4 py-2 bg-cyan-500 text-black font-black rounded-lg scale-110 shadow-lg';
+                    btn.style.opacity = 1;
+                    document.getElementById('attInfo').innerText = `正在聚焦於「${word}」。模型正在掃描序列中其他位置的 Key 以計算權重分配。`;
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        function initGrid() {
+            const grid = document.getElementById('weightGrid');
+            grid.innerHTML = '';
+            state.weights.forEach((w, i) => {
+                const div = document.createElement('div');
+                div.id = `w-${i}`;
+                div.className = 'w-full h-full rounded-sm transition-colors duration-150';
+                updateColor(div, w);
+                grid.appendChild(div);
+            });
+        }
+
+        function updateColor(el, val) {
+            const op = Math.min(Math.abs(val), 1);
+            el.style.backgroundColor = val > 0 ? `rgba(6, 182, 212, ${op})` : `rgba(245, 158, 11, ${op})`;
+        }
+
+        function pushLog(msg, colorClass = 'border-cyan-500') {
+            const logConsole = document.getElementById('logConsole');
+            const entry = document.createElement('div');
+            entry.className = `border-l-2 ${colorClass} pl-4 py-1 animate-fade-in`;
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            entry.innerHTML = `<span class="text-slate-600">[${time}]</span> ${msg}`;
+            logConsole.prepend(entry);
+        }
+
+        function runTraining() {
+            const lr = parseFloat(document.getElementById('lrControl').value);
+            state.step++;
+            
+            // 模擬損失下降
+            const prevLoss = state.loss;
+            state.loss = state.loss / (1 + lr * 0.5) + (Math.random() * 0.02 - 0.01);
+            if(state.loss < 0.1) state.loss = 0.1;
+            
+            state.history.push(state.loss);
+            
+            // 模擬權重變化
+            state.weights = state.weights.map(w => w + (Math.random() * 2 - 1) * lr);
+            
+            updateUI();
+            
+            // 更新矩陣格子顏色
+            state.weights.forEach((w, i) => {
+                const el = document.getElementById(`w-${i}`);
+                if(el) updateColor(el, w);
+            });
+
+            // 更新日誌
+            if(state.step % 5 === 0) {
+                pushLog(`已完成 ${state.step} 步優化。Loss 穩定下降至 ${state.loss.toFixed(4)}。`);
+            }
+        }
+
+        function updateUI() {
+            // Dashboard
+            const dashLossEl = document.getElementById('dashLoss');
+            const dashStepsEl = document.getElementById('dashSteps');
+            if(dashLossEl) dashLossEl.innerText = state.loss.toFixed(4);
+            if(dashStepsEl) dashStepsEl.innerText = state.step;
+            
+            // Forge View
+            const forgeLossEl = document.getElementById('forgeLossDisplay');
+            const forgeStepEl = document.getElementById('forgeStep');
+            if(forgeLossEl) forgeLossEl.innerText = state.loss.toFixed(4);
+            if(forgeStepEl) forgeStepEl.innerText = state.step;
+            
+            // Progress Bars
+            const progress = Math.min(100, state.step * 2);
+            const progressFill = document.getElementById('progressFill');
+            const stabilityBar = document.getElementById('stabilityBar');
+            if(progressFill) progressFill.style.width = progress + '%';
+            if(stabilityBar) stabilityBar.style.width = Math.min(100, 45 + progress/2) + '%';
+
+            // 更新趨勢文本
+            const trendEl = document.getElementById('lossTrend');
+            if(trendEl && state.history.length > 1) {
+                const diff = state.history[state.history.length - 1] - state.history[state.history.length - 2];
+                trendEl.innerText = diff < 0 ? '↓ 正在收斂' : '↑ 震盪中';
+                trendEl.className = diff < 0 ? 'text-xs text-emerald-500 mt-2' : 'text-xs text-amber-500 mt-2';
+            }
+
+            // 更新圖表
+            if(charts.loss) {
+                charts.loss.data.labels.push(state.step.toString());
+                charts.loss.data.datasets[0].data.push(state.loss);
+                // 保持最近 30 個數據點，防止圖表過擠
+                if(charts.loss.data.labels.length > 30) {
+                    charts.loss.data.labels.shift();
+                    charts.loss.data.datasets[0].data.shift();
+                }
+                charts.loss.update('none'); // 使用 'none' 模式提升效能
+            }
+        }
+
+        window.onload = () => {
+            initCharts();
+            updateTokens();
+            initAttention();
+            initGrid();
+            updateUI();
+            pushLog("GPU 集群連接成功。");
+            pushLog("準備進行超參數調整...");
+        };
+
+    </script>
+</body>
+</html>

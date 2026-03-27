@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>賦予 AI 靈魂：LLM 強化學習 (RL) 互動解析</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap');
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #fcfbf9; /* Warm neutral background */
+            color: #333333;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 40vh;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .step-active {
+            border-color: #4f46e5; /* Indigo 600 */
+            background-color: #e0e7ff; /* Indigo 100 */
+        }
+        .tab-active {
+            border-bottom-width: 4px;
+            border-color: #4f46e5;
+            color: #4f46e5;
+            font-weight: 700;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+<!-- Chosen Palette: Warm Neutrals with Indigo/Teal Accents (Bg: #fcfbf9, Accents: #4f46e5, #14b8a6) -->
+<!-- Application Structure Plan: The SPA is structured logically into 4 progressive sections to guide the user from high-level concepts to technical details. 1. Hero/Intro sets the stage. 2. The 'Chef Metaphor' uses tabs to explain the 3 training phases intuitively. 3. 'Core Components' uses a grid of interactive cards to introduce the technical actors (Policy, Reward Model, Optimizer). 4. The 'Training Loop' uses an interactive step-by-step simulator to demonstrate the RLHF process. 5. 'The Impact' uses a radar chart to quantitatively visualize WHY RL is better than just SFT. This narrative flow ensures understanding builds sequentially. -->
+<!-- Visualization & Content Choices: 
+1. Chef Metaphor -> Goal: Compare phases -> Viz: Interactive Tabs -> Justification: Allows user to switch contexts without losing their place. Library: Vanilla JS + Tailwind.
+2. Core Components -> Goal: Organize concepts -> Viz: Interactive Cards -> Justification: Chunks information into digestible pieces. Library: HTML/CSS.
+3. RL Loop -> Goal: Show process flow -> Viz: Interactive Stepper with dynamic text block -> Justification: Best way to show sequential operations and changes in state. Library: Vanilla JS + HTML.
+4. The Impact -> Goal: Compare metrics across training phases -> Viz: Radar Chart -> Justification: Radar charts perfectly illustrate multi-dimensional improvements (Safety, Truthfulness, etc.) simultaneously. Library: Chart.js (Canvas, NO SVG). 
+-->
+<!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-2xl mr-2">🧠</span>
+                    <span class="font-bold text-xl tracking-tight text-indigo-900">LLM 後訓練解析</span>
+                </div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#metaphor" class="text-gray-600 hover:text-indigo-600 transition">大廚比喻</a>
+                    <a href="#components" class="text-gray-600 hover:text-indigo-600 transition">核心組件</a>
+                    <a href="#loop" class="text-gray-600 hover:text-indigo-600 transition">修煉循環</a>
+                    <a href="#impact" class="text-gray-600 hover:text-indigo-600 transition">最終影響</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="pt-20 pb-16 px-4 text-center max-w-4xl mx-auto">
+        <div class="inline-block bg-indigo-100 text-indigo-800 px-4 py-1 rounded-full text-sm font-semibold mb-6 shadow-sm">
+            🚀 賦予 AI 靈魂的最後一哩路
+        </div>
+        <h1 class="text-4xl md:text-5xl font-black text-gray-900 mb-6 leading-tight">
+            深度解析 LLM <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-teal-500">強化學習 (RL)</span>
+        </h1>
+        <p class="text-lg text-gray-600 leading-relaxed mb-8">
+            想像一下，你剛教出一個記憶力超群的學生，他背下了整座圖書館的書，也能模仿老師寫出漂亮的作文。但這時他還有一個致命缺點：<br>
+            <strong class="text-gray-900 font-bold bg-yellow-100 px-1">他不知道什麼叫「好」，什麼叫「對」，他只是在玩機率遊戲。</strong><br><br>
+            為了讓這個「書呆子」變成一個真正懂人心、有底線的智慧助手，我們需要進入後訓練的核心階段——強化學習 (Reinforcement Learning)。
+        </p>
+        <a href="#metaphor" class="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 md:py-4 md:text-lg transition shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+            開始探索 ⬇️
+        </a>
+    </header>
+
+    <!-- Section 1: The Metaphor -->
+    <section id="metaphor" class="py-16 bg-white">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-900">👨‍🍳 從「食譜模仿者」到「米其林大廚」</h2>
+                <p class="mt-4 text-lg text-gray-600">本區塊透過廚藝訓練的生動比喻，帶您快速理解 LLM 訓練的三個關鍵階段。點擊下方標籤切換階段，觀察 AI 是如何一步步晉升的。</p>
+            </div>
+
+            <!-- Interactive Tabs -->
+            <div class="flex flex-col md:flex-row border-b border-gray-200 mb-8 justify-center">
+                <button onclick="switchTab('pretrain')" id="tab-pretrain" class="tab-active py-4 px-6 md:px-12 text-center font-medium text-lg hover:text-indigo-600 transition duration-150 ease-in-out focus:outline-none">
+                    📚 1. 預訓練 (Pre-training)
+                </button>
+                <button onclick="switchTab('sft')" id="tab-sft" class="text-gray-500 py-4 px-6 md:px-12 text-center font-medium text-lg hover:text-indigo-600 transition duration-150 ease-in-out focus:outline-none">
+                    🍳 2. 指令微調 (SFT)
+                </button>
+                <button onclick="switchTab('rl')" id="tab-rl" class="text-gray-500 py-4 px-6 md:px-12 text-center font-medium text-lg hover:text-indigo-600 transition duration-150 ease-in-out focus:outline-none">
+                    🎖️ 3. 強化學習 (RL)
+                </button>
+            </div>
+
+            <!-- Tab Contents -->
+            <div id="content-pretrain" class="p-8 rounded-2xl bg-stone-50 border border-stone-200 shadow-sm transition-opacity duration-300">
+                <div class="flex flex-col md:flex-row items-center gap-8">
+                    <div class="text-6xl md:text-8xl w-32 text-center">📚</div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2">閱讀萬卷食譜的書呆子</h3>
+                        <p class="text-gray-700 text-lg">在圖書館讀了幾萬本食譜。他知道「糖」後面通常接「醋」，知道各種食材的關聯性。</p>
+                        <div class="mt-4 inline-block bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-semibold">
+                            ⚠️ 缺點：沒拿過鍋子，缺乏實作能力與目標導向。
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="content-sft" class="hidden p-8 rounded-2xl bg-stone-50 border border-stone-200 shadow-sm transition-opacity duration-300">
+                <div class="flex flex-col md:flex-row items-center gap-8">
+                    <div class="text-6xl md:text-8xl w-32 text-center">🍳</div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2">跟著師傅做的學徒</h3>
+                        <p class="text-gray-700 text-lg">師傅示範做了一百道菜，他照著模仿。他學會了基本動作，能寫出像樣的回答了。</p>
+                        <div class="mt-4 inline-block bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-semibold">
+                            ⚠️ 缺點：師傅沒教過的菜（沒看過的指令），他就會亂做一通。只會模仿，不知優劣。
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="content-rl" class="hidden p-8 rounded-2xl bg-indigo-50 border border-indigo-200 shadow-md transition-opacity duration-300">
+                <div class="flex flex-col md:flex-row items-center gap-8">
+                    <div class="text-6xl md:text-8xl w-32 text-center">🎖️</div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-indigo-900 mb-2">面對美食評論家的大廚</h3>
+                        <p class="text-gray-700 text-lg">這就是 <strong class="text-indigo-700">美食評論家登場</strong> 的時刻。他做出一道菜，評論家不給正確答案，只給「分數」或「好壞排序」。他開始學會察言觀色、通曉人情世故。</p>
+                        <div class="mt-4 inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold">
+                            ✅ 優點：學會了什麼是「好」，懂得權衡與價值觀判斷。
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 2: Core Components -->
+    <section id="components" class="py-16 bg-stone-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-900">🏗️ 強化學習的三大核心組件</h2>
+                <p class="mt-4 text-lg text-gray-600">要跑通這套流程，我們需要三樣東西在「實驗室」裡不斷運作。點擊下方卡片深入了解各個角色的任務。</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Card 1 -->
+                <div class="bg-white rounded-xl shadow-sm hover:shadow-xl transition-shadow duration-300 overflow-hidden cursor-pointer border border-gray-100" onclick="toggleCard('card1')">
+                    <div class="bg-blue-500 h-2 w-full"></div>
+                    <div class="p-6">
+                        <div class="text-4xl mb-4">🤖</div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">1. 學生 (The Policy / LLM)</h3>
+                        <p class="text-gray-600 mb-4 font-medium">這就是我們要訓練的目標模型。</p>
+                        <div id="card1-details" class="hidden text-gray-600 text-sm border-t pt-4 mt-2">
+                            <p>它的最終目標是：<strong>賺取最高的分數</strong>。<br><br>它會針對同一個問題，嘗試給出不同的回答，像是一個不斷嘗試新食譜的廚師。</p>
+                        </div>
+                        <div class="text-blue-500 text-sm font-bold mt-2" id="card1-hint">點擊展開詳情 ▾</div>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="bg-white rounded-xl shadow-sm hover:shadow-xl transition-shadow duration-300 overflow-hidden cursor-pointer border border-gray-100" onclick="toggleCard('card2')">
+                    <div class="bg-purple-500 h-2 w-full"></div>
+                    <div class="p-6">
+                        <div class="text-4xl mb-4">⚖️</div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">2. 裁判 (Reward Model)</h3>
+                        <p class="text-gray-600 mb-4 font-medium">RL 階段最酷的地方：訓練另一個小模型當裁判。</p>
+                        <div id="card2-details" class="hidden text-gray-600 text-sm border-t pt-4 mt-2">
+                            <p><strong>怎麼訓練裁判？</strong> 我們讓人類標註員看兩個 AI 的回答 (A 和 B)，問標註員：「你覺得哪個比較好？」<br><br>裁判學會了人類的<strong>口味（偏好）</strong>。它雖然不會寫文章，但它非常擅長打分數。</p>
+                        </div>
+                        <div class="text-purple-500 text-sm font-bold mt-2" id="card2-hint">點擊展開詳情 ▾</div>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="bg-white rounded-xl shadow-sm hover:shadow-xl transition-shadow duration-300 overflow-hidden cursor-pointer border border-gray-100" onclick="toggleCard('card3')">
+                    <div class="bg-teal-500 h-2 w-full"></div>
+                    <div class="p-6">
+                        <div class="text-4xl mb-4">哨</div> <!-- Text icon fallback -->
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">3. 教練 (Optimization Algorithm)</h3>
+                        <p class="text-gray-600 mb-4 font-medium">通常是 PPO 演算法或最新的 DPO。</p>
+                        <div id="card3-details" class="hidden text-gray-600 text-sm border-t pt-4 mt-2">
+                            <p>教練會根據裁判給的分數，回過頭來告訴學生：<br><br><em>「你剛才那句開場白拿了 90 分，以後多用這種語氣！」</em> 或 <em>「那個回答太囉唆了，減分！」</em></p>
+                        </div>
+                        <div class="text-teal-500 text-sm font-bold mt-2" id="card3-hint">點擊展開詳情 ▾</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 3: Training Loop -->
+    <section id="loop" class="py-16 bg-white">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-900">🔄 強化學習的「修煉循環」 (RLHF)</h2>
+                <p class="mt-4 text-lg text-gray-600">這裡模擬了 RLHF (人類回饋強化學習) 的實際運作流程。點擊「下一步」來觀察模型如何透過評價自我進化。</p>
+            </div>
+
+            <div class="flex flex-col lg:flex-row gap-8 items-start">
+                
+                <!-- Stepper Controls -->
+                <div class="w-full lg:w-1/3 flex flex-col space-y-4">
+                    <button id="step-btn-1" class="step-active text-left p-4 rounded-lg border-2 font-bold transition-colors cursor-pointer" onclick="setStep(1)">
+                        1. 自我演化 (Exploration)
+                    </button>
+                    <button id="step-btn-2" class="border-gray-200 text-gray-500 text-left p-4 rounded-lg border-2 hover:border-indigo-300 transition-colors cursor-pointer font-bold" onclick="setStep(2)">
+                        2. 裁判打分 (Scoring)
+                    </button>
+                    <button id="step-btn-3" class="border-gray-200 text-gray-500 text-left p-4 rounded-lg border-2 hover:border-indigo-300 transition-colors cursor-pointer font-bold" onclick="setStep(3)">
+                        3. 修正偏差 (Optimization)
+                    </button>
+                    <button id="step-btn-4" class="border-gray-200 text-gray-500 text-left p-4 rounded-lg border-2 hover:border-indigo-300 transition-colors cursor-pointer font-bold" onclick="setStep(4)">
+                        4. 防止走火入魔 (KL Penalty)
+                    </button>
+
+                    <button id="next-step-trigger" class="mt-8 bg-indigo-600 text-white py-3 px-6 rounded-full font-bold shadow-md hover:bg-indigo-700 transition" onclick="nextStep()">
+                        進入下一步 ➔
+                    </button>
+                </div>
+
+                <!-- Interactive Display Board -->
+                <div class="w-full lg:w-2/3 bg-gray-900 rounded-2xl p-6 md:p-8 text-white min-h-[400px] shadow-2xl relative border-4 border-gray-800">
+                    <!-- Title area -->
+                    <div class="flex items-center mb-6 pb-4 border-b border-gray-700">
+                        <span class="text-xl bg-gray-800 px-3 py-1 rounded text-green-400 font-mono mr-3">Prompt</span>
+                        <span class="text-lg">「如何拒絕朋友的借錢請求？」</span>
+                    </div>
+
+                    <!-- Dynamic Content Area -->
+                    <div id="sim-content" class="space-y-4 font-mono text-sm md:text-base">
+                        <!-- Step 1 Content initially visible -->
+                        <div class="animate-pulse text-indigo-300 mb-2">// 產生多種版本回答...</div>
+                        <div class="bg-gray-800 p-4 rounded border border-gray-700">
+                            <span class="text-blue-400 font-bold">版本 A:</span> 委婉表達自己最近手頭也緊，希望維持友誼。
+                        </div>
+                        <div class="bg-gray-800 p-4 rounded border border-gray-700">
+                            <span class="text-red-400 font-bold">版本 B:</span> 「沒錢，滾！」
+                        </div>
+                        <div class="bg-gray-800 p-4 rounded border border-gray-700">
+                            <span class="text-yellow-400 font-bold">版本 C:</span> 講述了貨幣起源與總體經濟學，最後忘記回答問題。
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 4: The Impact & Conclusion -->
+    <section id="impact" class="py-16 bg-indigo-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-900">🎯 為什麼 RL 階段這麼重要？</h2>
+                <p class="mt-4 text-lg text-gray-600">為什麼不能只靠 SFT（模仿老師）就好？透過下方雷達圖，看看加入 RL 後，AI 能力的多維度提升。</p>
+            </div>
+
+            <div class="flex flex-col lg:flex-row items-center gap-12">
+                <!-- Chart Area -->
+                <div class="w-full lg:w-1/2 bg-white p-6 rounded-2xl shadow-lg border border-indigo-100">
+                    <h3 class="text-center font-bold text-gray-700 mb-4">訓練階段能力多邊形分析</h3>
+                    <div class="chart-container">
+                        <canvas id="impactChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Text Area -->
+                <div class="w-full lg:w-1/2 space-y-6">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500 hover:shadow-md transition">
+                        <h4 class="text-xl font-bold text-gray-900 flex items-center"><span class="text-2xl mr-2">🚀</span> 1. 超越老師 (Beyond Imitation)</h4>
+                        <p class="mt-2 text-gray-600">SFT 只是模仿人類寫作。但 RL 能讓模型在千萬次的嘗試中，發現連人類都沒想到的、更優雅的表達方式。</p>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500 hover:shadow-md transition">
+                        <h4 class="text-xl font-bold text-gray-900 flex items-center"><span class="text-2xl mr-2">🔍</span> 2. 解決「幻覺」 (Truthfulness)</h4>
+                        <p class="mt-2 text-gray-600">我們可以特別訓練裁判對「胡說八道」扣重分。AI 慢慢就會學會：「不知道就說不知道，否則會被扣分。」</p>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-red-500 hover:shadow-md transition">
+                        <h4 class="text-xl font-bold text-gray-900 flex items-center"><span class="text-2xl mr-2">🛡️</span> 3. 對齊價值觀 (Alignment / Safety)</h4>
+                        <p class="mt-2 text-gray-600">這是 AI 安全的守護神。如果 AI 給出了危險建議（如製造毒藥），裁判會給予極低分，讓 AI 徹底學會「這條路不能走」。</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conclusion Block -->
+            <div class="mt-16 bg-indigo-900 rounded-3xl p-8 md:p-12 text-center text-white shadow-2xl relative overflow-hidden">
+                <div class="absolute top-0 right-0 -mt-10 -mr-10 text-indigo-800 opacity-50 text-9xl">💡</div>
+                <h3 class="text-3xl font-black mb-6 relative z-10">總結：SFT 賦予能力，RL 賦予靈魂</h3>
+                <p class="text-lg md:text-xl text-indigo-100 mb-8 relative z-10 max-w-3xl mx-auto leading-relaxed">
+                    透過強化學習，LLM 不再只是冷冰冰的文字預測器，它學會了什麼是幽默、什麼是冒犯、以及如何在複雜的人類對話中，找到那條最體貼、最精準的對話路徑。
+                </p>
+                <div class="inline-block bg-white text-indigo-900 px-6 py-3 rounded-full font-bold shadow-lg relative z-10 animate-bounce">
+                    ✨ 這就是為什麼 ChatGPT / Claude 聽起來特別「好聊」的秘密武器！
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-gray-900 text-gray-400 py-8 text-center text-sm">
+        <p>互動解析指南：基於 LLM 後訓練階段核心概念製作</p>
+    </footer>
+
+    <!-- Core JavaScript Logic -->
+    <script>
+        // --- 1. Tab Logic for Metaphor Section ---
+        function switchTab(tabId) {
+            // Hide all content
+            document.getElementById('content-pretrain').classList.add('hidden');
+            document.getElementById('content-sft').classList.add('hidden');
+            document.getElementById('content-rl').classList.add('hidden');
+            
+            // Reset tab styles
+            const tabs = ['tab-pretrain', 'tab-sft', 'tab-rl'];
+            tabs.forEach(id => {
+                document.getElementById(id).classList.remove('tab-active', 'border-indigo-600', 'text-indigo-600', 'font-bold');
+                document.getElementById(id).classList.add('text-gray-500', 'font-medium');
+            });
+
+            // Show selected content & style active tab
+            document.getElementById('content-' + tabId).classList.remove('hidden');
+            document.getElementById('tab-' + tabId).classList.remove('text-gray-500', 'font-medium');
+            document.getElementById('tab-' + tabId).classList.add('tab-active');
+        }
+
+        // --- 2. Card Toggle Logic for Components ---
+        function toggleCard(cardPrefix) {
+            const details = document.getElementById(cardPrefix + '-details');
+            const hint = document.getElementById(cardPrefix + '-hint');
+            
+            if (details.classList.contains('hidden')) {
+                details.classList.remove('hidden');
+                hint.innerText = '點擊收起 ▴';
+            } else {
+                details.classList.add('hidden');
+                hint.innerText = '點擊展開詳情 ▾';
+            }
+        }
+
+        // --- 3. Stepper Logic for Training Loop ---
+        let currentStep = 1;
+        
+        const stepData = {
+            1: `
+                <div class="animate-pulse text-indigo-300 mb-2">// Policy 產生多種版本回答...</div>
+                <div class="bg-gray-800 p-4 rounded border border-gray-700 transition-all duration-500">
+                    <span class="text-blue-400 font-bold">版本 A:</span> 委婉表達自己最近手頭也緊，希望維持友誼。
+                </div>
+                <div class="bg-gray-800 p-4 rounded border border-gray-700 mt-2 transition-all duration-500">
+                    <span class="text-red-400 font-bold">版本 B:</span> 「沒錢，滾！」
+                </div>
+                <div class="bg-gray-800 p-4 rounded border border-gray-700 mt-2 transition-all duration-500">
+                    <span class="text-yellow-400 font-bold">版本 C:</span> 講述了貨幣起源與總體經濟學，最後忘記回答問題。
+                </div>
+            `,
+            2: `
+                <div class="text-purple-300 mb-2">// 獎勵模型 (裁判) 快速掃描並給分...</div>
+                <div class="bg-gray-800 p-4 rounded border border-green-500 mt-2 flex justify-between items-center shadow-[0_0_15px_rgba(34,197,94,0.3)]">
+                    <div><span class="text-blue-400 font-bold">版本 A</span> (有禮貌但堅定)</div>
+                    <div class="text-2xl font-black text-green-400">9.5 分</div>
+                </div>
+                <div class="bg-gray-800 p-4 rounded border border-red-500 mt-2 flex justify-between items-center">
+                    <div><span class="text-red-400 font-bold">版本 B</span> (太兇了)</div>
+                    <div class="text-2xl font-black text-red-500">2.0 分</div>
+                </div>
+                <div class="bg-gray-800 p-4 rounded border border-yellow-500 mt-2 flex justify-between items-center">
+                    <div><span class="text-yellow-400 font-bold">版本 C</span> (廢話太多)</div>
+                    <div class="text-2xl font-black text-yellow-500">4.0 分</div>
+                </div>
+            `,
+            3: `
+                <div class="text-teal-300 mb-2">// PPO/DPO 教練透過數學魔法修正模型內部參數...</div>
+                <div class="flex flex-col items-center justify-center h-48 space-y-4">
+                    <div class="text-xl bg-green-900/50 text-green-300 px-6 py-3 rounded-full border border-green-500">
+                        📈 增加「委婉拒絕」風格的機率
+                    </div>
+                    <div class="text-xl bg-red-900/50 text-red-300 px-6 py-3 rounded-full border border-red-500">
+                        📉 減少「粗魯謾罵」風格的機率
+                    </div>
+                </div>
+            `,
+            4: `
+                <div class="text-yellow-300 mb-2">// 啟動約束機制 (KL Penalty)...</div>
+                <div class="bg-gray-800 p-6 rounded border border-gray-600 text-center relative overflow-hidden mt-4">
+                    <div class="absolute top-0 right-0 -mt-2 -mr-2 text-4xl opacity-20 text-white">⚖️</div>
+                    <h4 class="text-lg font-bold text-white mb-2">防止走火入魔！</h4>
+                    <p class="text-gray-400">系統偵測到 AI 為了拿高分，開始出現「過度討好/拍馬屁」的傾向。KL Penalty 拉住了它，確保它在進化的同時，不要離原本那個<span class="text-indigo-400">正常的自己 (Reference Model)</span>太遠。</p>
+                </div>
+            `
+        };
+
+        function setStep(step) {
+            currentStep = step;
+            
+            // Update Buttons
+            for(let i=1; i<=4; i++) {
+                const btn = document.getElementById(`step-btn-${i}`);
+                if(i === step) {
+                    btn.className = "step-active text-left p-4 rounded-lg border-2 font-bold transition-colors cursor-pointer text-indigo-700";
+                } else {
+                    btn.className = "border-gray-200 text-gray-500 text-left p-4 rounded-lg border-2 hover:border-indigo-300 transition-colors cursor-pointer font-bold";
+                }
+            }
+
+            // Update Content with simple fade effect
+            const contentBox = document.getElementById('sim-content');
+            contentBox.style.opacity = 0;
+            setTimeout(() => {
+                contentBox.innerHTML = stepData[step];
+                contentBox.style.opacity = 1;
+            }, 200);
+
+            // Update "Next" button text
+            const nextBtn = document.getElementById('next-step-trigger');
+            if(step === 4) {
+                nextBtn.innerHTML = "🔄 重新模擬";
+            } else {
+                nextBtn.innerHTML = "進入下一步 ➔";
+            }
+        }
+
+        function nextStep() {
+            if(currentStep < 4) {
+                setStep(currentStep + 1);
+            } else {
+                setStep(1); // Reset
+            }
+        }
+
+        // --- 4. Chart.js Initialization for Impact Section ---
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('impactChart').getContext('2d');
+            
+            // Radar Chart Data representing AI capabilities at different stages
+            const data = {
+                labels: [
+                    '語法流暢度 (Fluency)', 
+                    '常識掌握 (Knowledge)', 
+                    '指令遵循 (Following Inst.)', 
+                    '對齊價值觀/安全 (Safety)', 
+                    '解決幻覺 (Truthfulness)', 
+                    '幽默與同理心 (Nuance)'
+                ],
+                datasets: [{
+                    label: '📚 預訓練 (Base Model)',
+                    data: [90, 85, 20, 10, 30, 10],
+                    fill: true,
+                    backgroundColor: 'rgba(209, 213, 219, 0.2)', // Gray
+                    borderColor: 'rgb(156, 163, 175)',
+                    pointBackgroundColor: 'rgb(156, 163, 175)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgb(156, 163, 175)'
+                }, {
+                    label: '🍳 指令微調 (SFT)',
+                    data: [95, 85, 75, 40, 50, 40],
+                    fill: true,
+                    backgroundColor: 'rgba(20, 184, 166, 0.2)', // Teal
+                    borderColor: 'rgb(20, 184, 166)',
+                    pointBackgroundColor: 'rgb(20, 184, 166)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgb(20, 184, 166)'
+                }, {
+                    label: '🎖️ 強化學習 (RLHF)',
+                    data: [98, 85, 95, 95, 85, 90],
+                    fill: true,
+                    backgroundColor: 'rgba(79, 70, 229, 0.4)', // Indigo
+                    borderColor: 'rgb(79, 70, 229)',
+                    pointBackgroundColor: 'rgb(79, 70, 229)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgb(79, 70, 229)'
+                }]
+            };
+
+            const config = {
+                type: 'radar',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: {
+                                color: 'rgba(0,0,0,0.1)'
+                            },
+                            grid: {
+                                color: 'rgba(0,0,0,0.05)'
+                            },
+                            pointLabels: {
+                                font: {
+                                    size: 13,
+                                    family: "'Noto Sans TC', sans-serif"
+                                },
+                                color: '#4b5563'
+                            },
+                            ticks: {
+                                display: false, // hide scale numbers to keep it clean
+                                max: 100,
+                                min: 0
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                font: {
+                                    size: 14,
+                                    family: "'Noto Sans TC', sans-serif",
+                                    weight: 'bold'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(17, 24, 39, 0.9)',
+                            titleFont: { size: 14 },
+                            bodyFont: { size: 13 },
+                            padding: 10,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: function(context) {
+                                    return ' ' + context.dataset.label + ': ' + context.formattedValue + ' 分';
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            new Chart(ctx, config);
+        });
+    </script>
+</body>
+</html>
