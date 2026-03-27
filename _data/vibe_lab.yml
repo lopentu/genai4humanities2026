@@ -23,6 +23,9 @@ sessions:
     blurb: "後訓練、詞彙卡與 AI 素養主題"
     subtitle: "進階主題與課堂示範"
     items:
+      - name: "LLM 向量與推論流程"
+        file: "llm_vector_flow.html"
+        desc: "向量流／注意力／MLP 等推論過程互動模擬"
       - name: "Post-training 概覽"
         file: "post-training.html"
         desc: "訓練後階段（RLHF 等）概念整理"

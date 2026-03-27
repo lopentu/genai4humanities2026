@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM Vector Flow — Inference Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;900&family=Share+Tech+Mono&family=Exo+2:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --bg:       #020a10;
+  --bg2:      #050d16;
+  --surface:  rgba(255,255,255,0.035);
+  --border:   rgba(80,160,220,0.12);
+  --text:     #a8c8e8;
+  --dim:      #2a4a6a;
+
+  --c-stream: #00c8ff;
+  --c-attn:   #ffaa22;
+  --c-mlp:    #cc44ff;
+  --c-norm:   #22ffaa;
+  --c-out:    #ff4466;
+
+  --glow-s: 0 0 18px rgba(0,200,255,0.45);
+  --glow-a: 0 0 18px rgba(255,170,34,0.45);
+  --glow-m: 0 0 18px rgba(204,68,255,0.45);
+}
+
+html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); }
+
+body {
+  font-family: 'Exo 2', sans-serif;
+  display: flex; flex-direction: column;
+  color: var(--text);
+}
+
+/* ── HEADER ─────────────────────────────────────── */
+#header {
+  flex-shrink:0;
+  padding: 9px 20px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 16px;
+}
+#header h1 {
+  font-family: 'Orbitron', monospace;
+  font-size: 12px; font-weight: 600;
+  letter-spacing: .22em;
+  color: var(--c-stream);
+  text-shadow: var(--glow-s);
+  white-space: nowrap;
+}
+.hbadge {
+  font-family: 'Share Tech Mono';
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 2px;
+  border: 1px solid;
+}
+.hbadge.s { border-color:rgba(0,200,255,.3);  color:var(--c-stream); background:rgba(0,200,255,.06); }
+.hbadge.a { border-color:rgba(255,170,34,.3); color:var(--c-attn);   background:rgba(255,170,34,.06); }
+.hbadge.m { border-color:rgba(204,68,255,.3); color:var(--c-mlp);    background:rgba(204,68,255,.06); }
+.hbadge.n { border-color:rgba(34,255,170,.3); color:var(--c-norm);   background:rgba(34,255,170,.06); }
+
+#header-right { margin-left:auto; font-family:'Share Tech Mono'; font-size:10px; color:var(--dim); }
+
+/* ── BODY LAYOUT ─────────────────────────────────── */
+#body { flex:1; display:flex; overflow:hidden; }
+
+/* LEFT PANEL */
+#left {
+  flex-shrink:0; width:180px;
+  background:var(--bg2);
+  border-right:1px solid var(--border);
+  display:flex; flex-direction:column;
+  padding:14px 12px;
+  gap:6px;
+  overflow:hidden;
+}
+
+/* CENTER CANVAS */
+#center { flex:1; position:relative; overflow:hidden; }
+#canvas { display:block; }
+
+/* RIGHT PANEL */
+#right {
+  flex-shrink:0; width:220px;
+  background:var(--bg2);
+  border-left:1px solid var(--border);
+  display:flex; flex-direction:column;
+  padding:14px 12px; gap:14px;
+  overflow-y:auto;
+}
+
+/* ── CONTROLS ────────────────────────────────────── */
+#controls {
+  flex-shrink:0;
+  padding:8px 18px;
+  background:var(--bg2);
+  border-top:1px solid var(--border);
+  display:flex; align-items:center; gap:12px;
+}
+
+/* ── REUSABLE COMPONENTS ──────────────────────────── */
+.panel-title {
+  font-family:'Orbitron', monospace;
+  font-size:8px; font-weight:600;
+  letter-spacing:.18em; text-transform:uppercase;
+  color:var(--dim); margin-bottom:4px;
+}
+
+.token-chip {
+  display:flex; align-items:center; gap:7px;
+  padding:6px 9px;
+  border-radius:4px;
+  border:1px solid var(--border);
+  background:var(--surface);
+  cursor:pointer;
+  transition:all .18s;
+  font-family:'Share Tech Mono'; font-size:12px;
+}
+.token-chip:hover  { border-color:rgba(0,200,255,.4); background:rgba(0,200,255,.07); }
+.token-chip.active { border-color:var(--c-stream);    background:rgba(0,200,255,.12);
+                     box-shadow: var(--glow-s); }
+.tdot {
+  width:7px; height:7px; border-radius:50%; flex-shrink:0;
+}
+
+.legend { display:flex; flex-direction:column; gap:5px; margin-top:auto; padding-top:12px;
+          border-top:1px solid var(--border); }
+.leg { display:flex; align-items:center; gap:7px; font-size:10px; color:var(--dim); }
+.leg-sq { width:10px; height:10px; border-radius:1px; flex-shrink:0; }
+
+.btn {
+  background:var(--surface);
+  border:1px solid var(--border);
+  color:var(--text); font-family:'Exo 2', sans-serif;
+  font-size:11px; padding:5px 13px; border-radius:3px;
+  cursor:pointer; transition:all .15s; white-space:nowrap;
+  letter-spacing:.04em;
+}
+.btn:hover { border-color:rgba(0,200,255,.5); color:var(--c-stream); }
+.btn.primary { background:rgba(0,200,255,.12); border-color:var(--c-stream); color:var(--c-stream); }
+.btn.primary:hover { background:rgba(0,200,255,.22); }
+
+label { font-size:10px; color:var(--dim); white-space:nowrap; }
+input[type=range] { accent-color:var(--c-stream); cursor:pointer; }
+
+.stat { font-family:'Share Tech Mono'; font-size:10px; color:var(--dim); }
+.stat span { color:var(--c-stream); }
+
+/* Right panel sections */
+.rblock { display:flex; flex-direction:column; gap:6px; }
+#layerInfo {
+  font-family:'Share Tech Mono'; font-size:11px;
+  color:var(--c-stream); line-height:1.5;
+}
+#opDesc {
+  font-size:10px; line-height:1.7; color:var(--dim);
+  white-space:pre-wrap;
+}
+
+/* Vector bars */
+#vecBars {
+  display:flex; gap:1px; height:44px;
+  align-items:flex-end; background:rgba(0,0,0,.3);
+  border:1px solid var(--border); border-radius:2px;
+  padding:3px 3px 0;
+}
+.vbar { flex:1; min-height:2px; border-radius:1px 1px 0 0; transition:height .3s ease; }
+
+/* Attention heatmap canvas */
+#attnWrap {
+  border:1px solid var(--border); border-radius:3px;
+  overflow:hidden; background:#030a10;
+}
+#attnCanvas { display:block; width:100%; }
+
+/* Phase indicator */
+#phaseBar {
+  height:2px; background:var(--border); border-radius:1px;
+  overflow:hidden; position:relative;
+}
+#phaseBarFill {
+  height:100%; width:0%; border-radius:1px;
+  transition:background .3s;
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="header">
+  <h1>LLM INFERENCE · VECTOR FLOW</h1>
+  <div class="hbadge s">Residual Stream</div>
+  <div class="hbadge a">Attention</div>
+  <div class="hbadge m">MLP / FFN</div>
+  <div class="hbadge n">LayerNorm</div>
+  <div id="header-right">GPT-style · d=768 · h=12 · L=12</div>
+</div>
+
+<div id="body">
+  <!-- LEFT -->
+  <div id="left">
+    <div class="panel-title">Input Tokens</div>
+    <div id="tokenList"></div>
+
+    <div class="legend">
+      <div class="panel-title">Component Legend</div>
+      <div class="leg"><div class="leg-sq" style="background:#ffaa22;opacity:.85"></div>Attention (cross-token)</div>
+      <div class="leg"><div class="leg-sq" style="background:#cc44ff;opacity:.85"></div>MLP / FFN (per-token)</div>
+      <div class="leg"><div class="leg-sq" style="background:#22ffaa;opacity:.85"></div>Layer Norm</div>
+      <div class="leg"><div class="leg-sq" style="background:#00c8ff;opacity:.85"></div>Residual Stream</div>
+    </div>
+  </div>
+
+  <!-- CENTER -->
+  <div id="center">
+    <canvas id="canvas"></canvas>
+  </div>
+
+  <!-- RIGHT -->
+  <div id="right">
+    <div class="rblock">
+      <div class="panel-title">Current Component</div>
+      <div id="layerInfo">Embedding Layer</div>
+      <div id="phaseBar"><div id="phaseBarFill"></div></div>
+    </div>
+
+    <div class="rblock">
+      <div class="panel-title">Residual Stream · d=768 → PCA(32)</div>
+      <div id="vecBars"></div>
+      <div style="font-family:'Share Tech Mono';font-size:9px;color:var(--dim);margin-top:2px">
+        每條代表一個 PCA 主成分方向的投影強度
+      </div>
+    </div>
+
+    <div class="rblock">
+      <div class="panel-title">Attention Pattern (Layer <span id="attnLayerNum">—</span>)</div>
+      <div id="attnWrap"><canvas id="attnCanvas" width="192" height="192"></canvas></div>
+      <div style="font-family:'Share Tech Mono';font-size:9px;color:var(--dim)">
+        列=Query token，欄=Key token
+      </div>
+    </div>
+
+    <div class="rblock">
+      <div class="panel-title">Operation Notes</div>
+      <div id="opDesc">按下 PLAY 開始模擬…</div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTROLS -->
+<div id="controls">
+  <button class="btn primary" id="playBtn">▶  PLAY</button>
+  <button class="btn" id="stepBtn">STEP →</button>
+  <button class="btn" id="resetBtn">↺  RESET</button>
+  <div style="width:1px;height:18px;background:var(--border)"></div>
+  <label>Speed</label>
+  <input type="range" id="speedSlider" min="0.3" max="4" step="0.1" value="1" style="width:70px">
+  <div class="stat">Layer <span id="layerCtr">0</span> / 12</div>
+  <div class="stat">Phase <span id="phaseCtr">embed</span></div>
+  <div style="margin-left:auto" class="stat">Particles <span id="ptCtr">0</span></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  CONSTANTS
+// ═══════════════════════════════════════════════════════════
+const TOKENS   = ['The', 'model', 'learns', 'deep', 'semantic', 'structure'];
+const N_TOK    = TOKENS.length;
+const N_LAYERS = 12;
+const N_HEADS  = 12;
+
+const TCOLS = [
+  '#00c8ff','#ff7744','#44ffaa','#ffcc00','#ff44bb','#aa88ff'
+];
+
+const PHASE_NAMES = {
+  embed: 'Embedding',
+  stream: 'Residual Stream',
+  norm1: 'LayerNorm₁',
+  attn: 'Multi-Head Attention',
+  norm2: 'LayerNorm₂',
+  mlp: 'MLP / FFN',
+  output: 'Unembedding + Softmax'
+};
+
+const PHASE_SEQ = ['norm1','attn','norm2','mlp'];
+
+const DESCS = {
+  embed: `Token Embedding：\n將每個 token 映射到 d=768 維向量空間（lookup table），並疊加 Positional Encoding。此刻殘差流 (residual stream) 正式初始化──它是貫穿所有層的「公共黑板」。`,
+  norm1: `Pre-LayerNorm（前置正規化）：\n將殘差流向量投影至單位超球面。形式：x̂ = (x − μ) / σ，再乘以可學習的 γ、β。讓後續注意力計算數值穩定。`,
+  attn:  `Multi-Head Self-Attention：\n每個頭 h 獨立計算：\n  Qₕ = xWᵩ,  Kₕ = xWₖ,  Vₕ = xWᵥ\n  αₕ = softmax(QₕKₕᵀ / √dₖ)  [因果遮罩]\n  oₕ = αₕ Vₕ\n\n所有頭串接後投影回 d=768，再以殘差加法寫回殘差流。這是跨 token 唯一的資訊橋樑。`,
+  norm2: `Pre-LayerNorm（前置正規化）：\n在 MLP 之前再做一次 Layer Norm，穩定進入非線性變換前的向量分佈。`,
+  mlp:   `Feed-Forward Network (MLP)：\n逐位置 (position-wise) 獨立計算：\n  x → W₁x (→ d_ff=3072，×4 擴張)\n  → GELU(·) (稀疏激活)\n  → W₂(·) (→ d=768，收縮)\n  → 殘差加法\n\n機制解釋學觀點：MLP 是「記憶查找表」，各神經元記憶 factual patterns。`,
+  output: `Unembedding + Softmax：\n最終殘差流乘以 Unembed 矩陣（d=768 → vocab=50257），再 softmax 得到下一個 token 的機率分佈。頂部 logits 決定了 sampling。`
+};
+
+// ═══════════════════════════════════════════════════════════
+//  CANVAS
+// ═══════════════════════════════════════════════════════════
+const cv  = document.getElementById('canvas');
+const ctx = cv.getContext('2d');
+
+function resize() {
+  const c = document.getElementById('center');
+  cv.width  = c.clientWidth;
+  cv.height = c.clientHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ═══════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════
+let S = {
+  playing: false,
+  layer: 0,          // 0 = embed, 1..N_LAYERS = transformer layers
+  phaseIdx: -1,      // index into PHASE_SEQ, -1 = stream transition
+  phaseT: 0,         // 0..1
+  speed: 1,
+  time: 0,
+  attn: null,
+  particles: [],
+  sparks: [],
+  selectedToken: -1,
+};
+
+// ═══════════════════════════════════════════════════════════
+//  LAYOUT
+// ═══════════════════════════════════════════════════════════
+function layout() {
+  const W = cv.width, H = cv.height;
+  const px = 55, py = 30;
+  const iW = W - px*2, iH = H - py*2;
+  const colW = iW / N_TOK;
+  const streams = TOKENS.map((_,i) => ({
+    x: px + colW*(i+.5),
+    y0: py, y1: H - py
+  }));
+  const layH = iH / (N_LAYERS + 2);
+  const layers = Array.from({length:N_LAYERS},(_,i)=>({
+    y: py + layH*(i+1.5),
+    h: layH
+  }));
+  return {W,H,px,py,iH,colW,streams,layers,layH};
+}
+
+// ═══════════════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════════════
+function rgba(hex, a) {
+  const r=parseInt(hex.slice(1,3),16);
+  const g=parseInt(hex.slice(3,5),16);
+  const b=parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+function lerp(a,b,t){ return a+(b-a)*t; }
+
+function easeInOut(t){ return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2; }
+
+// ═══════════════════════════════════════════════════════════
+//  PARTICLES
+// ═══════════════════════════════════════════════════════════
+class Particle {
+  constructor(ti, x, y) {
+    this.ti   = ti;
+    this.x    = x;  this.y = y;
+    this.vx   = (Math.random()-.5)*1.2;
+    this.vy   = (Math.random()-.5)*1.2;
+    this.r    = 1.8 + Math.random()*1.6;
+    this.col  = TCOLS[ti];
+    this.trail= [];
+    this.tx   = x;  this.ty = y;
+    this.seed = Math.random()*Math.PI*2;
+    this.br   = .5 + Math.random()*.5;
+    this.age  = 0;
+    this.phase= 'stream';
+  }
+  update(dt) {
+    this.age += dt;
+    const ax = (this.tx - this.x) * 0.09;
+    const ay = (this.ty - this.y) * 0.09;
+    this.vx = this.vx*.82 + ax;
+    this.vy = this.vy*.82 + ay;
+    this.x += this.vx*dt;
+    this.y += this.vy*dt;
+    this.trail.push({x:this.x, y:this.y});
+    if(this.trail.length > 14) this.trail.shift();
+  }
+  draw(ctx) {
+    if(this.trail.length > 1) {
+      ctx.beginPath();
+      ctx.moveTo(this.trail[0].x, this.trail[0].y);
+      for(let i=1;i<this.trail.length;i++)
+        ctx.lineTo(this.trail[i].x, this.trail[i].y);
+      ctx.strokeStyle = rgba(this.col, 0.12*this.br);
+      ctx.lineWidth = this.r*.6;
+      ctx.stroke();
+    }
+    const g = ctx.createRadialGradient(this.x,this.y,0,this.x,this.y,this.r*2.5);
+    g.addColorStop(0, rgba(this.col, .95*this.br));
+    g.addColorStop(1, rgba(this.col, 0));
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.beginPath();
+    ctx.arc(this.x,this.y,this.r*2.5,0,Math.PI*2);
+    ctx.fillStyle = g;
+    ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
+  }
+}
+
+class Spark {
+  constructor(x,y,col,vx,vy) {
+    this.x=x; this.y=y; this.col=col;
+    this.vx=vx; this.vy=vy;
+    this.life=1; this.r=1+Math.random()*1.5;
+  }
+  update(dt){ this.x+=this.vx*dt; this.y+=this.vy*dt; this.vy+=.05*dt; this.life-=.025*dt; }
+  dead(){ return this.life<=0; }
+  draw(ctx){
+    const g=ctx.createRadialGradient(this.x,this.y,0,this.x,this.y,this.r*2);
+    g.addColorStop(0, rgba(this.col, this.life*.9));
+    g.addColorStop(1, rgba(this.col,0));
+    ctx.globalCompositeOperation='lighter';
+    ctx.beginPath(); ctx.arc(this.x,this.y,this.r*2,0,Math.PI*2);
+    ctx.fillStyle=g; ctx.fill();
+    ctx.globalCompositeOperation='source-over';
+  }
+}
+
+function spawnSparks(x,y,col,n=12) {
+  for(let i=0;i<n;i++) {
+    const a = Math.random()*Math.PI*2;
+    const spd = 1+Math.random()*3;
+    S.sparks.push(new Spark(x,y,col,Math.cos(a)*spd,Math.sin(a)*spd));
+  }
+}
+
+function initParticles() {
+  const lo = layout();
+  S.particles = [];
+  for(let t=0;t<N_TOK;t++) {
+    const st = lo.streams[t];
+    for(let p=0;p<18;p++) {
+      const x = st.x + (Math.random()-.5)*6;
+      const y = st.y0 + Math.random()*(st.y1-st.y0)*.3;
+      S.particles.push(new Particle(t,x,y));
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ATTENTION
+// ═══════════════════════════════════════════════════════════
+function genAttn(layer) {
+  const a=[];
+  for(let i=0;i<N_TOK;i++){
+    const row=[];
+    for(let j=0;j<N_TOK;j++){
+      if(j>i){ row.push(0); continue; }
+      let w;
+      if(layer<4)      w=Math.exp(-Math.abs(i-j)*(0.4+layer*.1)) + Math.random()*.15;
+      else if(layer<8) w=Math.random()*Math.exp(-Math.abs(i-j)*.18);
+      else             w=Math.random()*.7 + .3*Math.exp(-Math.abs(i-j)*.08);
+      row.push(Math.max(0,w));
+    }
+    const sum=row.reduce((a,b)=>a+b,0)||1;
+    a.push(row.map(v=>v/sum));
+  }
+  return a;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RENDER — BACKGROUND
+// ═══════════════════════════════════════════════════════════
+function drawBG({W,H}) {
+  ctx.fillStyle='#020a10';
+  ctx.fillRect(0,0,W,H);
+  // subtle grid
+  ctx.fillStyle='rgba(0,120,200,0.018)';
+  for(let x=0;x<W;x+=28)
+    for(let y=0;y<H;y+=28){
+      ctx.beginPath(); ctx.arc(x,y,.5,0,Math.PI*2); ctx.fill();
+    }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RENDER — STREAM CHANNELS
+// ═══════════════════════════════════════════════════════════
+function drawChannels(lo) {
+  lo.streams.forEach((st,i)=>{
+    // channel glow
+    const g=ctx.createLinearGradient(st.x-14,0,st.x+14,0);
+    g.addColorStop(0,'transparent');
+    g.addColorStop(.5,rgba(TCOLS[i],.05));
+    g.addColorStop(1,'transparent');
+    ctx.fillStyle=g;
+    ctx.fillRect(st.x-14,lo.py,28,lo.iH);
+
+    // token label
+    ctx.save();
+    ctx.shadowColor=TCOLS[i]; ctx.shadowBlur=10;
+    ctx.fillStyle=rgba(TCOLS[i],.85);
+    ctx.font="bold 11px 'Share Tech Mono'";
+    ctx.textAlign='center';
+    ctx.fillText(TOKENS[i], st.x, lo.py-14);
+    ctx.restore();
+
+    ctx.fillStyle=rgba(TCOLS[i],.35);
+    ctx.font="9px 'Share Tech Mono'";
+    ctx.textAlign='center';
+    ctx.fillText(`[${i}]`, st.x, lo.py);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RENDER — LAYER BLOCKS
+// ═══════════════════════════════════════════════════════════
+function drawLayers(lo) {
+  const curPhase = currentPhaseName();
+
+  lo.layers.forEach((lyr,i)=>{
+    const isCur  = i+1 === S.layer;
+    const isPast = i+1 <  S.layer;
+    const yc = lyr.y;
+    const bH = lyr.h * .7;
+
+    // component sub-blocks
+    const parts = [
+      {h:10, col:'#22ffaa', lbl:'LN₁'},
+      {h:16, col:'#ffaa22', lbl:`ATT ${i+1}`},
+      {h:10, col:'#22ffaa', lbl:'LN₂'},
+      {h:16, col:'#cc44ff', lbl:`MLP ${i+1}`},
+    ];
+    let totalH=0; parts.forEach(p=>totalH+=p.h+2);
+    let py = yc - totalH/2;
+
+    parts.forEach(p=>{
+      const alpha = isPast ? .12 : (isCur ? .55 : .07);
+      const isActivePart = isCur && (
+        (p.lbl==='LN₁' && curPhase==='norm1') ||
+        (p.lbl.startsWith('ATT') && curPhase==='attn') ||
+        (p.lbl==='LN₂' && curPhase==='norm2') ||
+        (p.lbl.startsWith('MLP') && curPhase==='mlp')
+      );
+
+      ctx.fillStyle=rgba(p.col, alpha*.35);
+      ctx.fillRect(lo.px, py, lo.W-lo.px*2, p.h);
+
+      ctx.strokeStyle=rgba(p.col, alpha);
+      ctx.lineWidth = isActivePart ? 1.8 : .5;
+      if(isActivePart){
+        ctx.save();
+        ctx.shadowColor=p.col; ctx.shadowBlur=18;
+        ctx.strokeRect(lo.px,py,lo.W-lo.px*2,p.h);
+        ctx.restore();
+      } else {
+        ctx.strokeRect(lo.px,py,lo.W-lo.px*2,p.h);
+      }
+
+      if(isCur || isPast){
+        ctx.fillStyle=rgba(p.col,alpha*.9);
+        ctx.font=`${isCur?'bold ':''}9px 'Share Tech Mono'`;
+        ctx.textAlign='left';
+        ctx.fillText(p.lbl, lo.px+6, py+p.h/2+3);
+      }
+
+      py += p.h+2;
+    });
+
+    // layer number
+    ctx.fillStyle=isCur?'rgba(255,255,255,.85)':'rgba(255,255,255,.2)';
+    ctx.font=`${isCur?'bold ':''}9px 'Orbitron'`;
+    ctx.textAlign='right';
+    ctx.fillText(`L${i+1}`, lo.px-6, yc+3);
+
+    // active layer attention arcs
+    if(isCur && curPhase==='attn' && S.attn)
+      drawAttnArcs(lo, i, S.phaseT);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RENDER — ATTENTION ARCS
+// ═══════════════════════════════════════════════════════════
+function drawAttnArcs(lo, layerIdx, t) {
+  const lyrY = lo.layers[layerIdx].y;
+  const et   = easeInOut(t);
+
+  S.attn.forEach((row,i)=>{
+    row.forEach((w,j)=>{
+      if(w<.04||i===j) return;
+      const x1=lo.streams[j].x, x2=lo.streams[i].x;
+      const cy = lyrY - 10 - w*30*et;
+
+      ctx.beginPath();
+      ctx.moveTo(x1,lyrY);
+      ctx.quadraticCurveTo((x1+x2)/2,cy,x2,lyrY);
+
+      const grad=ctx.createLinearGradient(x1,lyrY,x2,lyrY);
+      grad.addColorStop(0, rgba(TCOLS[j], w*et*.65));
+      grad.addColorStop(1, rgba(TCOLS[i], w*et*.25));
+      ctx.strokeStyle=grad;
+      ctx.lineWidth=w*2.5;
+      ctx.globalCompositeOperation='lighter';
+      ctx.stroke();
+      ctx.globalCompositeOperation='source-over';
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RENDER — OUTPUT DIST
+// ═══════════════════════════════════════════════════════════
+function drawOutput(lo) {
+  if(S.layer < N_LAYERS) return;
+  const fT = easeInOut(Math.min(S.phaseT*2,1));
+  const bw=3, n=Math.floor((lo.W-lo.px*2)/(bw+2));
+  const maxH=40;
+  for(let i=0;i<n;i++){
+    // simulated logit distribution (spiky)
+    const spike = (i===Math.floor(n*.62)||i===Math.floor(n*.38)) ? 3 : 1;
+    const h=(Math.pow(Math.abs(Math.sin(i*.7+S.time*.0004)),3)*maxH+2) * spike * fT;
+    const col=i<n*.4?'#00c8ff':i<n*.7?'#aa44ff':'#ff4466';
+    ctx.fillStyle=rgba(col,.5);
+    ctx.fillRect(lo.px+i*(bw+2), lo.H-lo.py-h, bw, h);
+  }
+  ctx.fillStyle='rgba(255,255,255,.45)';
+  ctx.font="9px 'Share Tech Mono'";
+  ctx.textAlign='center';
+  ctx.fillText('vocab logits → softmax → P(next token)', lo.W/2, lo.H-lo.py+12);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  UPDATE PARTICLES
+// ═══════════════════════════════════════════════════════════
+function updateParticles(lo) {
+  const curPhase = currentPhaseName();
+  const curLayerIdx = Math.max(0, S.layer-1);
+  const lyrY = lo.layers[Math.min(curLayerIdx,N_LAYERS-1)].y;
+  const t = S.time;
+
+  S.particles.forEach(p=>{
+    const st = lo.streams[p.ti];
+    const wb = Math.sin(t*.0018+p.seed)*4.5;
+    const et = easeInOut(S.phaseT);
+
+    switch(curPhase) {
+      case 'embed':
+      case 'stream':
+        p.tx = st.x + wb;
+        p.ty = lyrY - 5 + Math.sin(t*.0025+p.seed)*8;
+        break;
+
+      case 'norm1':
+      case 'norm2': {
+        // particles converge tighter (normalization metaphor)
+        const tightness = et*.5;
+        p.tx = st.x + wb*(1-tightness);
+        p.ty = lyrY + Math.sin(t*.003+p.seed)*5*(1-tightness*.6);
+        break;
+      }
+
+      case 'attn': {
+        if(!S.attn) break;
+        const row = S.attn[p.ti];
+        const maxJ = row.indexOf(Math.max(...row));
+        const sx = lo.streams[p.ti].x;
+        const dx = lo.streams[maxJ].x;
+        p.tx = sx + (dx-sx)*et*.55 + wb*(1-et*.5);
+        p.ty = lyrY + Math.sin(t*.003+p.seed)*12*et;
+        p.r  = (1.8+Math.random()*.5)*(1+et*.4);
+        break;
+      }
+
+      case 'mlp': {
+        const expand = Math.sin(et*Math.PI);
+        const spread = expand*30;
+        p.tx = st.x + wb + (Math.random()-.5)*spread*2;
+        p.ty = lyrY + (Math.random()-.5)*spread*.8;
+        p.r  = (1.8+Math.random()*.5)*(1+expand*.7);
+        break;
+      }
+
+      case 'output':
+        p.tx = st.x + (lo.W/2-st.x)*et*.5 + wb;
+        p.ty = lo.H - lo.py - 20;
+        break;
+    }
+
+    p.update(1);
+    p.draw(ctx);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  UPDATE SPARKS
+// ═══════════════════════════════════════════════════════════
+function updateSparks() {
+  S.sparks = S.sparks.filter(s=>!s.dead());
+  S.sparks.forEach(s=>{ s.update(1); s.draw(ctx); });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  PHASE LOGIC
+// ═══════════════════════════════════════════════════════════
+function currentPhaseName() {
+  if(S.layer===0)         return 'embed';
+  if(S.layer>N_LAYERS)    return 'output';
+  if(S.phaseIdx===-1)     return 'stream';
+  return PHASE_SEQ[S.phaseIdx];
+}
+
+function advancePhase() {
+  if(S.layer===0) {
+    S.layer=1; S.phaseIdx=-1;
+  } else if(S.layer>N_LAYERS) {
+    S.playing=false; updatePlayBtn();
+    return;
+  } else if(S.phaseIdx===-1) {
+    S.phaseIdx=0;
+    // Enter attn phase — generate attention
+    if(PHASE_SEQ[0]==='norm1'){/* just norm */}
+  } else {
+    S.phaseIdx++;
+    if(S.phaseIdx>=PHASE_SEQ.length) {
+      S.phaseIdx=-1;
+      S.layer++;
+      if(S.layer>N_LAYERS){ S.phaseIdx=-1; }
+    }
+  }
+  S.phaseT=0;
+
+  // Generate attn when entering attn phase
+  const pn=currentPhaseName();
+  if(pn==='attn') {
+    S.attn=genAttn(S.layer-1);
+    updateAttnCanvas();
+    document.getElementById('attnLayerNum').textContent=S.layer;
+    // sparks at each stream
+    const lo=layout();
+    const lyrY=lo.layers[Math.min(S.layer-1,N_LAYERS-1)].y;
+    lo.streams.forEach(st=>spawnSparks(st.x,lyrY,'#ffaa22',6));
+  }
+  if(pn==='mlp') {
+    const lo=layout();
+    const lyrY=lo.layers[Math.min(S.layer-1,N_LAYERS-1)].y;
+    lo.streams.forEach(st=>spawnSparks(st.x,lyrY,'#cc44ff',6));
+  }
+
+  updateUI();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ATTENTION HEATMAP
+// ═══════════════════════════════════════════════════════════
+const acv  = document.getElementById('attnCanvas');
+const actx = acv.getContext('2d');
+
+function updateAttnCanvas() {
+  const W=acv.width, H=acv.height;
+  actx.fillStyle='#030a10';
+  actx.fillRect(0,0,W,H);
+  if(!S.attn) return;
+
+  const cw=W/N_TOK, ch=H/N_TOK;
+  S.attn.forEach((row,i)=>row.forEach((w,j)=>{
+    const v=Math.floor(255*w);
+    actx.fillStyle=`rgba(255,${Math.floor(170*w)},0,${w*.9+.05})`;
+    actx.fillRect(j*cw+.5,i*ch+.5,cw-1,ch-1);
+  }));
+
+  // labels
+  TOKENS.forEach((tok,i)=>{
+    const cw2=W/N_TOK;
+    actx.fillStyle=rgba(TCOLS[i],.7);
+    actx.font="7px 'Share Tech Mono'";
+    actx.textAlign='center';
+    actx.fillText(tok.slice(0,3), i*cw2+cw2/2, H-2);
+    actx.save();
+    actx.translate(3, i*cw2+cw2/2);
+    actx.rotate(-Math.PI/2);
+    actx.fillText(tok.slice(0,3),0,0);
+    actx.restore();
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  VECTOR BARS
+// ═══════════════════════════════════════════════════════════
+function initVecBars() {
+  const el=document.getElementById('vecBars');
+  el.innerHTML='';
+  for(let i=0;i<32;i++){
+    const b=document.createElement('div');
+    b.className='vbar';
+    b.style.height=(4+Math.random()*20)+'px';
+    el.appendChild(b);
+  }
+}
+
+function updateVecBars() {
+  const bars=document.querySelectorAll('.vbar');
+  const l=S.layer/N_LAYERS;
+  bars.forEach((b,i)=>{
+    const h=4+Math.abs(Math.sin(i*.6+S.time*.001))*36;
+    b.style.height=h+'px';
+    b.style.background=`hsl(${200+l*80},75%,${35+h/36*20}%)`;
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  UI UPDATES
+// ═══════════════════════════════════════════════════════════
+function updateUI() {
+  const pn=currentPhaseName();
+  document.getElementById('layerCtr').textContent=S.layer;
+  document.getElementById('phaseCtr').textContent=PHASE_NAMES[pn]||pn;
+  document.getElementById('ptCtr').textContent=S.particles.length;
+
+  // layer info text
+  let lInfo;
+  if(S.layer===0)          lInfo='Embedding Layer';
+  else if(S.layer>N_LAYERS) lInfo='Output / Unembedding';
+  else lInfo=`Layer ${S.layer} · ${PHASE_NAMES[pn]||pn}`;
+  document.getElementById('layerInfo').textContent=lInfo;
+
+  // op description
+  document.getElementById('opDesc').textContent=DESCS[pn]||DESCS.embed;
+
+  // phase bar color
+  const pCol={'norm1':'#22ffaa','attn':'#ffaa22','norm2':'#22ffaa','mlp':'#cc44ff','embed':'#00c8ff','stream':'#00c8ff','output':'#ff4466'};
+  document.getElementById('phaseBarFill').style.background=pCol[pn]||'#00c8ff';
+
+  updateVecBars();
+}
+
+function updatePlayBtn(){
+  document.getElementById('playBtn').textContent = S.playing ? '⏸  PAUSE' : '▶  PLAY';
+  document.getElementById('playBtn').classList.toggle('primary',!S.playing);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  PHASE PROGRESS BAR
+// ═══════════════════════════════════════════════════════════
+function updatePhaseBar(){
+  document.getElementById('phaseBarFill').style.width=(S.phaseT*100)+'%';
+}
+
+// ═══════════════════════════════════════════════════════════
+//  MAIN LOOP
+// ═══════════════════════════════════════════════════════════
+let last=0, phaseClk=0;
+const PHASE_DUR=90; // frames per phase (at speed 1)
+
+function loop(ts) {
+  const dt=Math.min((ts-last)/16.67,3)*S.speed;
+  last=ts; S.time=ts;
+
+  const lo=layout();
+  drawBG(lo);
+  drawChannels(lo);
+  drawLayers(lo);
+
+  // particles
+  updateParticles(lo);
+  updateSparks();
+
+  drawOutput(lo);
+
+  // phase advancement
+  if(S.playing) {
+    phaseClk+=dt;
+    S.phaseT=Math.min(phaseClk/PHASE_DUR,1);
+    updatePhaseBar();
+    if(phaseClk>=PHASE_DUR) {
+      phaseClk=0;
+      advancePhase();
+    }
+  }
+
+  requestAnimationFrame(loop);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  TOKEN LIST
+// ═══════════════════════════════════════════════════════════
+function initTokenList(){
+  const el=document.getElementById('tokenList');
+  el.innerHTML='';
+  TOKENS.forEach((tok,i)=>{
+    const d=document.createElement('div');
+    d.className='token-chip';
+    d.innerHTML=`
+      <div class="tdot" style="background:${TCOLS[i]};box-shadow:0 0 7px ${TCOLS[i]}"></div>
+      <span style="color:${TCOLS[i]};flex:1">${tok}</span>
+      <span style="color:var(--dim);font-size:9px">[${i}]</span>`;
+    d.onclick=()=>{
+      S.selectedToken=i;
+      document.querySelectorAll('.token-chip').forEach(c=>c.classList.remove('active'));
+      d.classList.add('active');
+    };
+    el.appendChild(d);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  CONTROLS
+// ═══════════════════════════════════════════════════════════
+document.getElementById('playBtn').onclick=()=>{
+  S.playing=!S.playing;
+  updatePlayBtn();
+};
+document.getElementById('stepBtn').onclick=()=>{
+  phaseClk=0; S.phaseT=0;
+  advancePhase();
+};
+document.getElementById('resetBtn').onclick=()=>{
+  S.playing=false; S.layer=0; S.phaseIdx=-1; S.phaseT=0;
+  S.attn=null; S.sparks=[]; phaseClk=0;
+  document.getElementById('attnLayerNum').textContent='—';
+  document.getElementById('phaseBarFill').style.width='0%';
+  updatePlayBtn();
+  initParticles();
+  updateUI();
+  actx.fillStyle='#030a10';
+  actx.fillRect(0,0,acv.width,acv.height);
+};
+document.getElementById('speedSlider').oninput=e=>{
+  S.speed=parseFloat(e.target.value);
+};
+
+// ═══════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════
+initTokenList();
+initVecBars();
+initParticles();
+updateUI();
+updateAttnCanvas();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
