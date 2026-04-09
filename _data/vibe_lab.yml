@@ -50,3 +50,6 @@ sessions:
       - name: "Session 3 主頁（CLI × Local AI）"
         file: "session-3-index.html"
         desc: "指令列基礎、魯迅語料批次處理與 Ollama 本地模型操作導覽"
+      - name: "本週加分作業：詞嵌入視覺化"
+        file: "embedding-assignment.html"
+        desc: "使用本地嵌入模型比較兩岸漢語詞彙差異，並完成向量視覺化與反思"
