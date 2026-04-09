@@ -1,8 +1,8 @@
 ---
 layout: page
-title: vibe coding practice
+title: lab sessions
 subtitle: "課堂 Lab 互動頁與第一個專案練習"
-permalink: /practice/vibe/
+permalink: /practice/lab/
 ---
 
 <p class="fade-up">
@@ -16,7 +16,7 @@ permalink: /practice/vibe/
   <div class="highlights-grid">
     {% for s in site.data.vibe_lab.sessions %}
     <a
-      href="{{ site.baseurl }}/practice/vibe/{{ s.id }}/"
+      href="{{ site.baseurl }}/practice/lab/{{ s.id }}/"
       class="highlight-card"
       style="display: block; color: inherit; text-decoration: none;"
     >

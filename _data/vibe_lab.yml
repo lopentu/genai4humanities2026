@@ -1,4 +1,4 @@
-# vibe coding practice — lab 週次（檔案在 /lab/{id}/…）
+# lab sessions — lab 週次（檔案在 /lab/{id}/…）
 sessions:
   - id: session-0
     title: "Session 0"

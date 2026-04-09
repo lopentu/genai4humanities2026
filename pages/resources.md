@@ -10,7 +10,7 @@ permalink: /resources/
     try {
       var p = new URLSearchParams(window.location.search).get("practice");
       if (p === "vibe") {
-        window.location.replace("{{ site.baseurl }}/practice/vibe/");
+        window.location.replace("{{ site.baseurl }}/practice/lab/");
       }
     } catch (e) {}
   })();
@@ -42,8 +42,8 @@ permalink: /resources/
   </h2>
 
   <p class="card-desc" style="margin-bottom: var(--space-md); max-width: 40rem;">
-    <strong>vibe coding practice</strong> 已移至獨立頁面（含各週 Lab 瀏覽與專案嵌入）：
-    <a href="{{ site.baseurl }}/practice/vibe/">前往 vibe coding practice</a>
+    <strong>lab sessions</strong> 已移至獨立頁面（含各週 Lab 瀏覽與專案嵌入）：
+    <a href="{{ site.baseurl }}/practice/lab/">前往 lab sessions</a>
   </p>
 
   <div style="border: 1px solid var(--c-border); border-radius: 12px; overflow: hidden;">
