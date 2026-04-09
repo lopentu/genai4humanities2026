@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CLI 入門與魯迅文本批次處理 · Session 3</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #faf9f7;
+    --ink: #1a1a18;
+    --muted: #5c5c58;
+    --hint: #9a9a94;
+    --surface: #f0efe9;
+    --card: #ffffff;
+    --border: rgba(30,30,20,.12);
+    --accent: #2a6ee4;
+    --accent-bg: #edf3fd;
+    --success-bg: #edfaf2;
+    --success-border: rgba(26,102,48,.2);
+    --warn-bg: #fff9ed;
+    --warn-border: rgba(122,87,0,.2);
+    --info-bg: #edf3fd;
+    --info-border: rgba(42,110,228,.2);
+    --term-bg: #141412;
+    --term-bar: #222220;
+    --r: 10px;
+    --sans: 'Noto Sans TC', 'Helvetica Neue', sans-serif;
+    --mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.75;
+  }
+
+  /* ── nav ── */
+  nav {
+    border-bottom: 0.5px solid var(--border);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    height: 52px;
+    position: sticky;
+    top: 0;
+    background: rgba(250,249,247,.92);
+    backdrop-filter: blur(8px);
+    z-index: 100;
+    gap: 2rem;
+  }
+  nav .brand { font-size: 14px; font-weight: 500; text-decoration: none; color: var(--ink); white-space: nowrap; }
+  nav .brand span { opacity: .5; margin-right: 4px; }
+  nav .links { display: flex; gap: 1.5rem; overflow-x: auto; }
+  nav .links a { font-size: 13px; color: var(--muted); text-decoration: none; white-space: nowrap; }
+  nav .links a:hover { color: var(--ink); }
+  nav .links a.active { color: var(--ink); font-weight: 500; }
+
+  /* ── layout ── */
+  .page { max-width: 840px; margin: 0 auto; padding: 0 2rem 6rem; }
+
+  /* ── hero ── */
+  .hero {
+    padding: 3rem 0 2rem;
+    border-bottom: 0.5px solid var(--border);
+    margin-bottom: 2.5rem;
+  }
+  .breadcrumb { font-size: 13px; color: var(--hint); margin-bottom: 1rem; }
+  .breadcrumb a { color: var(--accent); text-decoration: none; }
+  .meta-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; font-weight: 500; font-family: var(--mono);
+    padding: 3px 10px; border-radius: 99px; border: 0.5px solid;
+  }
+  .badge-session { background: var(--accent-bg); color: #1a4a9e; border-color: rgba(42,110,228,.3); }
+  .badge-time    { background: var(--warn-bg);   color: #7a5700; border-color: var(--warn-border); }
+  .badge-level   { background: var(--success-bg); color: #1a6630; border-color: var(--success-border); }
+
+  .hero h1 { font-size: 28px; font-weight: 700; letter-spacing: -.02em; margin-bottom: .5rem; }
+  .hero .lead { font-size: 15px; color: var(--muted); max-width: 580px; }
+
+  /* ── progress bar ── */
+  .progress-bar {
+    display: flex; align-items: center; gap: 0; margin-bottom: 2.5rem;
+    background: var(--card); border: 0.5px solid var(--border);
+    border-radius: 99px; padding: 5px 14px; overflow-x: auto;
+  }
+  .prog-item { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .prog-dot  { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .prog-done  { background: #27c56a; }
+  .prog-now   { background: var(--accent); }
+  .prog-next  { background: var(--border); }
+  .prog-label { font-size: 12px; color: var(--muted); }
+  .prog-label.now { color: var(--accent); font-weight: 500; }
+  .prog-sep { color: var(--border); margin: 0 8px; font-size: 14px; flex-shrink: 0; }
+
+  /* ── timeline ── */
+  .timeline { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; margin-bottom: 2.5rem; }
+  .tblock {
+    background: var(--card); border: 0.5px solid var(--border);
+    border-radius: var(--r); padding: 12px 14px;
+  }
+  .tblock.now { border-color: var(--accent); background: var(--accent-bg); }
+  .tblock .t-min { font-size: 10px; color: var(--hint); font-family: var(--mono); margin-bottom: 3px; }
+  .tblock .t-title { font-size: 13px; font-weight: 600; }
+  .tblock .t-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .tblock.now .t-title { color: var(--accent); }
+
+  /* ── section ── */
+  .section { margin-bottom: 3rem; }
+  .sec-label {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 600; font-family: var(--mono);
+    text-transform: uppercase; letter-spacing: .06em;
+    color: var(--accent); margin-bottom: .75rem;
+  }
+  .sec-label::before { content: ''; display: inline-block; width: 14px; height: 1.5px; background: var(--accent); }
+  h2 { font-size: 20px; font-weight: 600; margin-bottom: 1rem; letter-spacing: -.01em; }
+  h3 { font-size: 16px; font-weight: 600; margin: 1.5rem 0 .5rem; }
+  p { margin-bottom: .75rem; }
+
+  /* ── concept grid ── */
+  .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
+  .ccard {
+    background: var(--card); border: 0.5px solid var(--border);
+    border-radius: var(--r); padding: 14px 16px;
+  }
+  .ccard .icon { font-size: 20px; margin-bottom: 6px; }
+  .ccard h4 { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .ccard p  { font-size: 12px; color: var(--muted); margin: 0; line-height: 1.5; }
+
+  /* ── callout ── */
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: var(--info-bg);
+    border-radius: 0 var(--r) var(--r) 0;
+    padding: 10px 14px;
+    margin: 1rem 0;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .callout.warn  { border-color: #e0a500; background: var(--warn-bg); }
+  .callout.ok    { border-color: #27c56a; background: var(--success-bg); }
+  .callout strong { font-weight: 600; }
+
+  /* ── compare ── */
+  .cmp { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 1rem 0; }
+  .cmp-card {
+    background: var(--card); border: 0.5px solid var(--border);
+    border-radius: var(--r); padding: 14px 16px; overflow-x: auto;
+  }
+  .cmp-card h4 { font-size: 13px; font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  .os { font-size: 10px; padding: 2px 8px; border-radius: 99px; font-weight: 600; }
+  .os-win { background: #0078d4; color: #fff; }
+  .os-mac { background: #333; color: #fff; }
+  table.cmp-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  table.cmp-table td { padding: 5px 0; border-bottom: 0.5px solid var(--border); vertical-align: top; }
+  table.cmp-table tr:last-child td { border-bottom: none; }
+  table.cmp-table td:first-child { color: var(--muted); width: 46%; }
+  code {
+    font-family: var(--mono);
+    font-size: .88em;
+    background: var(--surface);
+    padding: 1px 5px;
+    border-radius: 4px;
+    border: 0.5px solid var(--border);
+  }
+
+  /* ── terminal ── */
+  .term {
+    background: var(--term-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 1rem 0;
+    font-size: 13px;
+  }
+  .term-bar {
+    background: var(--term-bar);
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .dot  { width: 10px; height: 10px; border-radius: 50%; }
+  .d-r  { background: #ff5f56; }
+  .d-y  { background: #ffbd2e; }
+  .d-g  { background: #27c93f; }
+  .term-label { font-size: 11px; color: #666; margin-left: auto; font-family: var(--mono); }
+  .term-body {
+    padding: 14px 18px;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 2;
+    overflow-x: auto;
+    white-space: pre;
+    color: #ccc;
+  }
+  .ps  { color: #27c93f; }
+  .cmd { color: #f2f2f0; }
+  .out { color: #888; }
+  .cmt { color: #555; font-style: italic; }
+  .hl  { color: #ffbd2e; }
+  .inp { color: #79c0ff; }
+  .err { color: #ff7b72; }
+
+  /* ── tabs ── */
+  .tabs { margin: 1rem 0; }
+  .tab-bar { display: flex; gap: 2px; border-bottom: 0.5px solid var(--border); margin-bottom: -0.5px; }
+  .tab-btn {
+    font-size: 12px; font-family: var(--mono);
+    padding: 6px 14px;
+    border: 0.5px solid transparent;
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    position: relative; bottom: -0.5px;
+    transition: background .12s, color .12s;
+  }
+  .tab-btn.active {
+    background: var(--card);
+    color: var(--ink);
+    border-color: var(--border);
+    font-weight: 600;
+  }
+  .tab-panel { display: none; border: 0.5px solid var(--border); border-top: none; background: var(--card); border-radius: 0 6px 6px 6px; }
+  .tab-panel.active { display: block; }
+  .tab-panel .term { margin: 0; border-radius: 0 0 6px 6px; }
+
+  /* ── step list ── */
+  .steps { list-style: none; }
+  .steps li { display: flex; gap: 14px; padding: 12px 0; border-bottom: 0.5px solid var(--border); align-items: flex-start; }
+  .steps li:last-child { border-bottom: none; }
+  .step-num {
+    min-width: 26px; height: 26px; border-radius: 50%;
+    background: var(--accent-bg); color: var(--accent);
+    font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .step-body strong { font-weight: 600; font-size: 14px; display: block; margin-bottom: 2px; }
+  .step-body span { font-size: 13px; color: var(--muted); }
+
+  /* ── model grid ── */
+  .model-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 10px; margin: 1rem 0; }
+  .model-card {
+    background: var(--card); border: 0.5px solid var(--border);
+    border-radius: var(--r); padding: 14px 16px;
+    transition: border-color .15s;
+  }
+  .model-card.featured { border-color: var(--accent); }
+  .model-card .m-name { font-size: 14px; font-weight: 700; font-family: var(--mono); margin-bottom: 4px; }
+  .model-card.featured .m-name { color: var(--accent); }
+  .model-card .m-size {
+    font-size: 11px; padding: 2px 8px; border-radius: 99px;
+    background: var(--surface); color: var(--muted);
+    display: inline-block; margin-bottom: 8px; font-family: var(--mono);
+  }
+  .model-card .m-ram { font-size: 12px; color: #c47c00; margin-bottom: 4px; }
+  .model-card .m-note { font-size: 12px; color: var(--muted); }
+
+  /* ── disk viz ── */
+  .disk-viz { background: var(--card); border: 0.5px solid var(--border); border-radius: var(--r); padding: 16px 20px; margin: 1rem 0; }
+  .disk-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 12px; }
+  .disk-row:last-child { margin-bottom: 0; }
+  .disk-lbl { min-width: 110px; color: var(--muted); font-family: var(--mono); font-size: 11px; }
+  .disk-track { flex: 1; height: 12px; background: var(--surface); border-radius: 99px; overflow: hidden; border: 0.5px solid var(--border); }
+  .disk-fill  { height: 100%; border-radius: 99px; }
+  .fill-sys   { background: #888; }
+  .fill-model { background: #2a6ee4; }
+  .fill-free  { background: #27c56a; }
+  .disk-val   { min-width: 60px; text-align: right; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+
+  /* ── exercise ── */
+  .exercise {
+    border: 0.5px solid var(--warn-border);
+    background: var(--warn-bg);
+    border-radius: var(--r);
+    padding: 16px 20px;
+    margin: 1.5rem 0;
+  }
+  .exercise h4 { font-size: 14px; font-weight: 600; color: #7a5700; margin-bottom: 8px; }
+  .exercise ol { padding-left: 1.2rem; font-size: 13px; line-height: 2; }
+  .exercise li { color: var(--ink); }
+
+  /* ── summary grid ── */
+  .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px,1fr)); gap: 10px; margin: 1.5rem 0; }
+  .summary-card {
+    background: var(--card); border: 0.5px solid var(--border);
+    border-radius: var(--r); padding: 14px 16px;
+  }
+  .summary-card .s-icon { font-size: 18px; margin-bottom: 6px; }
+  .summary-card h4 { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; }
+  .summary-card p { font-size: 13px; margin: 0; line-height: 1.5; }
+
+  /* ── footer ── */
+  footer {
+    border-top: 0.5px solid var(--border);
+    padding: 1.25rem 2rem;
+    font-size: 12px;
+    color: var(--hint);
+    text-align: center;
+  }
+  footer a { color: var(--hint); text-decoration: none; }
+
+  hr.divider { border: none; border-top: 0.5px solid var(--border); margin: 2.5rem 0; }
+
+  @media (max-width: 600px) {
+    nav { padding: 0 1rem; gap: 1rem; }
+    .page { padding: 0 1rem 5rem; }
+    .timeline { grid-template-columns: 1fr 1fr; }
+    .cmp { grid-template-columns: 1fr; }
+    nav .links { gap: 1rem; }
+  }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav>
+  <a class="brand" href="https://lopentu.github.io/genai4humanities2026/"><span>✦</span>生成式 AI 的人文導論</a>
+  <div class="links">
+    <a href="https://lopentu.github.io/genai4humanities2026/">首頁</a>
+    <a href="https://lopentu.github.io/genai4humanities2026/schedule/">課程進度</a>
+    <a href="https://lopentu.github.io/genai4humanities2026/assignments/">課堂作業</a>
+    <a href="https://lopentu.github.io/genai4humanities2026/project/">期末專案</a>
+    <a href="https://lopentu.github.io/genai4humanities2026/resources/">學習資源</a>
+    <a href="https://lopentu.github.io/genai4humanities2026/practice/vibe/" class="active">vibe coding practice</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- ── hero ── -->
+  <div class="hero">
+    <div class="breadcrumb">
+      <a href="https://lopentu.github.io/genai4humanities2026/practice/vibe/">← vibe coding practice</a>
+      &nbsp;/&nbsp;
+      <a href="https://lopentu.github.io/genai4humanities2026/practice/vibe/session-3/">Session 3</a>
+    </div>
+    <div class="meta-row">
+      <span class="badge badge-session">Session 3</span>
+      <span class="badge badge-time">⏱ 90 min</span>
+      <span class="badge badge-level">入門無需程式背景</span>
+    </div>
+    <h1>CLI 基礎 × 魯迅語料 × Ollama 本地 AI</h1>
+    <p class="lead">學會在指令列操作文字語料、批次統計文本，並在自己的電腦上跑大型語言模型——完全不需要上傳資料到雲端。</p>
+  </div>
+
+  <!-- ── progress ── -->
+  <div class="progress-bar">
+    <div class="prog-item"><span class="prog-dot prog-done"></span><span class="prog-label">檔案格式</span></div>
+    <span class="prog-sep">›</span>
+    <div class="prog-item"><span class="prog-dot prog-done"></span><span class="prog-label">Web 基礎</span></div>
+    <span class="prog-sep">›</span>
+    <div class="prog-item"><span class="prog-dot prog-now"></span><span class="prog-label now">CLI + Ollama（本週）</span></div>
+    <span class="prog-sep">›</span>
+    <div class="prog-item"><span class="prog-dot prog-next"></span><span class="prog-label">Colab / API</span></div>
+    <span class="prog-sep">›</span>
+    <div class="prog-item"><span class="prog-dot prog-next"></span><span class="prog-label">部署</span></div>
+  </div>
+
+  <!-- ── timeline ── -->
+  <div class="timeline">
+    <div class="tblock">
+      <div class="t-min">0 – 10 min</div>
+      <div class="t-title">概念導入</div>
+      <div class="t-sub">CLI 是什麼？為何需要？</div>
+    </div>
+    <div class="tblock now">
+      <div class="t-min">10 – 45 min</div>
+      <div class="t-title">CLI 實作</div>
+      <div class="t-sub">魯迅文本批次處理</div>
+    </div>
+    <div class="tblock now">
+      <div class="t-min">45 – 75 min</div>
+      <div class="t-title">Ollama</div>
+      <div class="t-sub">安裝 → df -h → pull Gemma</div>
+    </div>
+    <div class="tblock">
+      <div class="t-min">75 – 90 min</div>
+      <div class="t-title">收斂討論</div>
+      <div class="t-sub">Q&amp;A ＋ 下週預告</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ══════════════════════════════════════════
+       PART 1 — 概念
+  ══════════════════════════════════════════ -->
+  <div class="section">
+    <div class="sec-label">Part 1 · 0 – 10 min</div>
+    <h2>為什麼要學指令列？</h2>
+
+    <div class="concept-grid">
+      <div class="ccard">
+        <div class="icon">🖱</div>
+        <h4>GUI（圖形介面）</h4>
+        <p>點按按鈕。每次只能做一件事，難以重複執行。</p>
+      </div>
+      <div class="ccard">
+        <div class="icon">⌨️</div>
+        <h4>CLI（指令列）</h4>
+        <p>輸入文字指令。一行命令可處理一千個檔案，可寫成腳本自動重跑。</p>
+      </div>
+      <div class="ccard">
+        <div class="icon">📜</div>
+        <h4>人文學科的優勢</h4>
+        <p>語言直覺強——指令就像英文縮寫：<code>ls</code> = list，<code>cd</code> = change directory。</p>
+      </div>
+      <div class="ccard">
+        <div class="icon">🤖</div>
+        <h4>AI 工具的入口</h4>
+        <p>Ollama、Git、Python 套件管理都需要 CLI。學好這步，後面全打通。</p>
+      </div>
+    </div>
+
+    <div class="callout ok">
+      <strong>類比：</strong>CLI 就像直接跟廚房大廚說「把這一百顆洋蔥全部切末」；GUI 是一次點一顆、用滑鼠按「切」。
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       PART 1b — 對照表
+  ══════════════════════════════════════════ -->
+  <div class="section">
+    <div class="sec-label">Part 1 · 環境差異</div>
+    <h2>Windows vs macOS — 對照一覽</h2>
+
+    <div class="cmp">
+      <div class="cmp-card">
+        <h4><span class="os os-win">Windows</span> PowerShell / Git Bash</h4>
+        <table class="cmp-table">
+          <tr><td>開啟方式</td><td><code>Win + R</code> → powershell</td></tr>
+          <tr><td>路徑分隔</td><td><code>\</code>（反斜線）</td></tr>
+          <tr><td>列出檔案</td><td><code>dir</code> 或 <code>ls</code></td></tr>
+          <tr><td>切換目錄</td><td><code>cd 路徑</code></td></tr>
+          <tr><td>清除畫面</td><td><code>cls</code></td></tr>
+          <tr><td>文字搜尋</td><td><code>Select-String</code></td></tr>
+          <tr><td>磁碟空間</td><td><code>Get-PSDrive C</code></td></tr>
+        </table>
+      </div>
+      <div class="cmp-card">
+        <h4><span class="os os-mac">macOS</span> Terminal / zsh</h4>
+        <table class="cmp-table">
+          <tr><td>開啟方式</td><td><code>Cmd+Space</code> → Terminal</td></tr>
+          <tr><td>路徑分隔</td><td><code>/</code>（正斜線）</td></tr>
+          <tr><td>列出檔案</td><td><code>ls -lh</code></td></tr>
+          <tr><td>切換目錄</td><td><code>cd 路徑</code></td></tr>
+          <tr><td>清除畫面</td><td><code>clear</code></td></tr>
+          <tr><td>文字搜尋</td><td><code>grep</code></td></tr>
+          <tr><td>磁碟空間</td><td><code>df -h</code></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <strong>Windows 學生建議：</strong>安裝 <strong>Git for Windows</strong>（含 Git Bash），指令與 macOS 幾乎一致，課堂統一用 bash 語法示範。
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       PART 2 — 指令速查
+  ══════════════════════════════════════════ -->
+  <div class="section">
+    <div class="sec-label">Part 2 · 10 – 20 min</div>
+    <h2>必學 10 條指令</h2>
+
+    <div class="term">
+      <div class="term-bar"><span class="dot d-r"></span><span class="dot d-y"></span><span class="dot d-g"></span><span class="term-label">bash / zsh</span></div>
+      <div class="term-body"><span class="cmt"># 1. 知道自己在哪</span>
+<span class="ps">$</span> <span class="cmd">pwd</span>
+<span class="out">/Users/student/Documents</span>
+
+<span class="cmt"># 2. 列出目前目錄的檔案（h = human-readable 大小）</span>
+<span class="ps">$</span> <span class="cmd">ls -lh</span>
+
+<span class="cmt"># 3. 切換目錄</span>
+<span class="ps">$</span> <span class="cmd">cd Downloads</span>
+
+<span class="cmt"># 4. 回上一層</span>
+<span class="ps">$</span> <span class="cmd">cd ..</span>
+
+<span class="cmt"># 5. 建立新目錄</span>
+<span class="ps">$</span> <span class="cmd">mkdir luxun_project</span>
+
+<span class="cmt"># 6. 印出文字檔前 10 行（快速預覽）</span>
+<span class="ps">$</span> <span class="cmd">head -n 10 story.txt</span>
+
+<span class="cmt"># 7. 搜尋含有特定字詞的行（人文必學！）</span>
+<span class="ps">$</span> <span class="cmd">grep "阿Q" ahq.txt</span>
+
+<span class="cmt"># 8. 統計字數</span>
+<span class="ps">$</span> <span class="cmd">wc -w ahq.txt</span>
+<span class="out">   12847 ahq.txt</span>
+
+<span class="cmt"># 9. 複製檔案</span>
+<span class="ps">$</span> <span class="cmd">cp ahq.txt backup/ahq_backup.txt</span>
+
+<span class="cmt"># 10. 管線：搜尋並計算出現次數  ← 最重要！</span>
+<span class="ps">$</span> <span class="cmd">grep -o "阿Q" ahq.txt | wc -l</span>
+<span class="out">   178</span></div>
+    </div>
+
+    <div class="callout">
+      <strong>關鍵概念 — 管線（pipe）<code>|</code>：</strong>把左邊指令的「輸出」當作右邊指令的「輸入」。就像語言學的組合性原則（Principle of Compositionality）——小工具組合出大能力。
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ══════════════════════════════════════════
+       PART 3 — 魯迅實作
+  ══════════════════════════════════════════ -->
+  <div class="section">
+    <div class="sec-label">Part 3 · 20 – 45 min</div>
+    <h2>實作：批次處理魯迅小說集</h2>
+
+    <div class="callout">
+      <strong>情境：</strong>你從 Project Gutenberg 下載魯迅《呐喊》，想統計「阿Q」「祥林嫂」「孔乙己」各自出現幾次，並比較各篇章長度。用 Word 要手動重複十幾次；用 CLI，三行指令搞定。
+    </div>
+
+    <h3>步驟一：取得語料</h3>
+    <div class="term">
+      <div class="term-bar"><span class="dot d-r"></span><span class="dot d-y"></span><span class="dot d-g"></span><span class="term-label">bash</span></div>
+      <div class="term-body"><span class="cmt"># 建立專案資料夾</span>
+<span class="ps">$</span> <span class="cmd">mkdir luxun && cd luxun</span>
+
+<span class="cmt"># 從 Gutenberg 下載（-O 指定存檔名）</span>
+<span class="ps">$</span> <span class="cmd">curl -O "https://www.gutenberg.org/cache/epub/25462/pg25462.txt"</span>
+<span class="out">  % Total    % Received  ...  100  156k</span>
+
+<span class="cmt"># 重新命名為好記的名字</span>
+<span class="ps">$</span> <span class="cmd">mv pg25462.txt nahan.txt</span>
+
+<span class="cmt"># 確認成功（看前 5 行）</span>
+<span class="ps">$</span> <span class="cmd">head -n 5 nahan.txt</span>
+<span class="out">The Project Gutenberg eBook of ...</span></div>
+    </div>
+
+    <h3>步驟二：基本探索</h3>
+    <div class="term">
+      <div class="term-bar"><span class="dot d-r"></span><span class="dot d-y"></span><span class="dot d-g"></span><span class="term-label">bash</span></div>
+      <div class="term-body"><span class="cmt"># 全文總字數</span>
+<span class="ps">$</span> <span class="cmd">wc -w nahan.txt</span>
+<span class="out">   45823 nahan.txt</span>
+
+<span class="cmt"># 搜尋含「阿Q」的行，並顯示行號</span>
+<span class="ps">$</span> <span class="cmd">grep -n "阿Q" nahan.txt | head -5</span>
+<span class="out">   234:  阿Q本來也是正人...</span>
+<span class="out">   267:  阿Q的大名，我...</span>
+
+<span class="cmt"># 計算「阿Q」出現總次數</span>
+<span class="ps">$</span> <span class="cmd">grep -o "阿Q" nahan.txt | wc -l</span>
+<span class="out">   178</span></div>
+    </div>
+
+    <h3>步驟三：Python 腳本批次統計（CLI 呼叫 Python）</h3>
+
+    <div class="callout warn">
+      <strong>這裡引入 Python！</strong>複雜任務（多關鍵詞統計、輸出表格）用 Python 腳本完成，但<strong>從 CLI 呼叫</strong>——這就是 CLI 與程式語言的協作模式。
+    </div>
+
+    <div class="term">
+      <div class="term-bar"><span class="dot d-r"></span><span class="dot d-y"></span><span class="dot d-g"></span><span class="term-label">bash — 建立並執行腳本</span></div>
+      <div class="term-body"><span class="cmt"># 建立 Python 腳本</span>
+<span class="ps">$</span> <span class="cmd">cat > count_chars.py << 'EOF'</span>
+<span class="inp">import re, sys</span>
+<span class="inp">text = open(sys.argv[1]).read()</span>
+<span class="inp">chars = ["阿Q", "祥林嫂", "孔乙己", "閏土", "狂人"]</span>
+<span class="inp">for c in chars:</span>
+<span class="inp">    n = len(re.findall(c, text))</span>
+<span class="inp">    bar = "█" * (n // 5)</span>
+<span class="inp">    print(f"{c:&lt;6} {n:4}次  {bar}")</span>
+<span class="inp">EOF</span>
+
+<span class="cmt"># 執行腳本</span>
+<span class="ps">$</span> <span class="cmd">python3 count_chars.py nahan.txt</span>
+<span class="out">阿Q     178次  ████████████████████████████████████</span>
+<span class="out">祥林嫂   47次  █████████</span>
+<span class="out">孔乙己   63次  ████████████</span>
+<span class="out">閏土     29次  █████</span>
+<span class="out">狂人     18次  ███</span></div>
+    </div>
+
+    <div class="callout ok">
+      <strong>管線思維的精髓：</strong>CLI 負責「找到檔案、呼叫工具」，Python 負責「複雜邏輯」，兩者分工合作。這也是 Unix 哲學——每個工具只做好一件事。
+    </div>
+
+    <div class="exercise">
+      <h4>✏️ 課堂練習（10 min，兩人一組）</h4>
+      <ol>
+        <li>下載 <code>nahan.txt</code> 到自己的電腦</li>
+        <li>用 <code>grep</code> 找出含有「革命」的所有行，存到 <code>revolution.txt</code><br>
+            提示：<code>grep "革命" nahan.txt &gt; revolution.txt</code></li>
+        <li>用 <code>wc -l revolution.txt</code> 數一數共幾行包含「革命」</li>
+        <li>（進階）修改 <code>count_chars.py</code>，改成統計你感興趣的詞彙</li>
+      </ol>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ══════════════════════════════════════════
+       PART 4 — Ollama
+  ══════════════════════════════════════════ -->
+  <div class="section">
+    <div class="sec-label">Part 4 · 45 – 75 min</div>
+    <h2>Ollama — 在自己的電腦跑大型語言模型</h2>
+
+    <div class="concept-grid">
+      <div class="ccard">
+        <div class="icon">☁️</div>
+        <h4>雲端 AI（ChatGPT 等）</h4>
+        <p>資料傳送到對方伺服器。方便，但有隱私疑慮，需要網路。</p>
+      </div>
+      <div class="ccard">
+        <div class="icon">💻</div>
+        <h4>本地 AI（Ollama）</h4>
+        <p>模型在自己電腦執行。資料不離機，可離線，適合敏感語料。</p>
+      </div>
+      <div class="ccard">
+        <div class="icon">🔒</div>
+        <h4>人文研究的意義</h4>
+        <p>訪談逐字稿、未出版手稿、田野筆記——不適合上傳外部服務。</p>
+      </div>
+    </div>
+
+    <h3>安裝流程</h3>
+    <ul class="steps">
+      <li>
+        <span class="step-num">1</span>
+        <div class="step-body">
+          <strong>下載安裝程式</strong>
+          <span>前往 <code>ollama.com</code>，依作業系統下載。Windows 是 <code>.exe</code>，macOS 是 <code>.dmg</code>。</span>
+        </div>
+      </li>
+      <li>
+        <span class="step-num">2</span>
+        <div class="step-body">
+          <strong>安裝後開啟 Terminal / PowerShell</strong>
+          <span>Ollama 安裝後會在背景執行服務（daemon），不需要另開介面，直接用指令操作。</span>
+        </div>
+      </li>
+      <li>
+        <span class="step-num">3</span>
+        <div class="step-body">
+          <strong>確認安裝成功</strong>
+          <span>輸入 <code>ollama --version</code>，若顯示版本號即成功。</span>
+        </div>
+      </li>
+      <li>
+        <span class="step-num">4</span>
+        <div class="step-body">
+          <strong>⚠️ 先用 <code>df -h</code> 確認磁碟空間</strong>
+          <span>模型檔案大（幾 GB 到幾十 GB），下載前務必確認空間足夠，否則下載到一半失敗。</span>
+        </div>
+      </li>
+      <li>
+        <span class="step-num">5</span>
+        <div class="step-body">
+          <strong>Pull 模型 → 開始對話</strong>
+          <span>用 <code>ollama pull</code> 下載模型，再用 <code>ollama run</code> 啟動互動對話。</span>
+        </div>
+      </li>
+    </ul>
+
+    <h3><code>df -h</code> 解讀 — 確認磁碟空間</h3>
+    <div class="term">
+      <div class="term-bar"><span class="dot d-r"></span><span class="dot d-y"></span><span class="dot d-g"></span><span class="term-label">macOS / Linux bash</span></div>
+      <div class="term-body"><span class="ps">$</span> <span class="cmd">df -h</span>
+<span class="out">Filesystem       Size   Used  <span class="hl">Avail</span>  Use%  Mounted on</span>
+<span class="out">/dev/disk3s1s1  460G   312G  <span class="inp"> 148G</span>   68%  /</span>
+<span class="out">devfs            205K   205K     0B  100%  /dev</span></div>
+    </div>
+
+    <div class="disk-viz">
+      <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:10px">磁碟空間視覺化（範例：460 GB 硬碟）</div>
+      <div class="disk-row">
+        <span class="disk-lbl">系統 + 應用程式</span>
+        <div class="disk-track"><div class="disk-fill fill-sys" style="width:68%"></div></div>
+        <span class="disk-val">312 GB</span>
+      </div>
+      <div class="disk-row">
+        <span class="disk-lbl">Gemma3:4b 模型</span>
+        <div class="disk-track"><div class="disk-fill fill-model" style="width:5%"></div></div>
+        <span class="disk-val">~2.5 GB</span>
+      </div>
+      <div class="disk-row">
+        <span class="disk-lbl">剩餘可用空間</span>
+        <div class="disk-track"><div class="disk-fill fill-free" style="width:32%"></div></div>
+        <span class="disk-val">148 GB ✓</span>
+      </div>
+      <p style="font-size:12px;color:var(--muted);margin-top:10px;margin-bottom:0">重點看 <strong>Avail</strong> 那欄——至少需要比模型大 2 倍的空間（含解壓縮緩衝）。</p>
+    </div>
+
+    <div class="callout warn">
+      <strong>Windows 版：</strong>PowerShell 用 <code>Get-PSDrive C</code>，或直接開「本機」查看 C 槽。至少需要 <strong>15 GB</strong> 空餘空間再 pull。
+    </div>
+
+    <h3>選擇模型</h3>
+    <div class="model-grid">
+      <div class="model-card featured">
+        <div class="m-name">gemma3:4b</div>
+        <div class="m-size">~2.5 GB</div>
+        <div class="m-ram">需要 ≥ 8 GB RAM</div>
+        <div class="m-note">今日課堂示範。輕量，多數筆電可跑，速度快。</div>
+      </div>
+      <div class="model-card featured">
+        <div class="m-name">gemma3:12b</div>
+        <div class="m-size">~7 GB</div>
+        <div class="m-ram">需要 ≥ 16 GB RAM</div>
+        <div class="m-note">品質更好。建議 M1/M2 Mac 或高規 Windows。</div>
+      </div>
+      <div class="model-card">
+        <div class="m-name">qwen2.5:7b</div>
+        <div class="m-size">~4.7 GB</div>
+        <div class="m-ram">需要 ≥ 12 GB RAM</div>
+        <div class="m-note">中文能力優異，適合中文語料分析。</div>
+      </div>
+      <div class="model-card">
+        <div class="m-name">llama3.2:3b</div>
+        <div class="m-size">~2 GB</div>
+        <div class="m-ram">需要 ≥ 8 GB RAM</div>
+        <div class="m-note">備用選項，英文能力強。</div>
+      </div>
+    </div>
+
+    <h3>Pull → 對話 → 分析文本</h3>
+
+    <div class="tabs">
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchTab(event,'ol-t1')">下載模型</button>
+        <button class="tab-btn" onclick="switchTab(event,'ol-t2')">互動對話</button>
+        <button class="tab-btn" onclick="switchTab(event,'ol-t3')">分析魯迅文本</button>
+      </div>
+      <div id="ol-t1" class="tab-panel active">
+        <div class="term">
+          <div class="term-bar"><span class="dot d-r"></span><span class="dot d-y"></span><span class="dot d-g"></span><span class="term-label">bash</span></div>
+          <div class="term-body"><span class="cmt"># 確認 ollama 已安裝</span>
+<span class="ps">$</span> <span class="cmd">ollama --version</span>
+<span class="out">ollama version is 0.5.x</span>
+
+<span class="cmt"># 下載 Gemma3 4B（約 5–15 分鐘，依網速）</span>
+<span class="ps">$</span> <span class="cmd">ollama pull gemma3:4b</span>
+<span class="out">pulling manifest ...</span>
+<span class="out">pulling 96c415656d37... ████████████████████ 100%  2.5 GB</span>
+<span class="out">success</span>
+
+<span class="cmt"># 查看已下載的模型</span>
+<span class="ps">$</span> <span class="cmd">ollama list</span>
+<span class="out">NAME            ID              SIZE    MODIFIED</span>
+<span class="out">gemma3:4b       a2af6cc3eb7f    2.5 GB  2 minutes ago</span></div>
+        </div>
+      </div>
+      <div id="ol-t2" class="tab-panel">
+        <div class="term">
+          <div class="term-bar"><span class="dot d-r"></span><span class="dot d-y"></span><span class="dot d-g"></span><span class="term-label">bash — 互動模式（輸入 /bye 離開）</span></div>
+          <div class="term-body"><span class="ps">$</span> <span class="cmd">ollama run gemma3:4b</span>
+<span class="out">&gt;&gt;&gt; </span><span class="inp">你好，請用繁體中文介紹自己</span>
+<span class="out">你好！我是 Gemma，由 Google DeepMind 開發的大型語言模型...</span>
+
+<span class="out">&gt;&gt;&gt; </span><span class="inp">魯迅「阿Q正傳」主要批判什麼社會現象？</span>
+<span class="out">《阿Q正傳》透過阿Q這個角色，批判了中國社會中的「精神勝利法」——</span>
+<span class="out">即面對失敗或屈辱時以自我欺騙代替正面應對的心理機制...</span>
+
+<span class="out">&gt;&gt;&gt; </span><span class="inp">/bye</span></div>
+        </div>
+      </div>
+      <div id="ol-t3" class="tab-panel">
+        <div class="term">
+          <div class="term-bar"><span class="dot d-r"></span><span class="dot d-y"></span><span class="dot d-g"></span><span class="term-label">bash — 管線應用：把文本餵給本地 AI</span></div>
+          <div class="term-body"><span class="cmt"># 用 echo 傳入提示 + 文字片段</span>
+<span class="ps">$</span> <span class="cmd">echo "請分析以下文字的諷刺手法：$(head -n 30 nahan.txt)" | ollama run gemma3:4b</span>
+
+<span class="cmt"># 更結構化：用 prompt 檔 + 管線</span>
+<span class="ps">$</span> <span class="cmd">cat > prompt.txt << 'EOF'</span>
+<span class="inp">請列出以下文字中所有人名，並說明其社會身份：</span>
+<span class="inp">EOF</span>
+
+<span class="ps">$</span> <span class="cmd">cat prompt.txt nahan.txt | head -n 60 | ollama run gemma3:4b</span>
+<span class="out">根據文本，以下人名及其社會身份如下：</span>
+<span class="out">1. 阿Q — 底層農民，無固定職業，住在土穀祠...</span>
+<span class="out">2. 趙太爺 — 地方士紳，擁有田產，代表舊地主階層...</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>串接預告：</strong>下週學 Python + API，可以把「把文本餵給 AI」自動化——用程式批次處理幾十篇文章，而不是一篇一篇手動輸入。
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ══════════════════════════════════════════
+       PART 5 — 總結
+  ══════════════════════════════════════════ -->
+  <div class="section">
+    <div class="sec-label">Part 5 · 75 – 90 min</div>
+    <h2>本週學到了什麼 × 下週預告</h2>
+
+    <div class="summary-grid">
+      <div class="summary-card">
+        <div class="s-icon">✓</div>
+        <h4>CLI 基本操作</h4>
+        <p><code>pwd / ls / cd / grep / wc / |</code><br>Windows vs macOS 差異</p>
+      </div>
+      <div class="summary-card">
+        <div class="s-icon">✓</div>
+        <h4>批次文本處理</h4>
+        <p>從 Gutenberg 下載語料，CLI + Python 腳本統計角色頻率</p>
+      </div>
+      <div class="summary-card">
+        <div class="s-icon">✓</div>
+        <h4>本地 AI（Ollama）</h4>
+        <p>安裝、<code>df -h</code> 確認空間、pull 模型、把文本 pipe 給 AI</p>
+      </div>
+      <div class="summary-card">
+        <div class="s-icon">→</div>
+        <h4>下週：Colab + API</h4>
+        <p>把今天的「手動餵文本」自動化，用 Python 批次呼叫 AI</p>
+      </div>
+    </div>
+
+    <div class="exercise">
+      <h4>📚 課後作業</h4>
+      <ol>
+        <li>用 Ollama 對魯迅文本提三個問題，記錄 AI 回答品質（哪裡好？哪裡不足？）</li>
+        <li>用 <code>grep</code> 找出你感興趣的關鍵詞，比較不同詞彙在文本中的分佈規律</li>
+        <li>（進階）嘗試 <code>ollama pull qwen2.5:7b</code>，比較 Gemma 與 Qwen 對同一問題的回答差異</li>
+      </ol>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<footer>
+  <a href="https://lope.linguistics.ntu.edu.tw">LOPE Lab</a>
+  &nbsp;·&nbsp;
+  Graduate Institute of Linguistics, National Taiwan University
+  &nbsp;·&nbsp;
+  <a href="https://taica.edu.tw">TAICA</a>
+  <br>
+  生成式 AI 的人文導論 &nbsp;|&nbsp; Spring 2026 | 114-2
+</footer>
+
+<script>
+function switchTab(e, id) {
+  const container = e.target.closest('.tabs');
+  container.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  container.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  e.target.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+</script>
+
+</body>
+</html>
