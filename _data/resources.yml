@@ -6,9 +6,9 @@ sections:
       - name: "NTU COOL 課程頁面"
         url: "https://cool.ntu.edu.tw"
         desc: "課程作業、討論與公告"
-      - name: "YouTube 課程頻道"
-        url: "#"
-        desc: "課程錄影與補充資源"
+      - name: "DeepLearning.AI"
+        url: "https://www.deeplearning.ai/"
+        desc: "免費課程與補充資源"
 
   - title: "AI 工具"
     icon: "🤖"
@@ -36,7 +36,7 @@ sections:
         url: "#"
         desc: "程世嘉 (2024). 天下文化."
 
-  - title: "認證"
+  - title: "認證 (本學期 Nvidia 認證暫停)"
     icon: "🏅"
     items:
       - name: "NVIDIA DLI 認證"

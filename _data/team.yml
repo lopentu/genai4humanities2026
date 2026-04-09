@@ -2,14 +2,15 @@
 instructor:
   name: "謝舒凱"
   name_en: "Shu-Kai Hsieh"
-  title: "教授 ｜ 語言學研究所/腦與心智"
+  title: "教授 ｜ 台大語言學研究所/腦與心智研究所"
   lab: "LOPE Lab"
   github: "loperntu"
+  website: "https://loperntu.github.io/"
   avatar: "/assets/images/shukai-zen.png"
 
 tas: []
 # Add TAs like:
-# - name: "TA Name"
+  name: "陳韋伶、陳品而、....."
 #   github: "github-handle"
 #   avatar: "/assets/images/ta-name.jpg"
-#   role: "Teaching Assistant"
+# role: "Teaching Assistant"
