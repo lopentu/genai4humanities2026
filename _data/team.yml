@@ -10,7 +10,7 @@ instructor:
 
 tas: []
 # Add TAs like:
-  name: "陳韋伶、陳品而、....."
+#   name: "陳韋伶、陳品而、....."
 #   github: "github-handle"
 #   avatar: "/assets/images/ta-name.jpg"
-# role: "Teaching Assistant"
+#   role: "Teaching Assistant"
