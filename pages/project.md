@@ -14,7 +14,7 @@ permalink: /project/
   <div class="highlight-card fade-up">
     <div class="card-icon">🗓️</div>
     <h3 class="card-title">展演時間</h3>
-    <p class="card-desc">第一輪展演：06/12（W16）<br>聯合展演暨頒獎：06/15（補課）</p>
+    <p class="card-desc">06/12（W16）<br>聯合展演暨頒獎</p>
   </div>
   <div class="highlight-card fade-up">
     <div class="card-icon">🏆</div>
