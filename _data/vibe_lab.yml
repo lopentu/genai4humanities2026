@@ -50,6 +50,3 @@ sessions:
       - name: "Session 3 主頁（CLI × Local AI）"
         file: "session-3-index.html"
         desc: "指令列基礎、魯迅語料批次處理與 Ollama 本地模型操作導覽"
-      - name: "CLI 入門與魯迅文本批次處理"
-        file: "cli-ollama.html"
-        desc: "macOS/Windows 指令列、grep/wc/pipe、下載與分析語料"
