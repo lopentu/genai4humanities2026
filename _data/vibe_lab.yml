@@ -53,3 +53,12 @@ sessions:
       - name: "下週練習：詞嵌入視覺化"
         file: "embedding-assignment.html"
         desc: "使用本地嵌入模型比較兩岸漢語詞彙差異，並完成向量視覺化與反思"
+
+  - id: session-4
+    title: "Session 4"
+    blurb: "Markdown 入門：寫給人看，也寫給 AI 看"
+    subtitle: "Markdown 語法與 AGENTS.md 實作"
+    items:
+      - name: "Markdown 入門與 AGENTS.md 產生器"
+        file: "session-4-markdown-lab.html"
+        desc: "Markdown 核心語法、即時預覽編輯器與 AGENTS.md 互動式產生器"

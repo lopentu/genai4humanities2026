@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Markdown 入門：寫給人看，也寫給 AI 看 · Session 4</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#faf9f7;--ink:#1a1a18;--muted:#5c5c58;--hint:#9a9a94;
+  --surface:#f0efe9;--card:#fff;--border:rgba(28,28,20,.11);
+  --accent:#2a6ee4;--accent-bg:#edf3fd;--accent-text:#1a4a9e;
+  --ok-bg:#edfaf2;--ok-border:rgba(22,100,44,.2);--ok-text:#1a6630;
+  --warn-bg:#fff9ed;--warn-border:rgba(120,84,0,.2);--warn-text:#7a5500;
+  --tip-bg:#f5f0fe;--tip-border:rgba(90,60,180,.2);--tip-text:#3d2a9e;
+  --mono:'JetBrains Mono','Fira Code','Courier New',monospace;
+  --r:10px;
+}
+body{font-family:'Noto Sans TC','Helvetica Neue',sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.8;min-height:100vh}
+
+/* ── nav ── */
+nav{border-bottom:.5px solid var(--border);padding:0 2rem;display:flex;align-items:center;height:52px;position:sticky;top:0;background:rgba(250,249,247,.93);backdrop-filter:blur(10px);z-index:200;gap:2rem}
+.brand{font-size:14px;font-weight:500;text-decoration:none;color:var(--ink);white-space:nowrap}
+.brand span{opacity:.45;margin-right:4px}
+.nav-links{display:flex;gap:1.4rem;overflow-x:auto}
+.nav-links a{font-size:13px;color:var(--muted);text-decoration:none;white-space:nowrap}
+.nav-links a.on{color:var(--ink);font-weight:500}
+
+/* ── page shell ── */
+.page{max-width:860px;margin:0 auto;padding:0 2rem 7rem}
+
+/* ── hero ── */
+.hero{padding:3rem 0 2.2rem;border-bottom:.5px solid var(--border);margin-bottom:2.8rem}
+.crumb{font-size:13px;color:var(--hint);margin-bottom:1rem}
+.crumb a{color:var(--accent);text-decoration:none}
+.meta{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:1rem}
+.pill{display:inline-flex;align-items:center;font-size:11px;font-weight:500;font-family:var(--mono);padding:3px 10px;border-radius:99px;border:.5px solid}
+.p-sess{background:var(--accent-bg);color:var(--accent-text);border-color:rgba(42,110,228,.3)}
+.p-time{background:var(--warn-bg);color:var(--warn-text);border-color:var(--warn-border)}
+.p-lvl{background:var(--ok-bg);color:var(--ok-text);border-color:var(--ok-border)}
+.hero h1{font-size:27px;font-weight:700;letter-spacing:-.02em;margin-bottom:.5rem;line-height:1.25}
+.hero .lead{font-size:15px;color:var(--muted);max-width:580px}
+
+/* ── progress ── */
+.prog{display:flex;align-items:center;gap:0;background:var(--card);border:.5px solid var(--border);border-radius:99px;padding:5px 14px;overflow-x:auto;margin-bottom:2.6rem;flex-wrap:nowrap}
+.pi{display:flex;align-items:center;gap:5px;white-space:nowrap}
+.pd{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.done{background:#27c56a}.now{background:var(--accent)}.next{background:var(--border)}
+.pl{font-size:12px;color:var(--muted)}.pl.now{color:var(--accent);font-weight:500}
+.ps{color:var(--border);margin:0 7px;font-size:13px;flex-shrink:0}
+
+/* ── timeline ── */
+.tl{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:2.8rem}
+.tb{background:var(--card);border:.5px solid var(--border);border-radius:var(--r);padding:11px 13px}
+.tb.on{border-color:var(--accent);background:var(--accent-bg)}
+.tb .tm{font-size:10px;color:var(--hint);font-family:var(--mono);margin-bottom:2px}
+.tb .tt{font-size:13px;font-weight:600}
+.tb .ts{font-size:11px;color:var(--muted);margin-top:1px}
+.tb.on .tt{color:var(--accent)}
+
+/* ── section ── */
+.section{margin-bottom:3.2rem}
+.sec-lbl{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--accent);margin-bottom:.6rem}
+.sec-lbl::before{content:'';width:13px;height:1.5px;background:var(--accent);display:inline-block}
+h2{font-size:20px;font-weight:600;letter-spacing:-.015em;margin-bottom:1rem}
+h3{font-size:15px;font-weight:600;margin:1.8rem 0 .5rem}
+p{margin-bottom:.8rem}
+hr.div{border:none;border-top:.5px solid var(--border);margin:2.8rem 0}
+
+/* ── callouts ── */
+.call{border-left:3px solid var(--accent);background:var(--accent-bg);border-radius:0 var(--r) var(--r) 0;padding:10px 14px;margin:.8rem 0;font-size:13px;line-height:1.65}
+.call.ok{border-color:#27c56a;background:var(--ok-bg)}
+.call.warn{border-color:#e0a500;background:var(--warn-bg)}
+.call.tip{border-color:#7c5cbf;background:var(--tip-bg)}
+.call strong{font-weight:600}
+
+/* ── split pane (live editor) ── */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:0;border:.5px solid var(--border);border-radius:var(--r);overflow:hidden;margin:1rem 0}
+.split-hd{background:var(--surface);padding:7px 14px;font-size:11px;font-family:var(--mono);font-weight:500;color:var(--muted);border-bottom:.5px solid var(--border);display:flex;align-items:center;gap:6px}
+.split-hd .dot2{width:8px;height:8px;border-radius:50%;background:var(--border)}
+.pane-md{border-right:.5px solid var(--border)}
+.pane-md textarea{width:100%;height:320px;padding:14px 16px;font-family:var(--mono);font-size:13px;line-height:1.9;border:none;outline:none;resize:none;background:var(--ink);color:#e8e6df}
+.pane-prev{background:var(--card)}
+.preview-body{padding:14px 18px;font-size:14px;line-height:1.8;min-height:320px;overflow-y:auto}
+.preview-body h1{font-size:20px;font-weight:700;margin:.6rem 0 .3rem;border-bottom:.5px solid var(--border);padding-bottom:4px}
+.preview-body h2{font-size:17px;font-weight:600;margin:.6rem 0 .3rem}
+.preview-body h3{font-size:15px;font-weight:600;margin:.5rem 0 .2rem}
+.preview-body p{margin:.4rem 0}
+.preview-body strong{font-weight:600}
+.preview-body em{font-style:italic}
+.preview-body code{font-family:var(--mono);font-size:.87em;background:var(--surface);padding:1px 5px;border-radius:4px;border:.5px solid var(--border)}
+.preview-body pre{background:var(--ink);border-radius:6px;padding:10px 14px;margin:.5rem 0;overflow-x:auto}
+.preview-body pre code{background:none;border:none;color:#e8e6df;font-size:12px;padding:0}
+.preview-body ul,.preview-body ol{padding-left:1.4rem;margin:.4rem 0}
+.preview-body li{margin:.15rem 0}
+.preview-body blockquote{border-left:3px solid var(--accent);background:var(--accent-bg);padding:6px 12px;margin:.5rem 0;border-radius:0 6px 6px 0;font-size:13px}
+.preview-body hr{border:none;border-top:.5px solid var(--border);margin:.8rem 0}
+.preview-body a{color:var(--accent);text-decoration:none}
+.preview-body table{border-collapse:collapse;width:100%;font-size:13px;margin:.5rem 0}
+.preview-body th{background:var(--surface);font-weight:600;padding:6px 10px;border:.5px solid var(--border);text-align:left}
+.preview-body td{padding:5px 10px;border:.5px solid var(--border)}
+
+/* ── syntax card ── */
+.syn-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:1rem 0}
+.syn-card{background:var(--card);border:.5px solid var(--border);border-radius:var(--r);overflow:hidden}
+.syn-card .sc-top{background:var(--surface);padding:7px 12px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--hint);border-bottom:.5px solid var(--border);display:flex;justify-content:space-between}
+.syn-md{padding:10px 12px;font-family:var(--mono);font-size:12.5px;line-height:1.85;color:#27c93f;background:#141412;white-space:pre}
+.syn-out{padding:10px 12px;font-size:13px;line-height:1.7}
+.syn-out h1,.syn-out h2,.syn-out h3{font-weight:600;margin:0}
+.syn-out h1{font-size:18px}
+.syn-out h2{font-size:15px}
+.syn-out h3{font-size:13px}
+.syn-out strong{font-weight:600}
+.syn-out em{font-style:italic}
+.syn-out code{font-family:var(--mono);font-size:.87em;background:var(--surface);padding:1px 5px;border-radius:4px}
+.syn-out blockquote{border-left:3px solid var(--accent);background:var(--accent-bg);padding:4px 10px;border-radius:0 4px 4px 0;font-size:12px}
+.syn-out ul{padding-left:1.2rem}
+.syn-out table{border-collapse:collapse;font-size:12px;width:100%}
+.syn-out th{background:var(--surface);font-weight:600;padding:4px 8px;border:.5px solid var(--border)}
+.syn-out td{padding:3px 8px;border:.5px solid var(--border)}
+
+/* inline code */
+code{font-family:var(--mono);font-size:.87em;background:var(--surface);padding:1px 5px;border-radius:4px;border:.5px solid var(--border)}
+
+/* ── exercise ── */
+.ex{border:.5px solid var(--warn-border);background:var(--warn-bg);border-radius:var(--r);padding:16px 20px;margin:1.4rem 0}
+.ex h4{font-size:14px;font-weight:600;color:var(--warn-text);margin-bottom:8px}
+.ex ol,.ex ul{padding-left:1.2rem;font-size:13px;line-height:2.1}
+
+/* ── agents.md builder ── */
+.agent-builder{background:var(--card);border:.5px solid var(--border);border-radius:var(--r);overflow:hidden;margin:1rem 0}
+.ab-top{background:var(--surface);padding:9px 14px;font-size:12px;font-weight:500;border-bottom:.5px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.ab-fields{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.ab-field{padding:10px 14px;border-bottom:.5px solid var(--border);border-right:.5px solid var(--border)}
+.ab-field:nth-child(even){border-right:none}
+.ab-field label{font-size:11px;color:var(--hint);display:block;margin-bottom:4px;font-weight:500;text-transform:uppercase;letter-spacing:.04em}
+.ab-field input,.ab-field textarea,.ab-field select{width:100%;border:none;outline:none;background:transparent;font-size:13px;color:var(--ink);font-family:inherit;resize:none}
+.ab-field textarea{height:56px;line-height:1.6}
+.ab-out{padding:0}
+.ab-out pre{margin:0;padding:14px 16px;font-family:var(--mono);font-size:12.5px;line-height:1.9;background:var(--ink);color:#e8e6df;overflow-x:auto;white-space:pre-wrap}
+.ab-btn{background:var(--accent-bg);border:none;color:var(--accent-text);font-size:12px;font-weight:600;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit}
+.ab-btn:hover{background:var(--accent);color:#fff}
+
+/* ── summary grid ── */
+.sum-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:1.2rem 0}
+.sum-card{background:var(--card);border:.5px solid var(--border);border-radius:var(--r);padding:13px 15px}
+.sum-card .si{font-size:18px;margin-bottom:5px}
+.sum-card h4{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
+.sum-card p{font-size:13px;margin:0;line-height:1.5}
+
+/* ── cheatsheet ── */
+.cheat{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:8px;margin:1rem 0}
+.cheat-card{background:var(--card);border:.5px solid var(--border);border-radius:var(--r);padding:12px 14px}
+.cheat-card .cat{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--hint);margin-bottom:6px}
+.cheat-row{display:flex;align-items:baseline;gap:8px;padding:3px 0;border-bottom:.5px solid var(--border);font-size:12px}
+.cheat-row:last-child{border-bottom:none}
+.cheat-row code{font-size:11px;min-width:110px;flex-shrink:0}
+.cheat-row span{color:var(--muted)}
+
+/* steps */
+.steps{list-style:none}
+.steps li{display:flex;gap:13px;padding:11px 0;border-bottom:.5px solid var(--border);align-items:flex-start}
+.steps li:last-child{border-bottom:none}
+.sn{min-width:25px;height:25px;border-radius:50%;background:var(--accent-bg);color:var(--accent-text);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.sb strong{font-weight:600;font-size:14px;display:block;margin-bottom:1px}
+.sb span{font-size:13px;color:var(--muted)}
+
+footer{border-top:.5px solid var(--border);padding:1.2rem 2rem;font-size:12px;color:var(--hint);text-align:center}
+footer a{color:var(--hint);text-decoration:none}
+
+@media(max-width:640px){
+  nav{padding:0 1rem;gap:1rem}
+  .page{padding:0 1rem 5rem}
+  .tl{grid-template-columns:1fr 1fr}
+  .split{grid-template-columns:1fr}
+  .pane-md{border-right:none;border-bottom:.5px solid var(--border)}
+  .syn-grid,.ab-fields,.sum-grid,.cheat{grid-template-columns:1fr}
+}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav>
+  <a class="brand" href="https://lopentu.github.io/genai4humanities2026/"><span>✦</span>生成式 AI 的人文導論</a>
+  <div class="nav-links">
+    <a href="https://lopentu.github.io/genai4humanities2026/">首頁</a>
+    <a href="https://lopentu.github.io/genai4humanities2026/schedule/">課程進度</a>
+    <a href="https://lopentu.github.io/genai4humanities2026/assignments/">課堂作業</a>
+    <a href="https://lopentu.github.io/genai4humanities2026/practice/vibe/" class="on">vibe coding practice</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- hero -->
+  <div class="hero">
+    <div class="crumb"><a href="https://lopentu.github.io/genai4humanities2026/practice/vibe/">← vibe coding practice</a> / <a href="#">Session 4</a></div>
+    <div class="meta">
+      <span class="pill p-sess">Session 4</span>
+      <span class="pill p-time">⏱ 90 min</span>
+      <span class="pill p-lvl">零程式基礎可上手</span>
+    </div>
+    <h1>Markdown 入門<br>寫給人看，也寫給 AI 看</h1>
+    <p class="lead">純文字就能排版、做筆記、寫說明書——更重要的是，它是你控制 AI Agent 行為的語言。</p>
+  </div>
+
+  <!-- progress -->
+  <div class="prog">
+    <div class="pi"><span class="pd done"></span><span class="pl">檔案格式</span></div><span class="ps">›</span>
+    <div class="pi"><span class="pd done"></span><span class="pl">Web 基礎</span></div><span class="ps">›</span>
+    <div class="pi"><span class="pd done"></span><span class="pl">CLI + Ollama</span></div><span class="ps">›</span>
+    <div class="pi"><span class="pd now"></span><span class="pl now">Markdown（本週）</span></div><span class="ps">›</span>
+    <div class="pi"><span class="pd next"></span><span class="pl">Colab / API</span></div><span class="ps">›</span>
+    <div class="pi"><span class="pd next"></span><span class="pl">部署</span></div>
+  </div>
+
+  <!-- timeline -->
+  <div class="tl">
+    <div class="tb"><div class="tm">0 – 15 min</div><div class="tt">概念導入</div><div class="ts">為什麼 Markdown？</div></div>
+    <div class="tb on"><div class="tm">15 – 45 min</div><div class="tt">語法實作</div><div class="ts">基本到進階，即時預覽</div></div>
+    <div class="tb on"><div class="tm">45 – 75 min</div><div class="tt">AGENTS.md 撰寫</div><div class="ts">用 Markdown 指揮 AI</div></div>
+    <div class="tb"><div class="tm">75 – 90 min</div><div class="tt">收斂</div><div class="ts">Q&A ＋ 作業說明</div></div>
+  </div>
+
+  <hr class="div">
+
+  <!-- ══════════════════════════════════════════
+       PART 1 — 概念
+  ══════════════════════════════════════════ -->
+  <div class="section">
+    <div class="sec-lbl">Part 1 · 0 – 15 min</div>
+    <h2>Markdown 是什麼？為什麼你需要學它？</h2>
+
+    <p>Markdown 是一種<strong>輕量標記語言</strong>——用極少的特殊符號，讓純文字變得有結構。你不需要 Word，不需要 HTML，只要一個文字編輯器。</p>
+
+    <div class="syn-grid" style="grid-template-columns:1fr">
+      <div class="syn-card">
+        <div class="sc-top"><span>你輸入的 .md 檔</span><span>→</span><span>渲染後的樣子</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr">
+          <div class="syn-md"># 魯迅
+
+**原名**周樹人，浙江紹興人。
+
+> 橫眉冷對千夫指，
+> 俯首甘為孺子牛。
+
+- 《呐喊》1923
+- 《彷徨》1926</div>
+          <div class="syn-out" style="padding:10px 12px">
+            <h1 style="font-size:18px;font-weight:700;border-bottom:.5px solid #ddd;padding-bottom:4px;margin-bottom:6px">魯迅</h1>
+            <p style="margin:.3rem 0;font-size:13px"><strong>原名</strong>周樹人，浙江紹興人。</p>
+            <blockquote style="margin:.5rem 0">橫眉冷對千夫指，<br>俯首甘為孺子牛。</blockquote>
+            <ul style="font-size:12px;padding-left:1.2rem;margin:.4rem 0">
+              <li>《呐喊》1923</li>
+              <li>《彷徨》1926</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3>三個你需要 Markdown 的理由</h3>
+    <div class="sum-grid">
+      <div class="sum-card">
+        <div class="si">📝</div>
+        <h4>筆記與文件</h4>
+        <p>GitHub、Notion、HackMD、Obsidian 全部使用 Markdown。學一次，到處通用。</p>
+      </div>
+      <div class="sum-card">
+        <div class="si">🌐</div>
+        <h4>網頁內容</h4>
+        <p>本課程的所有 Lab 頁面，底層都是 Markdown 轉成 HTML。Jekyll、Hugo 靜態網站也是。</p>
+      </div>
+      <div class="sum-card">
+        <div class="si">🤖</div>
+        <h4>指揮 AI</h4>
+        <p><code>AGENTS.md</code>、<code>CLAUDE.md</code>、system prompt——控制 AI Agent 行為的核心檔案，全部都是 Markdown。</p>
+      </div>
+      <div class="sum-card">
+        <div class="si">🔓</div>
+        <h4>永遠可讀</h4>
+        <p>純文字，不依賴任何軟體。十年後、換了作業系統，用記事本也能打開。</p>
+      </div>
+    </div>
+
+    <div class="call ok">
+      <strong>課程定位：</strong>本週學的 Markdown，是下週寫 <code>AGENTS.md</code> 的基礎。你在 Markdown 裡寫的每一個標題、每一條規則，都會變成 AI 讀取的指令結構。
+    </div>
+  </div>
+
+  <hr class="div">
+
+  <!-- ══════════════════════════════════════════
+       PART 2 — 語法
+  ══════════════════════════════════════════ -->
+  <div class="section">
+    <div class="sec-lbl">Part 2 · 15 – 45 min</div>
+    <h2>核心語法：12 個符號就夠了</h2>
+
+    <h3>標題層級</h3>
+    <div class="syn-grid">
+      <div class="syn-card">
+        <div class="sc-top"><span>Markdown</span></div>
+        <div class="syn-md"># 一級標題（文件名稱）
+## 二級標題（大章節）
+### 三級標題（小節）
+#### 四級標題（少用）</div>
+      </div>
+      <div class="syn-card">
+        <div class="sc-top"><span>渲染結果</span></div>
+        <div class="syn-out">
+          <h1>一級標題（文件名稱）</h1>
+          <h2>二級標題（大章節）</h2>
+          <h3>三級標題（小節）</h3>
+          <div style="font-size:12px;font-weight:600;margin:.3rem 0">四級標題（少用）</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="call tip">
+      <strong>AI 讀取的視角：</strong>標題不只是讓人看的視覺層級——AI 在解析 <code>AGENTS.md</code> 時，用標題來識別不同的<em>指令區塊</em>。<code># 角色設定</code> 和 <code># 工具限制</code> 是兩個不同的命令區域。
+    </div>
+
+    <h3>文字強調</h3>
+    <div class="syn-grid">
+      <div class="syn-card">
+        <div class="sc-top"><span>Markdown</span></div>
+        <div class="syn-md">**粗體**（重要規則用這個）
+*斜體*（術語或書名）
+~~刪除線~~（已廢棄的規則）
+`程式碼`（指令、路徑、變數名稱）</div>
+      </div>
+      <div class="syn-card">
+        <div class="sc-top"><span>渲染結果</span></div>
+        <div class="syn-out">
+          <p><strong>粗體</strong>（重要規則用這個）</p>
+          <p><em>斜體</em>（術語或書名）</p>
+          <p><del style="color:var(--muted)">刪除線</del>（已廢棄的規則）</p>
+          <p><code>程式碼</code>（指令、路徑、變數名稱）</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>清單</h3>
+    <div class="syn-grid">
+      <div class="syn-card">
+        <div class="sc-top"><span>Markdown</span></div>
+        <div class="syn-md">- 無序清單（用 - 或 *）
+- 第二項
+  - 縮排兩格 = 子清單
+
+1. 有序清單
+2. 會自動編號
+3. 第三項</div>
+      </div>
+      <div class="syn-card">
+        <div class="sc-top"><span>渲染結果</span></div>
+        <div class="syn-out">
+          <ul style="font-size:13px"><li>無序清單（用 - 或 *）</li><li>第二項<ul><li>縮排兩格 = 子清單</li></ul></li></ul>
+          <ol style="font-size:13px;padding-left:1.2rem;margin-top:.4rem"><li>有序清單</li><li>會自動編號</li><li>第三項</li></ol>
+        </div>
+      </div>
+    </div>
+
+    <h3>引用與程式碼區塊</h3>
+    <div class="syn-grid">
+      <div class="syn-card">
+        <div class="sc-top"><span>Markdown</span></div>
+        <div class="syn-md">> 引用文字（blockquote）
+> 適合放規則說明或警告
+
+```python
+# 程式碼區塊（三個反引號）
+print("Hello, Markdown!")
+```</div>
+      </div>
+      <div class="syn-card">
+        <div class="sc-top"><span>渲染結果</span></div>
+        <div class="syn-out">
+          <blockquote>引用文字（blockquote）<br>適合放規則說明或警告</blockquote>
+          <pre style="background:#141412;border-radius:6px;padding:8px 12px;margin:.4rem 0;overflow-x:auto"><code style="color:#e8e6df;font-size:12px;font-family:var(--mono)"># 程式碼區塊（三個反引號）
+print("Hello, Markdown!")</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <h3>連結、圖片、水平線</h3>
+    <div class="syn-grid">
+      <div class="syn-card">
+        <div class="sc-top"><span>Markdown</span></div>
+        <div class="syn-md">[顯示文字](https://example.com)
+![圖片說明](image.png)
+
+---  ← 水平分隔線（三個 -）</div>
+      </div>
+      <div class="syn-card">
+        <div class="sc-top"><span>渲染結果</span></div>
+        <div class="syn-out">
+          <p><a href="#" style="color:var(--accent)">顯示文字</a></p>
+          <p style="color:var(--muted);font-size:12px">[圖片會顯示在這裡]</p>
+          <hr style="border:none;border-top:.5px solid var(--border);margin:.5rem 0">
+        </div>
+      </div>
+    </div>
+
+    <h3>表格</h3>
+    <div class="syn-grid">
+      <div class="syn-card">
+        <div class="sc-top"><span>Markdown</span></div>
+        <div class="syn-md">| 台灣用語 | 中國用語 | 英文原詞 |
+|---------|---------|---------|
+| 軟體   | 軟件    | Software |
+| 滑鼠   | 鼠標    | Mouse   |</div>
+      </div>
+      <div class="syn-card">
+        <div class="sc-top"><span>渲染結果</span></div>
+        <div class="syn-out">
+          <table><thead><tr><th>台灣用語</th><th>中國用語</th><th>英文原詞</th></tr></thead><tbody><tr><td>軟體</td><td>軟件</td><td>Software</td></tr><tr><td>滑鼠</td><td>鼠標</td><td>Mouse</td></tr></tbody></table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       Live Editor
+  ══════════════════════════════════════════ -->
+  <div class="section">
+    <div class="sec-lbl">互動練習</div>
+    <h2>即時預覽編輯器</h2>
+    <p>在左側輸入 Markdown，右側即時看到渲染結果。試著修改、刪除、加入新語法。</p>
+
+    <div class="split">
+      <div class="pane-md">
+        <div class="split-hd"><span class="dot2"></span><span class="dot2"></span><span class="dot2"></span>&nbsp;Markdown 原始碼</div>
+        <textarea id="md-input" spellcheck="false"># 我的研究筆記
+
+**研究主題：** 兩岸漢語詞彙差異
+
+## 研究問題
+
+- 哪些詞彙有「同形異義」現象？
+- 科技詞彙的借詞策略有何不同？
+
+## 詞彙對照表
+
+| 台灣 | 中國 | 說明 |
+|------|------|------|
+| 軟體 | 軟件 | software |
+| 計程車 | 出租車 | taxi |
+| 打卡 | 打卡 | 同形，但語境不同 |
+
+## 初步假設
+
+> 台灣漢語較多日語借詞策略，
+> 中國漢語較多英語直譯策略。
+
+### 下一步
+
+1. 下載語料
+2. 用 `nomic-embed-text` 取得向量
+3. 視覺化分析
+
+---
+
+*最後更新：2026-04*</textarea>
+      </div>
+      <div class="pane-prev">
+        <div class="split-hd"><span class="dot2"></span><span class="dot2"></span><span class="dot2"></span>&nbsp;渲染結果</div>
+        <div class="preview-body" id="md-preview"></div>
+      </div>
+    </div>
+
+    <div class="ex">
+      <h4>✏️ 課堂練習一（10 min）</h4>
+      <ol>
+        <li>把左側的研究主題改成你自己感興趣的領域</li>
+        <li>在表格裡加入至少兩個你自己找的對比詞彙</li>
+        <li>試著加入一個 <code>```python</code> 程式碼區塊，裡面放任何一行 Python（不用能跑）</li>
+        <li>觀察：<strong>標題的層級</strong>和<strong>清單的縮排</strong>，哪些地方的結構感最強？</li>
+      </ol>
+    </div>
+  </div>
+
+  <hr class="div">
+
+  <!-- ══════════════════════════════════════════
+       PART 3 — AGENTS.md
+  ══════════════════════════════════════════ -->
+  <div class="section">
+    <div class="sec-lbl">Part 3 · 45 – 75 min</div>
+    <h2>從 Markdown 到 AGENTS.md：用文字指揮 AI</h2>
+
+    <p>現在把剛學的語法用在真正的目的上。<code>AGENTS.md</code> 就是一份 Markdown 文件——但它的讀者不是人，是 AI coding agent。你在這份文件裡寫的每一行，都會在 AI 開始工作之前被讀取，成為它的「工作守則」。</p>
+
+    <div class="call">
+      <strong>結構即指令：</strong><code># 角色設定</code> 這個標題，讓 AI 知道「這個區塊是在定義我的身份」。<code>## 禁止行為</code> 這個標題，讓 AI 知道「這個區塊是邊界規則」。Markdown 的結構，直接對應 AI 的認知區塊。
+    </div>
+
+    <h3>一份 AGENTS.md 的標準結構</h3>
+
+    <div class="syn-grid" style="grid-template-columns:1fr">
+      <div class="syn-card">
+        <div class="sc-top"><span>典型 AGENTS.md 的骨架（Markdown 語法 + 說明）</span></div>
+        <div class="syn-md"># 專案名稱與概述          ← H1：給 AI 定錨（這是什麼專案）
+
+## 角色與身份              ← H2：這個 AI 扮演什麼角色
+你是一名台灣文學研究助理...
+
+## 可以使用的工具           ← H2：能力範圍
+- 搜尋學術資料庫
+- 讀取 .txt 和 .md 檔案
+- **不可以** 修改原始語料
+
+## 工作流程               ← H2：思考與行動的順序
+1. 先閱讀使用者的問題
+2. 確認需要哪些資料
+3. 回應前列出你的推理步驟
+
+## 輸出格式               ← H2：回應的形式要求
+- 用繁體中文回答
+- 引用文本時用 `>` 引用格式
+- 每段分析不超過 200 字
+
+## 限制與邊界             ← H2：不該做的事
+> **絕對不可以** 捏造不存在的引文。
+> 不確定時說「我不確定」，不要猜測。</div>
+      </div>
+    </div>
+
+    <h3>互動式 AGENTS.md 產生器</h3>
+    <p>填入以下欄位，即時看到對應的 <code>AGENTS.md</code> 內容。這就是你下週要提交的作業雛形。</p>
+
+    <div class="agent-builder">
+      <div class="ab-top">
+        <span>AGENTS.md 產生器</span>
+        <button class="ab-btn" onclick="copyAgentsMd()">複製全文</button>
+      </div>
+      <div class="ab-fields">
+        <div class="ab-field">
+          <label>專案名稱</label>
+          <input id="ag-name" type="text" placeholder="例：台灣文學語料分析助理" oninput="buildAgentsMd()">
+        </div>
+        <div class="ab-field">
+          <label>AI 的角色身份</label>
+          <input id="ag-role" type="text" placeholder="例：台灣文學研究員、語料分析師" oninput="buildAgentsMd()">
+        </div>
+        <div class="ab-field">
+          <label>可以做的事（用逗號分隔）</label>
+          <textarea id="ag-can" placeholder="例：搜尋語料,分析詞頻,產生摘要" oninput="buildAgentsMd()"></textarea>
+        </div>
+        <div class="ab-field">
+          <label>絕對不能做的事</label>
+          <textarea id="ag-cant" placeholder="例：捏造引文,修改原始語料" oninput="buildAgentsMd()"></textarea>
+        </div>
+        <div class="ab-field">
+          <label>輸出語言與格式要求</label>
+          <input id="ag-fmt" type="text" placeholder="例：繁體中文，引用用 > 格式" oninput="buildAgentsMd()">
+        </div>
+        <div class="ab-field">
+          <label>工作流程步驟（用逗號分隔）</label>
+          <textarea id="ag-flow" placeholder="例：閱讀問題,確認資料,列出推理,回答" oninput="buildAgentsMd()"></textarea>
+        </div>
+      </div>
+      <div class="ab-out">
+        <pre id="ag-out"># （請填寫上方欄位，AGENTS.md 會在這裡即時產生）</pre>
+      </div>
+    </div>
+
+    <div class="ex">
+      <h4>✏️ 課堂練習二（15 min，兩人一組）</h4>
+      <ol>
+        <li>設計一個<strong>你想要的 AI 助理</strong>：可以是論文寫作助理、語料整理助理、田野筆記分析助理……</li>
+        <li>用上面的產生器填寫，觀察 Markdown 結構和你填的內容的對應關係</li>
+        <li>把產生的 AGENTS.md 複製到你的 HackMD 或 VS Code，確認渲染結果正確</li>
+        <li>討論：如果你的 AI 助理<strong>沒有</strong>「限制與邊界」那個區塊，會發生什麼？</li>
+      </ol>
+    </div>
+
+    <h3>進一步：system prompt vs AGENTS.md</h3>
+
+    <div class="syn-grid">
+      <div class="syn-card">
+        <div class="sc-top"><span>System Prompt（聊天介面用）</span><span>自由格式</span></div>
+        <div class="syn-md">你是一名台灣文學研究員，
+專長是日治時期的文學分析。
+請用繁體中文回答，
+不要捏造引文。</div>
+      </div>
+      <div class="syn-card">
+        <div class="sc-top"><span>AGENTS.md（程式 / 工具用）</span><span>結構化 Markdown</span></div>
+        <div class="syn-md"># 台灣文學研究助理
+
+## 角色
+台灣文學研究員，專長日治時期。
+
+## 輸出格式
+- 語言：繁體中文
+
+## 限制
+> 不得捏造引文。</div>
+      </div>
+    </div>
+
+    <div class="call warn">
+      <strong>重要差異：</strong>System prompt 是「對話層」的指令，只在一次對話裡有效。<code>AGENTS.md</code> 是「專案層」的指令，會被 Cursor、Claude Code、Codex 等工具<em>在每次工作開始前自動讀取</em>——它的效力更持久，也更系統性。
+    </div>
+  </div>
+
+  <hr class="div">
+
+  <!-- ══════════════════════════════════════════
+       PART 4 — 速查表 + 總結
+  ══════════════════════════════════════════ -->
+  <div class="section">
+    <div class="sec-lbl">速查表</div>
+    <h2>Markdown 語法速查</h2>
+
+    <div class="cheat">
+      <div class="cheat-card">
+        <div class="cat">標題</div>
+        <div class="cheat-row"><code># 文字</code><span>一級標題（最大）</span></div>
+        <div class="cheat-row"><code>## 文字</code><span>二級標題</span></div>
+        <div class="cheat-row"><code>### 文字</code><span>三級標題</span></div>
+      </div>
+      <div class="cheat-card">
+        <div class="cat">強調</div>
+        <div class="cheat-row"><code>**文字**</code><span>粗體</span></div>
+        <div class="cheat-row"><code>*文字*</code><span>斜體</span></div>
+        <div class="cheat-row"><code>`文字`</code><span>行內程式碼</span></div>
+        <div class="cheat-row"><code>~~文字~~</code><span>刪除線</span></div>
+      </div>
+      <div class="cheat-card">
+        <div class="cat">清單</div>
+        <div class="cheat-row"><code>- 項目</code><span>無序清單</span></div>
+        <div class="cheat-row"><code>1. 項目</code><span>有序清單</span></div>
+        <div class="cheat-row"><code>  - 子項</code><span>縮排兩格 = 子清單</span></div>
+      </div>
+      <div class="cheat-card">
+        <div class="cat">區塊</div>
+        <div class="cheat-row"><code>> 文字</code><span>引用（blockquote）</span></div>
+        <div class="cheat-row"><code>```</code><span>程式碼區塊（首尾各三個）</span></div>
+        <div class="cheat-row"><code>---</code><span>水平分隔線</span></div>
+      </div>
+      <div class="cheat-card">
+        <div class="cat">連結與圖片</div>
+        <div class="cheat-row"><code>[文字](url)</code><span>超連結</span></div>
+        <div class="cheat-row"><code>![說明](圖片路徑)</code><span>插入圖片</span></div>
+      </div>
+      <div class="cheat-card">
+        <div class="cat">表格</div>
+        <div class="cheat-row"><code>| A | B |</code><span>表格列</span></div>
+        <div class="cheat-row"><code>|---|---|</code><span>分隔線（必須有）</span></div>
+        <div class="cheat-row"><code>| a | b |</code><span>資料列</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-lbl">Part 4 · 75 – 90 min</div>
+    <h2>本週總結 × 下週預告</h2>
+
+    <div class="sum-grid">
+      <div class="sum-card"><div class="si">✓</div><h4>Markdown 語法</h4><p>標題、強調、清單、表格、引用、程式碼區塊</p></div>
+      <div class="sum-card"><div class="si">✓</div><h4>即時預覽</h4><p>在瀏覽器裡看到 Markdown → HTML 的轉換過程</p></div>
+      <div class="sum-card"><div class="si">✓</div><h4>AGENTS.md 結構</h4><p>用標題劃分角色、工具、流程、限制四個區塊</p></div>
+      <div class="sum-card"><div class="si">→</div><h4>下週：Colab + API</h4><p>把你寫的 AGENTS.md 真正「餵給」AI，觀察它如何改變模型行為</p></div>
+    </div>
+
+    <div class="ex">
+      <h4>📚 課後作業</h4>
+      <ol>
+        <li>在 <a href="https://hackmd.io" target="_blank" style="color:var(--accent)">HackMD</a> 或本機建立一個 <code>AGENTS.md</code>，定義一個你想要的研究助理（至少包含：角色、可以做的事、禁止的事、輸出格式）</li>
+        <li>為你的 <code>AGENTS.md</code> 加入至少一個 Markdown 表格（例如：研究材料清單、詞彙對照表）</li>
+        <li>（選做）把同一份 <code>AGENTS.md</code> 的內容貼到 Claude 的對話框裡當 system prompt，問它一個問題，觀察它是否按照你的規則回應</li>
+      </ol>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<footer>
+  <a href="https://lope.linguistics.ntu.edu.tw">LOPE Lab</a> ·
+  Graduate Institute of Linguistics, National Taiwan University ·
+  <a href="https://taica.edu.tw">TAICA</a><br>
+  生成式 AI 的人文導論 | Spring 2026 | 114-2
+</footer>
+
+<!-- ── Markdown parser (marked.js) ── -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<script>
+/* ── live editor ── */
+const input  = document.getElementById('md-input');
+const preview = document.getElementById('md-preview');
+
+function renderMd() {
+  try { preview.innerHTML = marked.parse(input.value); }
+  catch(e) { preview.innerHTML = '<p style="color:red">解析錯誤</p>'; }
+}
+input.addEventListener('input', renderMd);
+renderMd();
+
+/* ── agents.md builder ── */
+function buildAgentsMd() {
+  const name  = document.getElementById('ag-name').value.trim()  || '我的 AI 助理';
+  const role  = document.getElementById('ag-role').value.trim()  || '（請填寫角色）';
+  const can   = document.getElementById('ag-can').value.trim();
+  const cant  = document.getElementById('ag-cant').value.trim();
+  const fmt   = document.getElementById('ag-fmt').value.trim();
+  const flow  = document.getElementById('ag-flow').value.trim();
+
+  const canList  = can  ? can.split(',').map(s => `- ${s.trim()}`).join('\n')  : '- （尚未填寫）';
+  const cantList = cant ? cant.split(',').map(s => `- **不可以** ${s.trim()}`).join('\n') : '- （尚未填寫）';
+  const flowList = flow ? flow.split(',').map((s,i) => `${i+1}. ${s.trim()}`).join('\n') : '1. （尚未填寫）';
+  const fmtLine  = fmt  || '（尚未填寫）';
+
+  const md = `# ${name}
+
+## 角色與身份
+
+你是一名${role}，負責協助使用者完成指定任務。
+
+## 可以使用的工具與能力
+
+${canList}
+
+## 工作流程
+
+${flowList}
+
+## 輸出格式
+
+- ${fmtLine}
+
+## 限制與邊界
+
+> 以下行為**絕對禁止**：
+
+${cantList}
+
+---
+
+*此檔案由課堂 AGENTS.md 產生器產生 · Session 4*`;
+
+  document.getElementById('ag-out').textContent = md;
+}
+
+function copyAgentsMd() {
+  const txt = document.getElementById('ag-out').textContent;
+  navigator.clipboard.writeText(txt).then(() => {
+    const btn = document.querySelector('.ab-btn');
+    btn.textContent = '已複製 ✓';
+    setTimeout(() => btn.textContent = '複製全文', 1800);
+  });
+}
+
+buildAgentsMd();
+</script>
+
+</body>
+</html>
