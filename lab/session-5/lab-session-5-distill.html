@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session 5 · Lab — 蒸餾人實作</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#faf9f7;--ink:#1a1a18;--muted:#5c5c58;--hint:#9a9a94;
+  --surface:#f0efe9;--card:#ffffff;--border:rgba(28,28,20,.11);
+  --accent:#534AB7;--accent-bg:#EEEDFE;--accent-text:#3C3489;
+  --ok-bg:#E1F5EE;--ok-border:rgba(13,80,65,.2);--ok-text:#085041;
+  --warn-bg:#FAEEDA;--warn-border:rgba(99,56,6,.2);--warn-text:#633806;
+  --term:#1e1e1c;--term-bar:#2a2a28;
+  --mono:'JetBrains Mono','Fira Code','Courier New',monospace;
+  --r:10px;
+}
+body{font-family:'Noto Sans TC','Helvetica Neue',sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.8;min-height:100vh}
+
+nav{border-bottom:.5px solid var(--border);padding:0 2rem;display:flex;align-items:center;height:52px;position:sticky;top:0;background:rgba(250,249,247,.93);backdrop-filter:blur(10px);z-index:200;gap:2rem}
+.brand{font-size:14px;font-weight:500;text-decoration:none;color:var(--ink);white-space:nowrap}
+.brand span{opacity:.45;margin-right:4px}
+.nav-links{display:flex;gap:1.4rem;overflow-x:auto}
+.nav-links a{font-size:13px;color:var(--muted);text-decoration:none;white-space:nowrap}
+.nav-links a.on{color:var(--ink);font-weight:500}
+
+.page{max-width:880px;margin:0 auto;padding:0 2rem 7rem}
+
+/* hero */
+.hero{padding:3rem 0 2.2rem;border-bottom:.5px solid var(--border);margin-bottom:2.6rem}
+.crumb{font-size:13px;color:var(--hint);margin-bottom:1rem}
+.crumb a{color:var(--accent);text-decoration:none}
+.meta{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:1rem}
+.pill{display:inline-flex;align-items:center;font-size:11px;font-weight:500;font-family:var(--mono);padding:3px 10px;border-radius:99px;border:.5px solid}
+.p-sess{background:var(--accent-bg);color:var(--accent-text);border-color:rgba(60,52,137,.3)}
+.p-time{background:var(--warn-bg);color:var(--warn-text);border-color:var(--warn-border)}
+.p-lvl{background:var(--ok-bg);color:var(--ok-text);border-color:var(--ok-border)}
+.hero h1{font-size:27px;font-weight:700;letter-spacing:-.02em;margin-bottom:.5rem;line-height:1.25}
+.hero .lead{font-size:15px;color:var(--muted);max-width:600px}
+
+/* timeline */
+.tl{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:2.6rem}
+.tb{background:var(--card);border:.5px solid var(--border);border-radius:var(--r);padding:11px 13px}
+.tb.on{border-color:var(--accent);background:var(--accent-bg)}
+.tb .tm{font-size:10px;color:var(--hint);font-family:var(--mono);margin-bottom:2px}
+.tb .tt{font-size:13px;font-weight:600}
+.tb .ts{font-size:11px;color:var(--muted);margin-top:1px}
+.tb.on .tt{color:var(--accent-text)}
+
+/* section */
+.section{margin-bottom:3rem}
+.sec-lbl{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--accent);margin-bottom:.6rem}
+.sec-lbl::before{content:'';width:13px;height:1.5px;background:var(--accent);display:inline-block}
+h2{font-size:20px;font-weight:600;letter-spacing:-.015em;margin-bottom:1rem}
+h3{font-size:15px;font-weight:600;margin:1.6rem 0 .5rem}
+p{margin-bottom:.8rem}
+hr.div{border:none;border-top:.5px solid var(--border);margin:2.6rem 0}
+code{font-family:var(--mono);font-size:.87em;background:var(--surface);padding:1px 5px;border-radius:4px;border:.5px solid var(--border)}
+
+/* callouts */
+.call{border-left:3px solid var(--accent);background:var(--accent-bg);border-radius:0 var(--r) var(--r) 0;padding:10px 14px;margin:.8rem 0;font-size:13px;line-height:1.65}
+.call.ok{border-color:#27c56a;background:var(--ok-bg)}
+.call.warn{border-color:#e0a500;background:var(--warn-bg)}
+.call strong{font-weight:600}
+
+/* steps */
+.steps{list-style:none}
+.steps li{display:flex;gap:14px;padding:11px 0;border-bottom:.5px solid var(--border);align-items:flex-start}
+.steps li:last-child{border-bottom:none}
+.sn{min-width:26px;height:26px;border-radius:50%;background:var(--accent-bg);color:var(--accent-text);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.sb strong{font-weight:600;font-size:14px;display:block;margin-bottom:1px}
+.sb span{font-size:13px;color:var(--muted)}
+
+/* term */
+.term{background:var(--term);border-radius:10px;overflow:hidden;margin:1rem 0}
+.term-bar{background:var(--term-bar);padding:8px 14px;display:flex;align-items:center;gap:6px}
+.dot{width:10px;height:10px;border-radius:50%}
+.dr{background:#ff5f56}.dy{background:#ffbd2e}.dg{background:#27c93f}
+.tl2{font-size:11px;color:#999;margin-left:auto;font-family:var(--mono)}
+.tc{padding:14px 18px;font-family:var(--mono);font-size:13px;line-height:1.95;overflow-x:auto;white-space:pre;color:#ddd}
+.ps{color:#27c93f}.cmd{color:#f0ede8}.out{color:#888}.cmt{color:#666;font-style:italic}.inp{color:#79c0ff}.hl{color:#ffbd2e}.kw{color:#ff7b72}.str{color:#85b984}
+
+/* template card */
+.tpl{background:var(--card);border:.5px solid var(--border);border-radius:var(--r);overflow:hidden;margin:1rem 0}
+.tpl-head{background:var(--surface);padding:8px 14px;font-size:12px;font-weight:500;font-family:var(--mono);color:var(--muted);border-bottom:.5px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.tpl-tag{font-size:10px;padding:2px 7px;border-radius:4px;background:#fff;color:var(--accent-text);font-weight:600}
+.tpl-body{padding:14px 16px;font-family:var(--mono);font-size:12.5px;line-height:1.9;color:#3a3a36;white-space:pre-wrap}
+
+/* persona reflection grid */
+.refl-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:1rem 0}
+.refl-card{background:var(--card);border:.5px solid var(--border);border-radius:var(--r);padding:13px 15px}
+.rc-tag{font-size:10px;font-weight:600;font-family:var(--mono);padding:2px 7px;border-radius:4px;background:var(--accent-bg);color:var(--accent-text);display:inline-block;margin-bottom:6px}
+.rc-q{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:5px}
+.rc-prompts{font-size:12px;color:var(--muted);line-height:1.7;padding-left:14px;margin:0}
+.rc-prompts li{margin-bottom:3px}
+
+/* exercise */
+.ex{border:.5px solid var(--warn-border);background:var(--warn-bg);border-radius:var(--r);padding:16px 20px;margin:1.4rem 0}
+.ex h4{font-size:14px;font-weight:600;color:var(--warn-text);margin-bottom:8px}
+.ex ol{padding-left:1.2rem;font-size:13px;line-height:2}
+
+/* rubric */
+.rubric{width:100%;border-collapse:collapse;font-size:13px;margin:1rem 0;background:var(--card);border:.5px solid var(--border);border-radius:var(--r);overflow:hidden}
+.rubric th{text-align:left;padding:9px 12px;font-weight:600;font-size:12px;color:var(--muted);background:var(--surface)}
+.rubric td{padding:9px 12px;border-top:.5px solid var(--border);vertical-align:top}
+.pts{font-family:var(--mono);font-weight:600;color:var(--accent)}
+
+/* sum */
+.sum-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:1.2rem 0}
+.sum-card{background:var(--card);border:.5px solid var(--border);border-radius:var(--r);padding:13px 15px}
+.sum-card .si{font-size:18px;margin-bottom:5px}
+.sum-card h4{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
+.sum-card p{font-size:13px;margin:0;line-height:1.5}
+
+footer{border-top:.5px solid var(--border);padding:1.2rem 2rem;font-size:12px;color:var(--hint);text-align:center}
+footer a{color:var(--hint);text-decoration:none}
+
+@media(max-width:640px){
+  nav{padding:0 1rem;gap:1rem}
+  .page{padding:0 1rem 5rem}
+  .tl{grid-template-columns:1fr 1fr}
+  .refl-grid{grid-template-columns:1fr}
+}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav>
+  <a class="brand" href="https://lopentu.github.io/genai4humanities2026/"><span>✦</span>生成式 AI 的人文導論</a>
+  <div class="nav-links">
+    <a href="https://lopentu.github.io/genai4humanities2026/">首頁</a>
+    <a href="https://lopentu.github.io/genai4humanities2026/schedule/">課程進度</a>
+    <a href="https://lopentu.github.io/genai4humanities2026/assignments/">課堂作業</a>
+    <a href="https://lopentu.github.io/genai4humanities2026/practice/vibe/" class="on">vibe coding practice</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- hero -->
+  <div class="hero">
+    <div class="crumb"><a href="https://lopentu.github.io/genai4humanities2026/practice/vibe/">← vibe coding practice</a> / <a href="#">Session 5</a></div>
+    <div class="meta">
+      <span class="pill p-sess">Session 5</span>
+      <span class="pill p-time">⏱ 90 min（半堂課 + 課後完成）</span>
+      <span class="pill p-lvl">需先安裝 Hermes Agent</span>
+    </div>
+    <h1>蒸餾人實作<br>把自己變成可執行的數位分身</h1>
+    <p class="lead">你的 Hermes Agent 已經就緒。本堂課我們把你的思維、決策、知識，轉化為可執行的 .md 檔案——一個會「像你」的 agent。</p>
+  </div>
+
+  <!-- timeline -->
+  <div class="tl">
+    <div class="tb"><div class="tm">0–10 min</div><div class="tt">確認環境</div><div class="ts">Hermes 是否已安裝</div></div>
+    <div class="tb on"><div class="tm">10–30 min</div><div class="tt">寫 SOUL.md</div><div class="ts">蒸餾你的人格</div></div>
+    <div class="tb on"><div class="tm">30–55 min</div><div class="tt">寫 USER.md + AGENTS.md</div><div class="ts">蒸餾你的工作脈絡</div></div>
+    <div class="tb"><div class="tm">55–90 min</div><div class="tt">封裝 .skill</div><div class="ts">蒸餾你的工作流程</div></div>
+  </div>
+
+  <hr class="div">
+
+  <!-- ════════════════════════════════════════
+       Step 1 — 確認環境
+  ════════════════════════════════════════ -->
+  <div class="section">
+    <div class="sec-lbl">Step 1 · 0–10 min</div>
+    <h2>確認你的 Hermes Agent 環境</h2>
+    <p>這個 lab 假設你已在 Session 4（助教課）完成 Hermes Agent 的安裝。先確認以下命令都能跑：</p>
+
+    <div class="term">
+      <div class="term-bar"><span class="dot dr"></span><span class="dot dy"></span><span class="dot dg"></span><span class="tl2">bash</span></div>
+      <div class="tc"><span class="cmt"># 1. 確認 Hermes 已安裝</span>
+<span class="ps">$</span> <span class="cmd">hermes --version</span>
+<span class="out">hermes 0.10.x</span>
+
+<span class="cmt"># 2. 確認 HERMES_HOME 位置（預設 ~/.hermes）</span>
+<span class="ps">$</span> <span class="cmd">ls ~/.hermes/</span>
+<span class="out">SOUL.md  config.yaml  memories/  skills/  sessions/  cron/</span>
+
+<span class="cmt"># 3. 看一下預設的 SOUL.md 長什麼樣子</span>
+<span class="ps">$</span> <span class="cmd">cat ~/.hermes/SOUL.md</span>
+<span class="out"># Hermes Agent
+You are an intelligent AI assistant created by Nous Research...
+<span class="cmt"># ← 這就是 Hermes 的預設身份。我們等下要把它換成「你」</span></span></div>
+    </div>
+
+    <div class="call warn">
+      <strong>如果上面的命令有錯：</strong>請先聯絡助教，或回 Session 4 講義重新安裝。後面的步驟都依賴 Hermes 能正確啟動。
+    </div>
+  </div>
+
+  <hr class="div">
+
+  <!-- ════════════════════════════════════════
+       Step 2 — SOUL.md
+  ════════════════════════════════════════ -->
+  <div class="section">
+    <div class="sec-lbl">Step 2 · 10–30 min</div>
+    <h2>蒸餾你的人格 → SOUL.md</h2>
+    <p>SOUL.md 是 agent 的「靈魂」——它定義 agent <em>是誰、怎麼說話、避免什麼</em>。要讓 agent「像你」，這是第一個檔案。</p>
+
+    <h3>反思引導：用四個問題提取你的人格</h3>
+
+    <div class="refl-grid">
+      <div class="refl-card">
+        <span class="rc-tag">Identity</span>
+        <div class="rc-q">你是怎樣的研究者 / 思考者？</div>
+        <ul class="rc-prompts">
+          <li>你的學科訓練給了你什麼方法論偏好？</li>
+          <li>你重視什麼樣的論證？</li>
+          <li>你的「研究信念」是什麼？</li>
+        </ul>
+      </div>
+      <div class="refl-card">
+        <span class="rc-tag">Style</span>
+        <div class="rc-q">你怎麼說話？</div>
+        <ul class="rc-prompts">
+          <li>正式還是隨性？</li>
+          <li>用比喻還是直接陳述？</li>
+          <li>長段落還是短句？</li>
+          <li>常用什麼詞彙、避免什麼詞彙？</li>
+        </ul>
+      </div>
+      <div class="refl-card">
+        <span class="rc-tag">Avoid</span>
+        <div class="rc-q">你不容忍什麼？</div>
+        <ul class="rc-prompts">
+          <li>哪種回應方式讓你覺得不專業？</li>
+          <li>什麼是你絕不會說的話？</li>
+          <li>哪些「AI 套話」你聽了就煩？</li>
+        </ul>
+      </div>
+      <div class="refl-card">
+        <span class="rc-tag">Defaults</span>
+        <div class="rc-q">遇到模糊狀況時你會怎麼做？</div>
+        <ul class="rc-prompts">
+          <li>不知道答案時你會怎麼回應？</li>
+          <li>面對含混問題時你會問什麼？</li>
+          <li>你的「預設思考流程」是什麼？</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>SOUL.md 範本（從這裡開始改）</h3>
+
+    <div class="tpl">
+      <div class="tpl-head">
+        <span>~/.hermes/SOUL.md</span>
+        <span class="tpl-tag">範本 · 請改成你的</span>
+      </div>
+      <div class="tpl-body"># Identity
+
+你是 [你的名字] 的數位分身——一名 [你的領域] 研究者。
+你重視 [核心研究信念，如：實證精神、理論深度、跨領域思維]。
+你的判斷基於 [方法論偏好，如：歷時語料、認知語言學、計算方法]。
+
+# Style
+
+- 用 [繁體中文 / 中英混用 / ...] 回應
+- 偏好 [類比 → 公式 → 實作 / 直接論述 / 提問導引] 的解釋順序
+- 文質彬彬，偶爾穿插 [成語 / 古典語彙 / 學術術語]
+- 說 [短而精準 / 長而完整] 的話
+
+# Avoid
+
+- 阿諛奉承（不說「好問題！」這種開場）
+- 過度限定（不亂加「但這只是個人意見」）
+- 假裝專家（不確定的事直接說「我不確定」）
+- [你個人最不喜歡的 AI 回應特徵]
+
+# Defaults
+
+- 遇到模糊問題：先確認對方真正想問什麼，而不是急著回答
+- 遇到爭議：呈現多方論述，而不是裝作中立
+- 遇到我不會的：誠實說「我不知道」，並建議下一步該怎麼查
+</div>
+    </div>
+
+    <div class="call ok">
+      <strong>編輯指引：</strong>用任何文字編輯器打開 <code>~/.hermes/SOUL.md</code>，把上面的 <code>[ ]</code> 都替換成你的內容。寫完後重啟 Hermes（離開再進來），新人格就生效了。
+    </div>
+
+    <h3>實作示範：iterative refinement</h3>
+
+    <div class="term">
+      <div class="term-bar"><span class="dot dr"></span><span class="dot dy"></span><span class="dot dg"></span><span class="tl2">寫一輪 → 測試 → 修改 → 再測試</span></div>
+      <div class="tc"><span class="cmt"># 1. 編輯 SOUL.md（用 vim, code, 或任何編輯器）</span>
+<span class="ps">$</span> <span class="cmd">code ~/.hermes/SOUL.md</span>
+
+<span class="cmt"># 2. 重啟 Hermes，啟動對話</span>
+<span class="ps">$</span> <span class="cmd">hermes</span>
+
+<span class="cmt"># 3. 用幾個有特色的問題測試人格是否「像你」</span>
+<span class="ps">></span> <span class="cmd">你怎麼看 ChatGPT 對人文研究的影響？</span>
+<span class="out">[Agent 回應]</span>
+
+<span class="cmt"># 4. 如果回應不夠像你（太客套、太籠統、不像你的口吻），</span>
+<span class="cmt">#    回去編輯 SOUL.md，加更具體的限制與風格描述</span>
+
+<span class="cmt"># 5. 重複 2–4 直到滿意</span></div>
+    </div>
+  </div>
+
+  <hr class="div">
+
+  <!-- ════════════════════════════════════════
+       Step 3 — USER.md + AGENTS.md
+  ════════════════════════════════════════ -->
+  <div class="section">
+    <div class="sec-lbl">Step 3 · 30–55 min</div>
+    <h2>蒸餾你的工作脈絡 → USER.md + AGENTS.md</h2>
+    <p>SOUL.md 是「你是誰」，但 agent 還需要知道<em>你在做什麼專案</em>、<em>你的工作偏好是什麼</em>。這就是 USER.md 與 AGENTS.md 的角色。</p>
+
+    <h3>USER.md：你的偏好與背景</h3>
+
+    <div class="tpl">
+      <div class="tpl-head">
+        <span>~/.hermes/memories/USER.md</span>
+        <span class="tpl-tag">範本</span>
+      </div>
+      <div class="tpl-body"># 使用者基本資料
+
+- 姓名：[你的名字]
+- 領域：[主修 / 研究方向]
+- 學階：[大學部 / 碩士 / 博士 / 教授]
+- 機構：[國立臺灣大學 / 其他]
+
+# 工作偏好
+
+- 主要使用語言：繁體中文
+- 程式語言偏好：Python（不熟其他）
+- 文獻管理工具：[Zotero / Notion / 其他]
+- 寫作工具：[VS Code / Word / Obsidian]
+
+# 進行中的專案
+
+- [專案一：簡短描述，1 行]
+- [專案二：簡短描述，1 行]
+
+# 溝通偏好
+
+- 不需要 disclaimer 開頭（直接給內容）
+- 程式範例必須可執行（不要用偽代碼）
+- 解釋複雜概念時：先類比，再例子，最後形式化
+</div>
+    </div>
+
+    <h3>AGENTS.md：專案層的工作說明書</h3>
+
+    <p>把 AGENTS.md 放在<strong>你某個具體專案的資料夾下</strong>（不是 ~/.hermes/，是專案根目錄）。當你在那個資料夾啟動 Hermes 時，這個檔案會自動載入。</p>
+
+    <div class="tpl">
+      <div class="tpl-head">
+        <span>~/research/your-project/AGENTS.md</span>
+        <span class="tpl-tag">範本 · 請改成你的專案</span>
+      </div>
+      <div class="tpl-body"># [專案名稱]
+
+## 專案目標
+
+[一段簡短描述，例如：分析魯迅小說中的革命書寫，產出對照表與視覺化]
+
+## 資料夾結構
+
+- `corpus/` — 原始文本（**不可修改！**）
+- `scripts/` — Python 分析腳本
+- `notes/` — 研究筆記（Markdown）
+- `output/` — 結果輸出
+
+## 工作流程
+
+當我說「整理今天的進度」時：
+1. 讀取 `notes/` 下今日修改的檔案
+2. 摘要主要進展
+3. 列出 unresolved questions
+
+當我說「分析這份文本」時：
+1. 確認文本在 `corpus/` 下
+2. 跑 `scripts/analyze.py`
+3. 把結果存到 `output/YYYY-MM-DD/`
+
+## 工具偏好
+
+- 文本處理：用 Python + jieba（中文斷詞）
+- 視覺化：用 matplotlib，標題用繁中
+- 統計：scipy / scikit-learn
+
+## 限制
+
+> 不得修改 `corpus/` 下的任何檔案
+> 不得自動推送 git commit（必須我手動執行）
+> 不得使用會送資料到雲端的工具（這個專案資料敏感）
+</div>
+    </div>
+
+    <div class="call">
+      <strong>檔案位置決定生效範圍：</strong>USER.md 跟著你的人格走，AGENTS.md 只在那個專案資料夾啟動 Hermes 時載入。在不同專案間切換時，AGENTS.md 會自動更換，但 SOUL.md 與 USER.md 不變。
+    </div>
+  </div>
+
+  <hr class="div">
+
+  <!-- ════════════════════════════════════════
+       Step 4 — Skill
+  ════════════════════════════════════════ -->
+  <div class="section">
+    <div class="sec-lbl">Step 4 · 55–90 min</div>
+    <h2>蒸餾你的工作流程 → 一個 .skill 檔</h2>
+    <p>這是最進階也最有趣的一步：把你<em>反覆做的某件事</em>封裝成可重用的技能。Hermes 之後可以自動或手動呼叫這個 skill。</p>
+
+    <h3>挑選一個你常做的事</h3>
+
+    <p>建議從一個小而具體的任務開始。以下是幾個適合「蒸餾」的範例：</p>
+
+    <ul class="rc-prompts" style="font-size:13px;color:var(--muted);padding-left:1.4rem;line-height:2">
+      <li><strong>讀論文摘要</strong>：每讀一篇論文，產出固定格式的摘要卡（作者、年份、論點、方法、可引用句）</li>
+      <li><strong>每日研究日誌</strong>：每天結束時，整理今日進展、卡住的地方、明日計畫</li>
+      <li><strong>文獻對照表</strong>：給定多篇文獻，產出比較表格（理論立場、方法、結論）</li>
+      <li><strong>翻譯助手</strong>：英譯中時依照你的偏好（學術用語、避免某些譯法）</li>
+      <li><strong>備課大綱</strong>：給定一個主題，產出符合你教學風格的大綱（類比 → 公式 → 程式）</li>
+    </ul>
+
+    <h3>Skill 檔範本</h3>
+
+    <div class="tpl">
+      <div class="tpl-head">
+        <span>~/.hermes/skills/paper-summary.skill</span>
+        <span class="tpl-tag">範本 · 論文摘要技能</span>
+      </div>
+      <div class="tpl-body"># 論文摘要技能
+
+description: |
+  把一篇學術論文（PDF 或文字）蒸餾成我習慣的摘要卡格式。
+
+trigger:
+  - 「幫我摘要這篇論文」
+  - 「summarize this paper」
+  - 「做摘要卡」
+
+inputs:
+  - paper_text: 論文全文或 PDF 路徑
+
+steps:
+  1. 確認文本：如果是 PDF，先用 pdftotext 抽取文字
+  2. 識別關鍵資訊：
+     - 作者、年份、期刊
+     - 研究問題（research question）
+     - 主要論點（thesis）
+     - 方法（method）
+     - 主要發現（findings）
+     - 三句可引用的關鍵句
+  3. 用我偏好的格式輸出：
+
+output_template: |
+  ## [Author Year] Title
+
+  **問題**：（一句話）
+  **論點**：（一句話）
+  **方法**：（一句話，包含資料與分析方法）
+
+  ### 主要發現
+  - 發現一
+  - 發現二
+  - 發現三
+
+  ### 可引用的句子
+  > 句子一（頁碼）
+  > 句子二（頁碼）
+
+  ### 我的評估
+  - 與 [其他文獻] 的關係：
+  - 對 [我的研究] 的意義：
+
+constraints:
+  - 不要編造論文沒提到的內容
+  - 引用必須有頁碼
+  - 「我的評估」段如果沒把握就留空，不要瞎填
+</div>
+    </div>
+
+    <div class="call ok">
+      <strong>測試你的 skill：</strong>把一篇你最近讀過的論文丟給 Hermes，加上「用 paper-summary skill 處理」，看看輸出是否符合你的預期。如果不符合，回去調整 .skill 檔的 steps 與 output_template。這是 iterative refinement——通常需要 3–5 輪迭代才會穩定。
+    </div>
+  </div>
+
+  <hr class="div">
+
+  <!-- ════════════════════════════════════════
+       繳交與評分
+  ════════════════════════════════════════ -->
+  <div class="section">
+    <div class="sec-lbl">繳交規定</div>
+    <h2>繳交內容與評分標準</h2>
+
+    <h3>繳交清單</h3>
+    <p>把以下檔案打包成一個 zip 上傳到課程平台：</p>
+
+    <ul class="rc-prompts" style="font-size:13px;color:var(--muted);padding-left:1.4rem;line-height:2.2">
+      <li><code>SOUL.md</code> — 你的人格檔</li>
+      <li><code>USER.md</code> — 你的偏好檔</li>
+      <li><code>AGENTS.md</code> — 至少一個專案的工作說明書</li>
+      <li><code>your-skill.skill</code> — 至少一個自製 skill 檔</li>
+      <li><code>reflection.md</code> — 500–800 字反思（見下方提示）</li>
+      <li><code>screenshots/</code> — 至少 3 張對話截圖（顯示 agent 確實「像你」）</li>
+    </ul>
+
+    <h3>反思題目（reflection.md）</h3>
+
+    <p>不需要全部回答，挑 2–3 題深入寫：</p>
+
+    <ul class="rc-prompts" style="font-size:13px;color:var(--muted);padding-left:1.4rem;line-height:2">
+      <li>蒸餾過程中，哪些「你」是容易形式化的？哪些是無論如何也寫不進 .md 的？</li>
+      <li>當 agent 真的「像你」回應時，你的感受是什麼？是親切還是疏離？</li>
+      <li>如果這個 agent 代替你回 email 或回學生問題，你願意嗎？什麼情況下願意，什麼情況下絕不？</li>
+      <li>蒸餾人 vs 蒸餾技能——哪一個比較容易？這個難度差異說明什麼？</li>
+      <li>從計算語言學/認知科學/哲學的角度：「我」的哪些部分是可被語言模型逼近的，哪些不是？</li>
+    </ul>
+
+    <h3>評分標準</h3>
+    <table class="rubric">
+      <thead><tr><th>項目</th><th>說明</th><th style="text-align:right">分數</th></tr></thead>
+      <tbody>
+        <tr><td>檔案完整性</td><td>四個 .md 檔 + 一個 .skill 檔都齊全且格式正確</td><td class="pts" style="text-align:right">20</td></tr>
+        <tr><td>SOUL.md 個性化程度</td><td>不只是套用範本——能看出你的真實風格與限制</td><td class="pts" style="text-align:right">20</td></tr>
+        <tr><td>Skill 可執行性</td><td>截圖證明 agent 可成功觸發並執行你寫的 skill</td><td class="pts" style="text-align:right">20</td></tr>
+        <tr><td>反思深度</td><td>有實質的元認知，不只是描述步驟</td><td class="pts" style="text-align:right">25</td></tr>
+        <tr><td>創意/突破</td><td>嘗試非典型 skill、利用 cron、整合 Gemini API 等</td><td class="pts" style="text-align:right">15</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr class="div">
+
+  <!-- ════════════════════════════════════════
+       延伸挑戰
+  ════════════════════════════════════════ -->
+  <div class="section">
+    <div class="sec-lbl">延伸挑戰（選做）</div>
+    <h2>還有時間？來試試這些</h2>
+
+    <div class="sum-grid">
+      <div class="sum-card">
+        <div class="si">⏰</div>
+        <h4>加上 Cron</h4>
+        <p>讓你的 agent 每天早上 8 點自動產生今日待辦摘要，送到 Telegram。</p>
+      </div>
+      <div class="sum-card">
+        <div class="si">☁️</div>
+        <h4>串 Gemini API</h4>
+        <p>把 SOUL.md 的內容當 system_instruction 送給 Gemini，做一個雲端版的你。</p>
+      </div>
+      <div class="sum-card">
+        <div class="si">🔗</div>
+        <h4>多 Agent 對話</h4>
+        <p>蒸餾另一個人（同學、老師、想像中的學者），讓兩個 agent 對同一問題辯論。</p>
+      </div>
+      <div class="sum-card">
+        <div class="si">🪝</div>
+        <h4>加 Hook</h4>
+        <p>寫一個 hook 攔截危險指令（例如：寫入研究資料目錄前要求確認）。</p>
+      </div>
+    </div>
+
+    <div class="call warn">
+      <strong>哲學作業：</strong>當你完成蒸餾，存在的就不只是「一份檔案」——而是一個有結構的「自我表徵」。把你寫的 SOUL.md 給一個熟悉你的人看，問他：「這像我嗎？」他的回答會比 agent 的回應更有意義。
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<footer>
+  <a href="https://lope.linguistics.ntu.edu.tw">LOPE Lab</a> ·
+  Graduate Institute of Linguistics, National Taiwan University ·
+  <a href="https://taica.edu.tw">TAICA</a><br>
+  生成式 AI 的人文導論 | Spring 2026 | 114-2
+</footer>
+
+</body>
+</html>

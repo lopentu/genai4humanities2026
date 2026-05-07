@@ -62,3 +62,12 @@ sessions:
       - name: "Markdown 入門與 AGENTS.md 產生器"
         file: "session-4-markdown-lab.html"
         desc: "Markdown 核心語法、即時預覽編輯器與 AGENTS.md 互動式產生器"
+
+  - id: session-5
+    title: "Session 5"
+    blurb: "記憶、Skills 與 Agents：工作流整合"
+    subtitle: "Distill Lab 與 Agent 實作"
+    items:
+      - name: "Lab Session 5 Distill"
+        file: "lab-session-5-distill.html"
+        desc: "Session 5 的整合互動頁，含記憶、skills 與 agents 主題"
