@@ -102,14 +102,12 @@
 
 - week: 11
   date: "2026-05-08"
-  title: "跨界策展：用 AI 進行文學／藝術的數位轉譯與風格混搭"
+  title: "AI 代理實務"
   subtitle: "AI × Arts & Digital Curation"
   cluster: "humanities"
   holiday: false
   objectives:
-    - "介紹生成式 AI 如何模擬藝術風格與音樂結構，創造具個性化的視覺與聲音作品"
-    - "探討風格轉移（Style Transfer）和自動編曲技術"
-    - "了解多模態模型如何整合視覺、聽覺數據進行多感官藝術創作"
+    - "瞭解與實作如何使用 AI 代理來完成特定任務"
 
 - week: 12
   date: "2026-05-15"
@@ -120,7 +118,10 @@
   objectives:
     - "語音與聲音的情感設計：生成符合特定戲劇情境的情感語音與背景音樂"
     - "從技術分析轉向策展與再創作：歷史畫作、文學場景的數位轉譯"
-    - "討論偏見、公平性、深度偽造（Deepfakes）的倫理議題"
+    - "介紹生成式 AI 如何模擬藝術風格與音樂結構，創造具個性化的視覺與聲音作品"
+    - "探討風格轉移（Style Transfer）和自動編曲技術"
+    - "了解多模態模型如何整合視覺、聽覺數據進行多感官藝術創作"
+
 
 - week: 13
   date: "2026-05-22"
@@ -129,7 +130,7 @@
   cluster: "humanities"
   holiday: false
   objectives:
-    - "延續 AI × 人文主題的深度探討"
+    - "用 AI 進行文學／藝術的數位轉譯與風格混搭" 
     - "學生專題進度分享與討論"
 
 - week: 14
@@ -142,6 +143,7 @@
     - "介紹數位分身概念：透過虛擬形象將個人特徵、行為模式數位化"
     - "探討人機共存的未來圖景，數位分身作為代理協助日常任務"
     - "簡介世界模型（World Model）與其應用"
+    - "討論偏見、公平性、深度偽造（Deepfakes）的倫理議題"
 
 - week: 15
   date: "2026-06-05"
@@ -156,21 +158,14 @@
 
 - week: 16
   date: "2026-06-12"
-  title: "期末專案實作討論與第一輪展演"
-  subtitle: "Final Project Workshop"
+  title: "期末專案聯合展演與人文AI競賽頒獎"
+  subtitle: "Final Project Workshop/Showcase"
   cluster: "final"
   holiday: false
   objectives:
     - "期末專案進度報告與互評"
-    - "第一輪展演與回饋"
-
-- week: 17
-  date: "2026-06-15"
-  title: "期末專案聯合展演與人文AI競賽頒獎"
-  subtitle: "Final Showcase"
-  cluster: "final"
-  holiday: false
-  objectives:
-    - "Vibe-Driven Project 展演：文學場景再現、社會議題模擬等"
+    - "Vibe-Driven Project 展演"
     - "邀請校內外評審提供建設性回饋"
     - "人文AI競賽頒獎"
+
+
