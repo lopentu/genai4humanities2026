@@ -80,3 +80,6 @@ sessions:
       - name: "Lab Session 6 Colab × Whisper"
         file: "lab-session-6-colab-whisper.html"
         desc: "Colab 基礎、Whisper 語音轉文字與多模態體驗互動頁"
+      - name: "Lab Session 6b ElevenLabs"
+        file: "lab-session-6b-elevenlabs.html"
+        desc: "ElevenLabs 語音／課堂示範互動頁"
