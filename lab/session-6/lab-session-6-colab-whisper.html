@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab Session 6 ｜ Colab × Whisper</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;700;900&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Source+Code+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#faf8f4;
+  --paper:#fffefb;
+  --ink:#1a1a1a;
+  --ink2:#3a3a3a;
+  --muted:#7a7a78;
+  --line:#d8d3c8;
+  --accent:#9c3a2c;
+  --accent2:#2c4a3e;
+  --accent3:#b08a3e;
+  --soft:#ede8de;
+  --code-bg:#1f2622;
+  --code-fg:#d8d0bd;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg);color:var(--ink);font-family:'Noto Serif TC',serif;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:860px;margin:0 auto;padding:32px 28px 80px}
+
+/* 頂部 */
+.banner{
+  background:var(--paper);
+  border:1px solid var(--line);
+  border-radius:6px;
+  padding:28px 32px;
+  margin-bottom:28px;
+  position:relative;
+  overflow:hidden;
+}
+.banner::before{
+  content:'';
+  position:absolute;top:0;left:0;
+  width:100%;height:4px;
+  background:linear-gradient(90deg,var(--accent) 0%, var(--accent3) 50%, var(--accent2) 100%);
+}
+.banner .course{
+  font-family:'DM Sans',sans-serif;
+  font-size:11px;
+  letter-spacing:.25em;
+  color:var(--muted);
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+.banner h1{
+  font-family:'Noto Serif TC',serif;
+  font-weight:900;
+  font-size:30px;
+  color:var(--ink);
+  margin-bottom:6px;
+  letter-spacing:.01em;
+}
+.banner .sub{
+  font-family:'DM Sans',sans-serif;
+  font-style:italic;
+  font-size:14px;
+  color:var(--accent);
+  margin-bottom:14px;
+}
+.banner .meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:14px;
+  font-family:'Source Code Pro',monospace;
+  font-size:11.5px;
+  color:var(--muted);
+  letter-spacing:.05em;
+}
+.banner .meta span{
+  background:var(--soft);
+  padding:3px 10px;
+  border-radius:3px;
+  color:var(--ink2);
+}
+
+/* 章節 */
+.part{
+  background:var(--paper);
+  border:1px solid var(--line);
+  border-radius:6px;
+  padding:32px 36px;
+  margin-bottom:24px;
+  box-shadow:0 1px 0 rgba(0,0,0,.02), 0 6px 18px rgba(60,40,20,.03);
+}
+.part-head{
+  display:flex;
+  align-items:baseline;
+  gap:14px;
+  margin-bottom:16px;
+  padding-bottom:12px;
+  border-bottom:2px solid var(--soft);
+}
+.part-badge{
+  background:var(--accent2);
+  color:white;
+  font-family:'DM Sans',sans-serif;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.2em;
+  padding:4px 10px;
+  border-radius:3px;
+}
+.part-head h2{
+  font-family:'Noto Serif TC',serif;
+  font-weight:900;
+  font-size:24px;
+  color:var(--ink);
+  flex:1;
+}
+.part-time{
+  font-family:'Source Code Pro',monospace;
+  font-size:11.5px;
+  color:var(--muted);
+  letter-spacing:.05em;
+}
+
+h3{
+  font-family:'Noto Serif TC',serif;
+  font-weight:700;
+  font-size:18px;
+  color:var(--accent2);
+  margin-top:22px;
+  margin-bottom:10px;
+}
+h4{
+  font-family:'DM Sans',sans-serif;
+  font-weight:700;
+  font-size:13px;
+  letter-spacing:.08em;
+  color:var(--accent);
+  text-transform:uppercase;
+  margin-top:18px;
+  margin-bottom:8px;
+}
+p{margin-bottom:12px;color:var(--ink2);font-size:15.5px}
+strong{color:var(--ink);font-weight:700}
+em{font-style:italic;color:var(--accent)}
+
+/* 類比 */
+.analogy{
+  background:linear-gradient(180deg,#fdf6e8 0%, #faf0d8 100%);
+  border-left:4px solid var(--accent3);
+  padding:16px 20px;
+  margin:16px 0;
+  border-radius:0 5px 5px 0;
+  position:relative;
+}
+.analogy::before{
+  content:'類比';
+  position:absolute;
+  top:-9px;
+  left:14px;
+  background:var(--accent3);
+  color:white;
+  font-family:'DM Sans',sans-serif;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.15em;
+  padding:2px 9px;
+  border-radius:3px;
+}
+.analogy p{font-size:14.5px;color:#5a4a2a;margin-bottom:6px}
+.analogy p:last-child{margin-bottom:0}
+
+/* 步驟 */
+.step{
+  background:var(--soft);
+  border-radius:5px;
+  padding:14px 18px 14px 50px;
+  margin:12px 0;
+  position:relative;
+}
+.step::before{
+  content:counter(step);
+  counter-increment:step;
+  position:absolute;
+  left:14px;
+  top:14px;
+  background:var(--accent2);
+  color:white;
+  font-family:'DM Sans',sans-serif;
+  font-weight:700;
+  width:24px;height:24px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:13px;
+}
+.step h4{margin-top:0;color:var(--ink);font-family:'Noto Serif TC',serif;font-weight:700;font-size:15.5px;letter-spacing:0;text-transform:none}
+.step p{font-size:14.5px;margin-bottom:6px}
+.step p:last-child{margin-bottom:0}
+.step-list{counter-reset:step}
+
+/* 程式碼區塊 */
+.cell{
+  background:var(--code-bg);
+  border-radius:5px;
+  margin:14px 0;
+  overflow:hidden;
+  border:1px solid #2c352f;
+}
+.cell-head{
+  background:#161c19;
+  color:#8a9590;
+  padding:6px 14px;
+  font-family:'Source Code Pro',monospace;
+  font-size:11px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  border-bottom:1px solid #2c352f;
+}
+.cell-head .badge{
+  background:#3a4540;
+  color:#d8d0bd;
+  padding:1px 7px;
+  border-radius:2px;
+  font-size:10px;
+  letter-spacing:.1em;
+}
+.cell-head .badge.shell{background:#5a3a2a;color:#f0d8b0}
+.cell pre{
+  background:transparent;
+  color:var(--code-fg);
+  padding:14px 18px;
+  font-family:'Source Code Pro',monospace;
+  font-size:13.5px;
+  line-height:1.65;
+  overflow-x:auto;
+  margin:0;
+}
+pre .kw{color:#e8b04a}
+pre .str{color:#9bc88e}
+pre .cmt{color:#6a7a6a;font-style:italic}
+pre .builtin{color:#7aa8d8}
+pre .magic{color:#d97a9a;font-weight:600}
+
+code{
+  font-family:'Source Code Pro',monospace;
+  background:#ede8de;
+  padding:1px 6px;
+  border-radius:3px;
+  font-size:13.5px;
+  color:var(--accent);
+}
+
+/* 提示框 */
+.tip{
+  background:#e8f0e6;
+  border-left:3px solid var(--accent2);
+  padding:12px 16px;
+  margin:12px 0;
+  border-radius:0 4px 4px 0;
+  font-size:14.5px;
+}
+.tip .label{
+  font-family:'DM Sans',sans-serif;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.15em;
+  color:var(--accent2);
+  text-transform:uppercase;
+  display:block;
+  margin-bottom:4px;
+}
+.warn{background:#f8e8e0;border-left-color:var(--accent)}
+.warn .label{color:var(--accent)}
+
+/* 表格 */
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin:14px 0;
+  font-size:14.5px;
+}
+th{
+  background:var(--soft);
+  text-align:left;
+  padding:8px 12px;
+  border-bottom:2px solid var(--accent2);
+  font-weight:700;
+  color:var(--accent2);
+  font-family:'Noto Serif TC',serif;
+}
+td{
+  padding:8px 12px;
+  border-bottom:1px solid var(--line);
+  color:var(--ink2);
+  vertical-align:top;
+}
+tr:last-child td{border-bottom:none}
+
+/* 比較格 */
+.compare{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin:14px 0;
+}
+.compare > div{
+  padding:14px 16px;
+  border-radius:5px;
+  font-size:14px;
+}
+.compare .yes{background:#e8f0e6;border-left:3px solid var(--accent2)}
+.compare .no{background:#f4ece8;border-left:3px solid var(--accent)}
+.compare h4{margin-top:0;text-transform:none;letter-spacing:0;font-family:'Noto Serif TC',serif;font-weight:700;font-size:15px}
+.compare .yes h4{color:var(--accent2)}
+.compare .no h4{color:var(--accent)}
+
+ul,ol{margin:8px 0 12px 22px}
+li{margin-bottom:6px;color:var(--ink2);font-size:15px}
+
+.toc{
+  background:var(--paper);
+  border:1px solid var(--line);
+  border-radius:6px;
+  padding:18px 24px;
+  margin-bottom:24px;
+}
+.toc h3{
+  font-family:'DM Sans',sans-serif;
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.2em;
+  color:var(--muted);
+  text-transform:uppercase;
+  margin-top:0;
+  margin-bottom:12px;
+  border:none;
+}
+.toc ol{margin:0 0 0 20px}
+.toc li{font-size:14.5px;margin-bottom:4px}
+.toc li a{color:var(--ink2);text-decoration:none}
+.toc li a:hover{color:var(--accent);text-decoration:underline}
+.toc li .t{color:var(--muted);font-family:'Source Code Pro',monospace;font-size:11px;margin-left:6px}
+
+/* 反思 */
+.reflect{
+  background:#f0ece2;
+  border:1px dashed var(--accent2);
+  padding:14px 18px;
+  margin:14px 0;
+  border-radius:5px;
+  font-size:14.5px;
+}
+.reflect .label{
+  font-family:'DM Sans',sans-serif;
+  font-size:10px;
+  letter-spacing:.18em;
+  color:var(--accent2);
+  font-weight:700;
+  text-transform:uppercase;
+  margin-bottom:6px;
+}
+
+blockquote{
+  border-left:3px solid var(--accent);
+  padding:6px 16px;
+  margin:12px 0;
+  font-family:'Noto Serif TC',serif;
+  font-style:italic;
+  color:#5a3a30;
+  background:#fdf6e8;
+  font-size:14.5px;
+}
+
+footer{
+  text-align:center;
+  margin-top:40px;
+  padding-top:20px;
+  border-top:1px solid var(--line);
+  font-family:'DM Sans',sans-serif;
+  font-size:12px;
+  color:var(--muted);
+  letter-spacing:.05em;
+}
+footer a{color:var(--accent2);text-decoration:none;font-weight:600}
+
+@media (max-width:700px){
+  .wrap{padding:20px 12px 60px}
+  .part{padding:24px 20px}
+  .banner{padding:22px 22px}
+  .banner h1{font-size:24px}
+  .compare{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ═══════════════ BANNER ═══════════════ -->
+<div class="banner">
+  <div class="course">生成式 AI 的人文導論 · Spring 2026 · Lab Session 6</div>
+  <h1>Colab 入門 × Whisper 語音轉錄</h1>
+  <div class="sub">Google Colab Basics &amp; Hands-on Speech Recognition</div>
+  <div class="meta">
+    <span>⏱ 90 min</span>
+    <span>📋 雲端執行，無需安裝</span>
+    <span>🎯 完成第一個 AI 應用</span>
+    <span>🎙 自選素材實作</span>
+  </div>
+</div>
+
+<!-- ═══════════════ TOC ═══════════════ -->
+<div class="toc">
+  <h3>本週流程</h3>
+  <ol>
+    <li><a href="#p1">為什麼用 Colab？</a><span class="t">10 min</span></li>
+    <li><a href="#p2">第一個 Notebook：認識 cell</a><span class="t">15 min</span></li>
+    <li><a href="#p3">Whisper 實作：把聲音變成文字</a><span class="t">30 min</span></li>
+    <li><a href="#p4">多模態體驗：讓 AI 看圖說話</a><span class="t">25 min</span></li>
+    <li><a href="#p5">作業說明與下週預告</a><span class="t">10 min</span></li>
+  </ol>
+</div>
+
+<!-- ═══════════════ PART 1 ═══════════════ -->
+<section class="part" id="p1">
+  <div class="part-head">
+    <span class="part-badge">PART 1</span>
+    <h2>為什麼用 Colab？</h2>
+    <span class="part-time">10 min</span>
+  </div>
+
+  <p>Google Colab（Colaboratory）是一個<strong>雲端 Python 執行環境</strong>，用瀏覽器就能寫程式、跑模型，免安裝、免設定、還免費送 GPU。對人文社科學生來說，它解決了一個最棘手的問題：「<em>我電腦沒有那麼好，跑得動 AI 嗎？</em>」</p>
+
+  <div class="analogy">
+    <p><strong>Colab 像是「公共圖書館的研究室」</strong>：你不必擁有整套儀器、不必準備工作空間、不必自己買電腦。走進圖書館（瀏覽器），登入帳號，借一個研究室（Colab notebook），裡面已經備好你需要的一切——書桌（編輯器）、紙筆（cell）、甚至實驗器材（GPU）。離開時，你的研究筆記（notebook）自動存在 Google Drive 裡。</p>
+  </div>
+
+  <h3>Colab vs. 本機安裝 Python</h3>
+  <div class="compare">
+    <div class="yes">
+      <h4>✓ Colab</h4>
+      <ul>
+        <li>免安裝任何軟體</li>
+        <li>免費 GPU / TPU（每天有額度）</li>
+        <li>檔案存 Google Drive</li>
+        <li>可分享連結與他人協作</li>
+        <li>環境固定、不會壞</li>
+      </ul>
+    </div>
+    <div class="no">
+      <h4>✗ 本機安裝</h4>
+      <ul>
+        <li>要裝 Python、要管理套件</li>
+        <li>GPU 要自備（很貴）</li>
+        <li>跨作業系統時常出狀況</li>
+        <li>分享要打包環境</li>
+        <li>適合長期開發，不適合課堂初學</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>本次課程選用 Colab 的三個理由</h3>
+  <ol>
+    <li><strong>零門檻</strong>：只要有 Google 帳號就能開始，省下安裝環境的兩小時挫敗感。</li>
+    <li><strong>免費 GPU</strong>：Whisper、Stable Diffusion 等模型對 GPU 有需求，Colab 的免費 T4 GPU 已足夠課堂實作。</li>
+    <li><strong>可重現</strong>：notebook 是一個檔案，包含程式碼、輸出、文字說明——非常適合「<em>論文式的程式作業</em>」。</li>
+  </ol>
+
+  <div class="tip">
+    <span class="label">回顧</span>
+    上週的 Ollama 是「<strong>把 AI 跑在自己電腦上</strong>」——重視隱私與離線。本週的 Colab 是「<strong>把 AI 跑在 Google 的伺服器上</strong>」——重視便利與算力。兩者並非互斥，而是不同任務的不同選擇。
+  </div>
+</section>
+
+<!-- ═══════════════ PART 2 ═══════════════ -->
+<section class="part" id="p2">
+  <div class="part-head">
+    <span class="part-badge">PART 2</span>
+    <h2>第一個 Notebook：認識 cell</h2>
+    <span class="part-time">15 min</span>
+  </div>
+
+  <h3>step-by-step：開啟你的第一個 Colab</h3>
+  <div class="step-list">
+    <div class="step">
+      <h4>登入 Google 帳號，前往 colab.research.google.com</h4>
+      <p>建議用 NTU 信箱（Google Workspace 教育版有更高額度）。</p>
+    </div>
+    <div class="step">
+      <h4>點選「檔案 → 新增筆記本」</h4>
+      <p>你會看到一個空白頁面，上方有「+ Code」「+ Text」兩個按鈕。每個方塊叫做一個 <em>cell</em>（單元格）。</p>
+    </div>
+    <div class="step">
+      <h4>檢查執行環境是否有 GPU</h4>
+      <p>點「執行階段 → 變更執行階段類型 → 硬體加速器」，選 <code>T4 GPU</code>。</p>
+    </div>
+    <div class="step">
+      <h4>把筆記本存到 Google Drive</h4>
+      <p>檔名改成 <code>week13_whisper_lab.ipynb</code>。Colab 會自動存檔，但建議偶爾按 <code>Ctrl/Cmd + S</code> 強制儲存。</p>
+    </div>
+  </div>
+
+  <h3>Notebook 的兩種 cell</h3>
+  <table>
+    <tr><th>類型</th><th>用途</th><th>例子</th></tr>
+    <tr><td><strong>Code cell</strong></td><td>執行 Python 程式</td><td><code>print("Hello, AI!")</code></td></tr>
+    <tr><td><strong>Text cell</strong></td><td>寫筆記、文件、Markdown</td><td># 標題、**粗體**、列表</td></tr>
+  </table>
+
+  <p><strong>執行 cell 的快捷鍵</strong>：<code>Shift + Enter</code>（執行並跳到下一格）、<code>Ctrl/Cmd + Enter</code>（執行但留在原格）。</p>
+
+  <h3>練習 1：第一段程式</h3>
+  <p>在 Code cell 中輸入並執行：</p>
+
+  <div class="cell">
+    <div class="cell-head"><span class="badge">PYTHON</span> Cell 1</div>
+<pre><span class="kw">print</span>(<span class="str">"Hello, 多模態 AI！"</span>)
+<span class="kw">import</span> sys
+<span class="kw">print</span>(<span class="str">"Python 版本："</span>, sys.version)</pre>
+  </div>
+
+  <h3>練習 2：執行 shell 指令</h3>
+  <p>Colab 的另一個強大之處是可以直接執行命令列指令——只要在指令前加 <code>!</code>（驚嘆號）。這讓你能用上一週學的 CLI 知識。</p>
+
+  <div class="cell">
+    <div class="cell-head"><span class="badge shell">SHELL</span> Cell 2 ── 確認系統環境</div>
+<pre><span class="magic">!nvidia-smi</span>      <span class="cmt"># 看看 GPU 是什麼型號</span>
+<span class="magic">!pwd</span>             <span class="cmt"># 看看現在在哪個目錄</span>
+<span class="magic">!ls</span>              <span class="cmt"># 列出檔案</span></pre>
+  </div>
+
+  <div class="tip">
+    <span class="label">語言學家視角</span>
+    這個 <code>!</code> 是一種「<strong>語碼轉換</strong>」標記——它告訴 Jupyter / Colab：「接下來這一行請用 shell 解讀，不要當 Python」。同一個 cell 中可以混合兩種語言，就像我們日常會在中文裡夾英文。
+  </div>
+
+  <h3>練習 3：安裝套件</h3>
+  <p>每個新的 Colab 環境都是空白的，你需要安裝套件。下一個 cell 安裝 Whisper：</p>
+
+  <div class="cell">
+    <div class="cell-head"><span class="badge shell">SHELL</span> Cell 3 ── 安裝 Whisper</div>
+<pre><span class="magic">!pip install -q openai-whisper</span></pre>
+  </div>
+
+  <p>參數 <code>-q</code> 是 "quiet"，讓安裝訊息精簡一點。安裝完成後就可以使用 Whisper 了。</p>
+</section>
+
+<!-- ═══════════════ PART 3 ═══════════════ -->
+<section class="part" id="p3">
+  <div class="part-head">
+    <span class="part-badge">PART 3</span>
+    <h2>Whisper 實作：把聲音變成文字</h2>
+    <span class="part-time">30 min</span>
+  </div>
+
+  <p>Whisper 是 OpenAI 開源的語音辨識模型，支援 99 種語言。我們將完成兩件事：（1）轉錄一段網路上的示範音檔；（2）轉錄你自己上傳的素材。</p>
+
+  <h3>Step 1：載入 Whisper 模型</h3>
+  <div class="cell">
+    <div class="cell-head"><span class="badge">PYTHON</span> Cell 4</div>
+<pre><span class="kw">import</span> whisper
+
+<span class="cmt"># 載入 base 模型（容量小、速度快，初學適合）</span>
+model = whisper.<span class="kw">load_model</span>(<span class="str">"base"</span>)
+<span class="kw">print</span>(<span class="str">"✓ 模型載入完成"</span>)</pre>
+  </div>
+
+  <p>第一次執行會下載模型權重（約 140 MB），需要幾秒鐘。</p>
+
+  <h3>Whisper 模型大小對照</h3>
+  <table>
+    <tr><th>名稱</th><th>參數量</th><th>相對速度</th><th>適用情境</th></tr>
+    <tr><td><code>tiny</code></td><td>39 M</td><td>~10×</td><td>快速測試、即時轉錄</td></tr>
+    <tr><td><code>base</code></td><td>74 M</td><td>~7×</td><td>本週課堂預設</td></tr>
+    <tr><td><code>small</code></td><td>244 M</td><td>~4×</td><td>一般作業品質</td></tr>
+    <tr><td><code>medium</code></td><td>769 M</td><td>~2×</td><td>論文等正式用途</td></tr>
+    <tr><td><code>large-v3</code></td><td>1550 M</td><td>1×</td><td>最高品質（要 GPU）</td></tr>
+  </table>
+
+  <h3>Step 2：下載示範音檔（中文新聞）</h3>
+  <div class="cell">
+    <div class="cell-head"><span class="badge shell">SHELL</span> Cell 5</div>
+<pre><span class="cmt"># 範例：下載一段中文音檔（老師會提供連結）</span>
+<span class="magic">!wget -q https://example.com/demo_zh.mp3 -O demo.mp3</span>
+<span class="magic">!ls -lh demo.mp3</span></pre>
+  </div>
+
+  <div class="tip">
+    <span class="label">課堂示範</span>
+    老師上課時會提供一段 NTU 演講錄音（約 1 分鐘），讓大家用同一份素材比較。
+  </div>
+
+  <h3>Step 3：執行轉錄</h3>
+  <div class="cell">
+    <div class="cell-head"><span class="badge">PYTHON</span> Cell 6</div>
+<pre>result = model.<span class="kw">transcribe</span>(<span class="str">"demo.mp3"</span>, language=<span class="str">"zh"</span>)
+
+<span class="kw">print</span>(<span class="str">"=== 轉錄結果 ==="</span>)
+<span class="kw">print</span>(result[<span class="str">"text"</span>])</pre>
+  </div>
+
+  <p>就這麼簡單。三行程式，把過去需要手動抄寫一小時的工作壓縮到幾十秒。</p>
+
+  <h3>Step 4：查看時間戳（segments）</h3>
+  <p>Whisper 不只能輸出純文字，還能標記每一段話的時間。這對「<strong>製作字幕</strong>」或「<strong>研究停頓與話輪轉換</strong>」非常有用。</p>
+
+  <div class="cell">
+    <div class="cell-head"><span class="badge">PYTHON</span> Cell 7</div>
+<pre><span class="kw">for</span> seg <span class="kw">in</span> result[<span class="str">"segments"</span>][:5]:    <span class="cmt"># 看前 5 段</span>
+    start = seg[<span class="str">"start"</span>]
+    end = seg[<span class="str">"end"</span>]
+    text = seg[<span class="str">"text"</span>]
+    <span class="kw">print</span>(<span class="str">f"[{start:.1f}s → {end:.1f}s] {text}"</span>)</pre>
+  </div>
+
+  <h3>Step 5：上傳你自己的音檔</h3>
+  <p>Colab 提供簡單的上傳介面：</p>
+
+  <div class="cell">
+    <div class="cell-head"><span class="badge">PYTHON</span> Cell 8</div>
+<pre><span class="kw">from</span> google.colab <span class="kw">import</span> files
+uploaded = files.<span class="kw">upload</span>()     <span class="cmt"># 跳出檔案選擇視窗</span>
+
+<span class="cmt"># 取得檔名（假設你只上傳一個）</span>
+filename = <span class="kw">list</span>(uploaded.<span class="kw">keys</span>())[<span class="builtin">0</span>]
+<span class="kw">print</span>(<span class="str">f"已上傳：{filename}"</span>)</pre>
+  </div>
+
+  <div class="cell">
+    <div class="cell-head"><span class="badge">PYTHON</span> Cell 9</div>
+<pre>my_result = model.<span class="kw">transcribe</span>(filename)
+<span class="kw">print</span>(my_result[<span class="str">"text"</span>])</pre>
+  </div>
+
+  <div class="reflect">
+    <div class="label">課堂活動 · 比較不同模型</div>
+    <p>把 Cell 4 改成 <code>load_model("small")</code> 或 <code>load_model("medium")</code>，重新跑你自己的音檔。<strong>哪些地方變得更準？哪些原本就準？哪些怎麼換模型都錯？</strong>記下三個觀察，待會分享。</p>
+  </div>
+
+  <div class="tip warn">
+    <span class="label">常見錯誤</span>
+    <ul>
+      <li><strong>"out of memory"</strong>：模型太大，換成 <code>small</code> 或重新 reset runtime。</li>
+      <li><strong>轉錄是英文不是中文</strong>：在 <code>transcribe()</code> 中加 <code>language="zh"</code> 參數。</li>
+      <li><strong>臺語、客語效果差</strong>：Whisper 主要訓練於華語，臺語要靠社群微調版本（如 <code>k2-fsa/sherpa</code>）。</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══════════════ PART 4 ═══════════════ -->
+<section class="part" id="p4">
+  <div class="part-head">
+    <span class="part-badge">PART 4</span>
+    <h2>多模態體驗：讓 AI 看圖說話</h2>
+    <span class="part-time">25 min</span>
+  </div>
+
+  <p>正課提到，多模態 LLM 能整合文字、圖像、語音。這一節我們用 Google 的 Gemini API 體驗「<strong>看圖回答問題</strong>」。</p>
+
+  <div class="analogy">
+    <p><strong>從 Whisper 到 Gemini，就像從一位精通聽寫的史官，升級到一位能聽、能讀、能看的<em>太史公</em></strong>。前者單一感官，後者全感整合。</p>
+  </div>
+
+  <h3>Step 1：取得 Gemini API Key</h3>
+  <div class="step-list">
+    <div class="step">
+      <h4>前往 aistudio.google.com</h4>
+      <p>用 Google 帳號登入。</p>
+    </div>
+    <div class="step">
+      <h4>左側選單點「Get API key」→「Create API key」</h4>
+      <p>把產生的 key 複製下來（一長串字母數字），別貼給別人。</p>
+    </div>
+    <div class="step">
+      <h4>在 Colab 加入 secret</h4>
+      <p>左側面板有個 🔑 鑰匙圖示，點開後新增名為 <code>GEMINI_API_KEY</code> 的密鑰，貼入剛才的 key，並打開「Notebook access」。</p>
+    </div>
+  </div>
+
+  <div class="tip warn">
+    <span class="label">資安提醒</span>
+    <strong>不要</strong>把 API key 直接寫在 cell 裡——你的 notebook 一旦分享出去，別人就能用你的額度。一律用 Colab 的 secret 機制存取。
+  </div>
+
+  <h3>Step 2：安裝與設定</h3>
+  <div class="cell">
+    <div class="cell-head"><span class="badge shell">SHELL</span> Cell 10</div>
+<pre><span class="magic">!pip install -q google-generativeai</span></pre>
+  </div>
+
+  <div class="cell">
+    <div class="cell-head"><span class="badge">PYTHON</span> Cell 11</div>
+<pre><span class="kw">import</span> google.generativeai <span class="kw">as</span> genai
+<span class="kw">from</span> google.colab <span class="kw">import</span> userdata
+
+genai.<span class="kw">configure</span>(api_key=userdata.<span class="kw">get</span>(<span class="str">'GEMINI_API_KEY'</span>))
+model_g = genai.<span class="kw">GenerativeModel</span>(<span class="str">'gemini-2.0-flash'</span>)</pre>
+  </div>
+
+  <h3>Step 3：上傳一張圖，問 Gemini</h3>
+  <div class="cell">
+    <div class="cell-head"><span class="badge">PYTHON</span> Cell 12</div>
+<pre><span class="kw">from</span> google.colab <span class="kw">import</span> files
+<span class="kw">from</span> PIL <span class="kw">import</span> Image
+
+uploaded = files.<span class="kw">upload</span>()
+img_path = <span class="kw">list</span>(uploaded.<span class="kw">keys</span>())[<span class="builtin">0</span>]
+img = Image.<span class="kw">open</span>(img_path)
+
+response = model_g.<span class="kw">generate_content</span>([
+    <span class="str">"請用繁體中文描述這張圖，特別注意可能的文化背景線索。"</span>,
+    img
+])
+<span class="kw">print</span>(response.text)</pre>
+  </div>
+
+  <p>試試看用一張<strong>古地圖、書畫、廟宇照片、田野現場</strong>等具有人文意涵的素材，觀察 Gemini 的回答品質。</p>
+
+  <div class="reflect">
+    <div class="label">課堂思考</div>
+    <ol>
+      <li>Gemini 能辨識台灣本土的視覺符號（媽祖像、布袋戲、台式早餐）嗎？</li>
+      <li>它對圖中文字（特別是繁體中文、古文）的處理如何？</li>
+      <li>如果它「描述錯了」，錯在哪裡？是視覺辨識錯，還是文化脈絡缺失？</li>
+    </ol>
+  </div>
+
+  <h3>進階：把 Whisper + Gemini 串起來</h3>
+  <p>真正的多模態應用，是把多個模型「<em>接力</em>」使用。例如：<strong>把音檔轉錄後，請 Gemini 摘要</strong>。</p>
+
+  <div class="cell">
+    <div class="cell-head"><span class="badge">PYTHON</span> Cell 13 ── 把上面結果接起來</div>
+<pre>transcript = my_result[<span class="str">"text"</span>]     <span class="cmt"># 從 Part 3 來的轉錄</span>
+
+prompt = <span class="str">f"""以下是一段訪談逐字稿，請用三句話以繁體中文摘要核心觀點：
+
+{transcript}"""</span>
+
+response = model_g.<span class="kw">generate_content</span>(prompt)
+<span class="kw">print</span>(response.text)</pre>
+  </div>
+
+  <blockquote>從 Whisper 的「<em>把聲音變文字</em>」，到 Gemini 的「<em>從文字產生洞察</em>」——這個 pipeline 就是當代 AI 應用的縮影。你已經做出來了。</blockquote>
+</section>
+
+<!-- ═══════════════ PART 5 ═══════════════ -->
+<section class="part" id="p5">
+  <div class="part-head">
+    <span class="part-badge">PART 5</span>
+    <h2>作業說明與下週預告</h2>
+    <span class="part-time">10 min</span>
+  </div>
+
+  <h3>本週作業：Whisper 觀察筆記</h3>
+  <p>選擇一段你感興趣的口語素材（3–5 分鐘為宜），用 Whisper 完成下列任務：</p>
+
+  <ol>
+    <li><strong>素材來源</strong>：YouTube 訪談、Podcast 片段、長輩錄音、新聞、戲劇對白——擇一。請註明出處與授權狀況。</li>
+    <li><strong>實作步驟</strong>：用 <code>base</code> 與 <code>small</code> 兩種模型各轉錄一次。</li>
+    <li><strong>觀察筆記</strong>（約 400 字）：
+      <ul>
+        <li>哪些段落兩個模型結果一致？哪些有差異？</li>
+        <li>失準的地方有何規律？（人名、術語、方言、語碼轉換、語速？）</li>
+        <li>從你的人文背景看，這些失準有什麼意涵？</li>
+      </ul>
+    </li>
+    <li><strong>繳交</strong>：把 Colab notebook 連結（記得設成「<em>知道連結的任何人都可檢視</em>」）+ 觀察筆記，傳到課程作業區。</li>
+  </ol>
+
+  <h3>進階加分（選作）</h3>
+  <div class="reflect">
+    <div class="label">Bonus · 跨岸詞彙差異延伸</div>
+    <p>把臺灣與中國大陸的同一新聞事件的兩段播報，各用 Whisper 轉錄。是否能觀察到詞彙選用上的差異？（如「網路」vs「网络」、「軟體」vs「软件」、「奈米」vs「纳米」）。把觀察寫成一段短文。</p>
+  </div>
+
+  <h3>下週預告：Session 7 · 從 API 到 Vibe Coding 應用</h3>
+  <p>下週我們會把本週的 API 串接技巧，與前幾週學過的 HTML/CSS/JS 結合，做出第一個「<em>能讓別人使用的 AI 小應用</em>」。學期末的 Vibe Coding 專題，從那一週開始醞釀。</p>
+
+  <h3>離開 Colab 前的好習慣</h3>
+  <ul>
+    <li><strong>儲存筆記本</strong>（Ctrl/Cmd + S）—Colab 雖會自動存，手動更保險。</li>
+    <li><strong>關閉執行階段</strong>（執行階段 → 結束目前的執行階段）—釋放 GPU 額度給未來的自己。</li>
+    <li><strong>把 notebook 加到「我的筆記本」</strong>—方便下次找。</li>
+  </ul>
+
+  <blockquote>你已經完成了第一個 AI 應用——它把聲音變成了文字，把圖像變成了描述。<br>
+  接下來幾週，你會把這些零件組起來，變成你自己想做的東西。</blockquote>
+</section>
+
+<footer>
+  <a href="https://lope.linguistics.ntu.edu.tw">LOPE Lab</a> · 
+  Graduate Institute of Linguistics, National Taiwan University · 
+  <a href="https://taica.edu.tw">TAICA</a><br>
+  生成式 AI 的人文導論 | Spring 2026 | 114-2 | Lab Session 6
+</footer>
+
+</div>
+</body>
+</html>

@@ -71,3 +71,12 @@ sessions:
       - name: "Lab Session 5 Distill"
         file: "lab-session-5-distill.html"
         desc: "Session 5 的整合互動頁，含記憶、skills 與 agents 主題"
+
+  - id: session-6
+    title: "Session 6"
+    blurb: "Colab 入門 × Whisper：雲端 Notebook 與語音轉錄"
+    subtitle: "Google Colab 與 Whisper 實作導覽"
+    items:
+      - name: "Lab Session 6 Colab × Whisper"
+        file: "lab-session-6-colab-whisper.html"
+        desc: "Colab 基礎、Whisper 語音轉文字與多模態體驗互動頁"
