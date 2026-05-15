@@ -577,17 +577,17 @@ model = whisper.<span class="kw">load_model</span>(<span class="str">"base"</spa
     <tr><td><code>large-v3</code></td><td>1550 M</td><td>1×</td><td>最高品質（要 GPU）</td></tr>
   </table>
 
-  <h3>Step 2：下載示範音檔（中文新聞）</h3>
+  <h3>Step 2：下載示範音檔</h3>
   <div class="cell">
     <div class="cell-head"><span class="badge shell">SHELL</span> Cell 5</div>
-<pre><span class="cmt"># 範例：下載一段中文音檔（老師會提供連結）</span>
+<pre><span class="cmt"># 範例：下載一段中文音檔（連結可改）</span>
 <span class="magic">!wget -q https://lopentu.github.io/genai4humanities2026/lab/session-6/shukai_talk.mp3 -O demo.mp3</span>
 <span class="magic">!ls -lh demo.mp3</span></pre>
   </div>
 
   <div class="tip">
     <span class="label">課堂示範</span>
-    老師上課時會提供一段演講錄音，讓大家用同一份素材比較。
+    上面連結是一段演講錄音，讓大家用同一份素材比較。
   </div>
 
   <h3>Step 3：執行轉錄</h3>
