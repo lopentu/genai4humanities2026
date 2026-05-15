@@ -398,7 +398,7 @@ footer a{color:var(--accent2);text-decoration:none;font-weight:600}
 
 <!-- ═══════════════ BANNER ═══════════════ -->
 <div class="banner">
-  <div class="course">生成式 AI 的人文導論 · Spring 2026 · Lab Session 6</div>
+  <div class="course">生成式 AI 的人文導論 · Spring 2026 · Lab Session 6a</div>
   <h1>Colab 入門 × Whisper 語音轉錄</h1>
   <div class="sub">Google Colab Basics &amp; Hands-on Speech Recognition</div>
   <div class="meta">
@@ -417,7 +417,7 @@ footer a{color:var(--accent2);text-decoration:none;font-weight:600}
     <li><a href="#p2">第一個 Notebook：認識 cell</a><span class="t">15 min</span></li>
     <li><a href="#p3">Whisper 實作：把聲音變成文字</a><span class="t">30 min</span></li>
     <li><a href="#p4">多模態體驗：讓 AI 看圖說話</a><span class="t">25 min</span></li>
-    <li><a href="#p5">作業說明與下週預告</a><span class="t">10 min</span></li>
+    <!-- <li><a href="#p5">作業說明與下週預告</a><span class="t">10 min</span></li> -->
   </ol>
 </div>
 
@@ -459,16 +459,16 @@ footer a{color:var(--accent2);text-decoration:none;font-weight:600}
     </div>
   </div>
 
-  <h3>本次課程選用 Colab 的三個理由</h3>
+  <h3>簡言之，選用 Colab 的三個理由</h3>
   <ol>
     <li><strong>零門檻</strong>：只要有 Google 帳號就能開始，省下安裝環境的兩小時挫敗感。</li>
     <li><strong>免費 GPU</strong>：Whisper、Stable Diffusion 等模型對 GPU 有需求，Colab 的免費 T4 GPU 已足夠課堂實作。</li>
-    <li><strong>可重現</strong>：notebook 是一個檔案，包含程式碼、輸出、文字說明——非常適合「<em>論文式的程式作業</em>」。</li>
+    <li><strong>可重現</strong>：notebook 是一個檔案，包含程式碼、輸出、文字說明。非常適合「<em>論文式的程式作業</em>」。</li>
   </ol>
 
   <div class="tip">
     <span class="label">回顧</span>
-    上週的 Ollama 是「<strong>把 AI 跑在自己電腦上</strong>」——重視隱私與離線。本週的 Colab 是「<strong>把 AI 跑在 Google 的伺服器上</strong>」——重視便利與算力。兩者並非互斥，而是不同任務的不同選擇。
+    之前提到的 Ollama 是「<strong>把 AI 跑在自己電腦上</strong>」，重視隱私與離線；本週的 Colab 是「<strong>把 AI 跑在 Google 的伺服器上</strong>」，重視便利與算力。兩者並非互斥，而是不同任務的不同選擇。
   </div>
 </section>
 
@@ -484,7 +484,7 @@ footer a{color:var(--accent2);text-decoration:none;font-weight:600}
   <div class="step-list">
     <div class="step">
       <h4>登入 Google 帳號，前往 colab.research.google.com</h4>
-      <p>建議用 NTU 信箱（Google Workspace 教育版有更高額度）。</p>
+      <!-- <p>建議用 NTU 信箱（Google Workspace 教育版有更高額度）。</p> -->
     </div>
     <div class="step">
       <h4>點選「檔案 → 新增筆記本」</h4>
@@ -520,7 +520,7 @@ footer a{color:var(--accent2);text-decoration:none;font-weight:600}
   </div>
 
   <h3>練習 2：執行 shell 指令</h3>
-  <p>Colab 的另一個強大之處是可以直接執行命令列指令——只要在指令前加 <code>!</code>（驚嘆號）。這讓你能用上一週學的 CLI 知識。</p>
+  <p>Colab 的另一個強大之處是可以直接執行命令列指令。只要在指令前加 <code>!</code>（驚嘆號）。這讓你能用上一週學的 CLI 知識。</p>
 
   <div class="cell">
     <div class="cell-head"><span class="badge shell">SHELL</span> Cell 2 ── 確認系統環境</div>
@@ -581,13 +581,13 @@ model = whisper.<span class="kw">load_model</span>(<span class="str">"base"</spa
   <div class="cell">
     <div class="cell-head"><span class="badge shell">SHELL</span> Cell 5</div>
 <pre><span class="cmt"># 範例：下載一段中文音檔（老師會提供連結）</span>
-<span class="magic">!wget -q https://example.com/demo_zh.mp3 -O demo.mp3</span>
+<span class="magic">!wget -q https://lopentu.github.io/genai4humanities2026/practice/lab/session-6/shukai_2m40s.mp3 -O demo.mp3</span>
 <span class="magic">!ls -lh demo.mp3</span></pre>
   </div>
 
   <div class="tip">
     <span class="label">課堂示範</span>
-    老師上課時會提供一段 NTU 演講錄音（約 1 分鐘），讓大家用同一份素材比較。
+    老師上課時會提供一段演講錄音，讓大家用同一份素材比較。
   </div>
 
   <h3>Step 3：執行轉錄</h3>
@@ -642,7 +642,7 @@ filename = <span class="kw">list</span>(uploaded.<span class="kw">keys</span>())
     <ul>
       <li><strong>"out of memory"</strong>：模型太大，換成 <code>small</code> 或重新 reset runtime。</li>
       <li><strong>轉錄是英文不是中文</strong>：在 <code>transcribe()</code> 中加 <code>language="zh"</code> 參數。</li>
-      <li><strong>臺語、客語效果差</strong>：Whisper 主要訓練於華語，臺語要靠社群微調版本（如 <code>k2-fsa/sherpa</code>）。</li>
+      <li><strong>臺語、客語效果差</strong>：Whisper 主要訓練於華語，臺語要靠社群微調版本（如 <code>https://huggingface.co/NUTN-KWS/Whisper-Taiwanese-model-v0.5</code>）。</li>
     </ul>
   </div>
 </section>
@@ -655,7 +655,7 @@ filename = <span class="kw">list</span>(uploaded.<span class="kw">keys</span>())
     <span class="part-time">25 min</span>
   </div>
 
-  <p>正課提到，多模態 LLM 能整合文字、圖像、語音。這一節我們用 Google 的 Gemini API 體驗「<strong>看圖回答問題</strong>」。</p>
+  <p>剛剛的正課提到，多模態 LLM 能整合文字、圖像、語音。這一節我們用 Google 的 Gemini API 體驗「<strong>看圖回答問題</strong>」。</p>
 
   <div class="analogy">
     <p><strong>從 Whisper 到 Gemini，就像從一位精通聽寫的史官，升級到一位能聽、能讀、能看的<em>太史公</em></strong>。前者單一感官，後者全感整合。</p>
@@ -721,7 +721,7 @@ response = model_g.<span class="kw">generate_content</span>([
     <ol>
       <li>Gemini 能辨識台灣本土的視覺符號（媽祖像、布袋戲、台式早餐）嗎？</li>
       <li>它對圖中文字（特別是繁體中文、古文）的處理如何？</li>
-      <li>如果它「描述錯了」，錯在哪裡？是視覺辨識錯，還是文化脈絡缺失？</li>
+      <li>如果它「描述錯了」，錯在哪裡？是視覺辨識錯，還是文化脈絡缺失問題？</li>
     </ol>
   </div>
 
@@ -740,18 +740,18 @@ response = model_g.<span class="kw">generate_content</span>(prompt)
 <span class="kw">print</span>(response.text)</pre>
   </div>
 
-  <blockquote>從 Whisper 的「<em>把聲音變文字</em>」，到 Gemini 的「<em>從文字產生洞察</em>」——這個 pipeline 就是當代 AI 應用的縮影。你已經做出來了。</blockquote>
+  <blockquote>從 Whisper 的「<em>把聲音變文字</em>」，到 Gemini 的「<em>從文字產生洞見</em>」。這個 pipeline 可以當作當代 AI 應用的縮影。</blockquote>
 </section>
 
 <!-- ═══════════════ PART 5 ═══════════════ -->
 <section class="part" id="p5">
   <div class="part-head">
     <span class="part-badge">PART 5</span>
-    <h2>作業說明與下週預告</h2>
+    <h2>練習與下週預告</h2>
     <span class="part-time">10 min</span>
   </div>
 
-  <h3>本週作業：Whisper 觀察筆記</h3>
+  <h3>本週練習：Whisper 觀察筆記</h3>
   <p>選擇一段你感興趣的口語素材（3–5 分鐘為宜），用 Whisper 完成下列任務：</p>
 
   <ol>
@@ -764,17 +764,17 @@ response = model_g.<span class="kw">generate_content</span>(prompt)
         <li>從你的人文背景看，這些失準有什麼意涵？</li>
       </ul>
     </li>
-    <li><strong>繳交</strong>：把 Colab notebook 連結（記得設成「<em>知道連結的任何人都可檢視</em>」）+ 觀察筆記，傳到課程作業區。</li>
+    <!-- <li><strong>繳交</strong>：把 Colab notebook 連結（記得設成「<em>知道連結的任何人都可檢視</em>」）+ 觀察筆記，傳到課程作業區。</li> -->
   </ol>
 
-  <h3>進階加分（選作）</h3>
+  <!-- <h3>進階加分（選作）</h3>
   <div class="reflect">
     <div class="label">Bonus · 跨岸詞彙差異延伸</div>
     <p>把臺灣與中國大陸的同一新聞事件的兩段播報，各用 Whisper 轉錄。是否能觀察到詞彙選用上的差異？（如「網路」vs「网络」、「軟體」vs「软件」、「奈米」vs「纳米」）。把觀察寫成一段短文。</p>
-  </div>
+  </div> -->
 
   <h3>下週預告：Session 7 · 從 API 到 Vibe Coding 應用</h3>
-  <p>下週我們會把本週的 API 串接技巧，與前幾週學過的 HTML/CSS/JS 結合，做出第一個「<em>能讓別人使用的 AI 小應用</em>」。學期末的 Vibe Coding 專題，從那一週開始醞釀。</p>
+  <p>下週我們會把本週的 API 串接技巧，與前幾週學過的 HTML/CSS/JS 結合，做出第一個「<em>能讓別人使用的 AI 小應用</em>」。開始醞釀期末的 Vibe Coding 專題。</p>
 
   <h3>離開 Colab 前的好習慣</h3>
   <ul>
@@ -784,7 +784,7 @@ response = model_g.<span class="kw">generate_content</span>(prompt)
   </ul>
 
   <blockquote>你已經完成了第一個 AI 應用——它把聲音變成了文字，把圖像變成了描述。<br>
-  接下來幾週，你會把這些零件組起來，變成你自己想做的東西。</blockquote>
+  接下來幾週，希望你會把這些零件組起來，變成你自己想做的東西。</blockquote>
 </section>
 
 <footer>
