@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Week 12｜ElevenLabs 完整教學 · 給「蒸餾人」加上聲音</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;700;900&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Source+Code+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#faf8f4;
+  --paper:#fffefb;
+  --ink:#1a1a1a;
+  --ink2:#3a3a3a;
+  --muted:#7a7a78;
+  --line:#d8d3c8;
+  --accent:#9c3a2c;
+  --accent2:#2c4a3e;
+  --accent3:#b08a3e;
+  --soft:#ede8de;
+  --code-bg:#1f2622;
+  --code-fg:#d8d0bd;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg);color:var(--ink);font-family:'Noto Serif TC',serif;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:860px;margin:0 auto;padding:32px 28px 80px}
+
+/* banner */
+.banner{
+  background:var(--paper);border:1px solid var(--line);border-radius:6px;
+  padding:28px 32px;margin-bottom:28px;position:relative;overflow:hidden;
+}
+.banner::before{
+  content:'';position:absolute;top:0;left:0;width:100%;height:4px;
+  background:linear-gradient(90deg,var(--accent) 0%,var(--accent3) 50%,var(--accent2) 100%);
+}
+.banner .course{
+  font-family:'DM Sans',sans-serif;font-size:11px;letter-spacing:.25em;
+  color:var(--muted);text-transform:uppercase;margin-bottom:10px;
+}
+.banner h1{font-family:'Noto Serif TC',serif;font-weight:900;font-size:30px;color:var(--ink);margin-bottom:6px;letter-spacing:.01em}
+.banner .sub{font-family:'DM Sans',sans-serif;font-style:italic;font-size:14px;color:var(--accent);margin-bottom:14px}
+.banner .meta{display:flex;flex-wrap:wrap;gap:10px;font-family:'Source Code Pro',monospace;font-size:11.5px}
+.banner .meta span{background:var(--soft);padding:3px 10px;border-radius:3px;color:var(--ink2)}
+
+/* section */
+.sec{
+  background:var(--paper);border:1px solid var(--line);border-radius:6px;
+  padding:28px 32px;margin-bottom:20px;
+  box-shadow:0 4px 14px rgba(60,40,20,.03);
+}
+.sec-head{
+  display:flex;align-items:baseline;gap:12px;
+  margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid var(--soft);
+}
+.sec-badge{
+  background:var(--accent2);color:white;
+  font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:.18em;
+  padding:3px 9px;border-radius:3px;white-space:nowrap;
+}
+.sec-badge.demo{background:var(--accent)}
+.sec-badge.warn-badge{background:#8a6020}
+.sec-badge.gold{background:var(--accent3)}
+.sec-head h2{font-family:'Noto Serif TC',serif;font-weight:900;font-size:20px;color:var(--ink);flex:1}
+
+h3{font-family:'Noto Serif TC',serif;font-weight:700;font-size:16.5px;color:var(--accent2);margin:18px 0 8px}
+h4{font-family:'DM Sans',sans-serif;font-weight:700;font-size:13px;letter-spacing:.08em;color:var(--accent);text-transform:uppercase;margin:16px 0 8px}
+p{margin-bottom:11px;color:var(--ink2);font-size:15px}
+strong{color:var(--ink);font-weight:700}
+em{font-style:italic;color:var(--accent)}
+
+/* 類比 */
+.analogy{
+  background:linear-gradient(180deg,#fdf6e8,#faf0d8);
+  border-left:4px solid var(--accent3);
+  padding:16px 20px;margin:16px 0;border-radius:0 5px 5px 0;position:relative;
+}
+.analogy::before{
+  content:'類比';position:absolute;top:-9px;left:14px;
+  background:var(--accent3);color:white;
+  font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:.15em;
+  padding:2px 9px;border-radius:3px;
+}
+.analogy p{font-size:14.5px;color:#5a4a2a;margin:0}
+
+/* 步驟卡 */
+.steps{counter-reset:step;display:flex;flex-direction:column;gap:10px;margin:12px 0}
+.step{
+  background:var(--soft);border-radius:5px;
+  padding:14px 18px 14px 50px;position:relative;
+}
+.step::before{
+  content:counter(step);counter-increment:step;
+  position:absolute;left:14px;top:14px;
+  background:var(--accent2);color:white;
+  font-family:'DM Sans',sans-serif;font-weight:700;
+  width:24px;height:24px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:13px;
+}
+.step strong{display:block;margin-bottom:3px;color:var(--ink);font-size:15px}
+.step p{margin:0;color:var(--ink2);font-size:14px}
+.step code{background:#d8d0c0;padding:1px 5px;border-radius:2px;font-size:12.5px;color:var(--accent);font-family:'Source Code Pro',monospace}
+
+/* 功能格 */
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:14px 0}
+.feat{
+  background:var(--soft);padding:14px;border-radius:5px;
+  border-top:3px solid var(--accent2);font-size:14px;
+}
+.feat h4{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:.1em;margin:0 0 6px}
+.feat p{font-size:13.5px;margin:0;color:var(--ink2)}
+
+/* 提示框 */
+.tip{background:#e8f0e6;border-left:3px solid var(--accent2);padding:12px 16px;margin:12px 0;border-radius:0 4px 4px 0;font-size:14.5px}
+.tip .lbl{font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:.15em;color:var(--accent2);text-transform:uppercase;display:block;margin-bottom:4px}
+.warn-box{background:#f8e8e0;border-left-color:var(--accent)}
+.warn-box .lbl{color:var(--accent)}
+.gold-box{background:#fdf6e8;border-left-color:var(--accent3)}
+.gold-box .lbl{color:var(--accent3)}
+
+/* UI 導覽 */
+.ui-guide{
+  background:#f4f0e6;border:1px solid var(--line);
+  border-radius:5px;padding:16px 20px;margin:14px 0;
+}
+.ui-guide .ui-label{
+  font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:.15em;
+  color:var(--muted);text-transform:uppercase;margin-bottom:10px;
+}
+.ui-row{display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;font-size:14px}
+.ui-row:last-child{margin-bottom:0}
+.ui-loc{
+  background:var(--accent2);color:white;
+  font-family:'Source Code Pro',monospace;font-size:11px;
+  padding:2px 7px;border-radius:3px;white-space:nowrap;flex-shrink:0;margin-top:1px;
+}
+.ui-loc.red{background:var(--accent)}
+.ui-loc.gold{background:var(--accent3)}
+
+/* 程式碼區塊 */
+.cell{
+  background:var(--code-bg);border-radius:5px;margin:14px 0;overflow:hidden;border:1px solid #2c352f;
+}
+.cell-head{
+  background:#161c19;color:#8a9590;padding:6px 14px;
+  font-family:'Source Code Pro',monospace;font-size:11px;
+  display:flex;align-items:center;gap:8px;border-bottom:1px solid #2c352f;
+}
+.cell-head .badge{
+  background:#3a4540;color:#d8d0bd;
+  padding:1px 7px;border-radius:2px;font-size:10px;letter-spacing:.1em;
+}
+.cell-head .badge.shell{background:#5a3a2a;color:#f0d8b0}
+.cell pre{
+  background:transparent;color:var(--code-fg);
+  padding:14px 18px;font-family:'Source Code Pro',monospace;font-size:13px;line-height:1.7;
+  overflow-x:auto;margin:0;
+}
+pre .kw{color:#e8b04a}
+pre .str{color:#9bc88e}
+pre .cmt{color:#6a7a6a;font-style:italic}
+pre .builtin{color:#7aa8d8}
+pre .out{color:#8a9590;font-style:italic}
+
+code{
+  font-family:'Source Code Pro',monospace;
+  background:#ede8de;padding:1px 6px;border-radius:3px;
+  font-size:13.5px;color:var(--accent);
+}
+
+/* 表格 */
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14px}
+th{background:var(--soft);text-align:left;padding:8px 12px;border-bottom:2px solid var(--accent2);font-weight:700;color:var(--accent2);font-family:'Noto Serif TC',serif}
+td{padding:8px 12px;border-bottom:1px solid var(--line);color:var(--ink2);vertical-align:top}
+tr:last-child td{border-bottom:none}
+.tag{display:inline-block;padding:1px 7px;border-radius:2px;font-family:'Source Code Pro',monospace;font-size:11.5px}
+.tag.free{background:#e0f0e0;color:#2c6a2c}
+.tag.paid{background:#f0e0d0;color:#8a4a20}
+.tag.pro{background:#e8e0f0;color:#5a3a8a}
+
+/* 反思 */
+.reflect{background:#f0ece2;border:1px dashed var(--accent2);padding:14px 18px;margin:14px 0;border-radius:5px;font-size:14px}
+.reflect .lbl{font-family:'DM Sans',sans-serif;font-size:10px;letter-spacing:.18em;color:var(--accent2);font-weight:700;text-transform:uppercase;margin-bottom:6px}
+
+blockquote{border-left:3px solid var(--accent);padding:8px 16px;margin:12px 0;font-style:italic;color:#5a3a30;background:#fdf6e8;font-size:14.5px}
+
+ul,ol{margin:8px 0 12px 22px}
+li{margin-bottom:5px;color:var(--ink2);font-size:14.5px}
+
+/* 自學區塊強調 */
+.self-track{
+  background:linear-gradient(180deg,#faf0d8,#f4ead0);
+  border:1px solid var(--accent3);border-radius:6px;
+  padding:18px 22px;margin:14px 0;position:relative;
+}
+.self-track::before{
+  content:'學生自學路徑';position:absolute;top:-10px;left:18px;
+  background:var(--accent3);color:white;
+  font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:.15em;
+  padding:3px 10px;border-radius:3px;
+}
+.self-track h3{margin-top:6px}
+
+/* 整合圖 */
+.pipeline{
+  background:#f4f0e6;border:1px solid var(--line);
+  border-radius:5px;padding:18px 20px;margin:14px 0;
+}
+.pipeline-title{
+  font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:.15em;
+  color:var(--muted);text-transform:uppercase;margin-bottom:14px;
+}
+.pipe-row{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:8px;align-items:center}
+.pipe-box{background:var(--paper);border:1px solid var(--line);border-radius:5px;padding:10px 12px;text-align:center}
+.pipe-box .pb-tag{font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--accent2);text-transform:uppercase;margin-bottom:3px}
+.pipe-box .pb-name{font-family:'Noto Serif TC',serif;font-size:13px;font-weight:700;color:var(--ink)}
+.pipe-arrow{color:var(--accent3);font-size:18px;font-family:'Source Code Pro',monospace}
+
+footer{text-align:center;margin-top:40px;padding-top:18px;border-top:1px solid var(--line);font-family:'DM Sans',sans-serif;font-size:12px;color:var(--muted)}
+footer a{color:var(--accent2);text-decoration:none;font-weight:600}
+
+@media(max-width:680px){
+  .wrap{padding:18px 12px 60px}
+  .sec{padding:22px 18px}
+  .grid3{grid-template-columns:1fr}
+  .pipe-row{grid-template-columns:1fr;gap:6px}
+  .pipe-arrow{transform:rotate(90deg)}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ═══ BANNER ═══ -->
+<div class="banner">
+  <div class="course">生成式 AI 的人文導論 · Spring 2026 · Week 12｜正課教材</div>
+  <h1>ElevenLabs 完整教學</h1>
+  <div class="sub">From Sign-up to Voice Clone · 給「蒸餾人」加上聲音</div>
+  <div class="meta">
+    <span>🌐 elevenlabs.io</span>
+    <span>🎙 免費帳號可完成所有示範</span>
+    <span>⏱ 老師課堂示範 + 學生課後自學</span>
+    <span>📍 Week 12 多模態整合</span>
+  </div>
+</div>
+
+<!-- ═══ 1. 為什麼是聲音 ═══ -->
+<section class="sec">
+  <div class="sec-head">
+    <span class="sec-badge">01</span>
+    <h2>為什麼數位分身需要聲音？</h2>
+  </div>
+
+  <p>上週的「蒸餾人」作業中，我們把自己的人格寫進 <code>SOUL.md</code>——但 agent 仍然是文字的存在。本週我們補上聲音這一塊，讓你的數位分身具有可聽見的存在。</p>
+
+  <div class="analogy">
+    <p><strong>文字 → 影像 → 聲音。</strong>三種媒介中，<em>聲音是最後一道指紋</em>——比文字更難偽造，比影像更個人。一個會打字的 AI 和一個用<em>你的聲音</em>說話的 AI，心理上是完全不同的存在。這也是為什麼語音 deepfake 比文字偽造更具倫理張力。</p>
+  </div>
+
+  <h3>ElevenLabs 是什麼？</h3>
+  <p>ElevenLabs（2022 年創立）是目前<strong>聲音逼真度最高</strong>的 AI 語音合成平台，三大核心功能：</p>
+
+  <div class="grid3">
+    <div class="feat">
+      <h4>Text to Speech</h4>
+      <p>輸入文字、選擇音色，即時合成自然語音。支援 70+ 語言。</p>
+    </div>
+    <div class="feat">
+      <h4>Voice Cloning</h4>
+      <p>上傳 1 分鐘錄音，複製任意人聲的音色與語氣。</p>
+    </div>
+    <div class="feat">
+      <h4>Speech to Speech</h4>
+      <p>把你的聲音即時轉換成另一個音色，並保留情緒和韻律。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 2. 方案比較 ═══ -->
+<section class="sec">
+  <div class="sec-head">
+    <span class="sec-badge">02</span>
+    <h2>方案比較：先了解你能用什麼</h2>
+  </div>
+
+  <p>本課程示範與作業<strong>免費方案完全足夠</strong>。下方表格僅供參考（規格與額度可能隨平台政策調整）：</p>
+
+  <table>
+    <tr><th>功能</th><th>Free（推薦）</th><th>Starter $5/月</th><th>Creator $22/月</th></tr>
+    <tr><td>每月字元額度</td><td>10,000 字元</td><td>30,000 字元</td><td>100,000 字元</td></tr>
+    <tr><td>對應語音長度</td><td>約 10–12 分鐘</td><td>約 30 分鐘</td><td>約 1–1.5 小時</td></tr>
+    <tr><td>Instant Voice Cloning（即時複製）</td><td><span class="tag free">✓ 1 個</span></td><td><span class="tag free">✓ 無限</span></td><td><span class="tag free">✓ 無限</span></td></tr>
+    <tr><td>Professional Voice Clone（高保真）</td><td><span class="tag paid">✗</span></td><td><span class="tag paid">✗</span></td><td><span class="tag pro">✓ 需 30+ 分鐘音檔</span></td></tr>
+    <tr><td>商業使用權</td><td><span class="tag paid">✗</span></td><td><span class="tag free">✓</span></td><td><span class="tag free">✓</span></td></tr>
+    <tr><td>API 存取</td><td><span class="tag free">✓ 有限額</span></td><td><span class="tag free">✓</span></td><td><span class="tag free">✓</span></td></tr>
+  </table>
+
+  <div class="tip">
+    <span class="lbl">課程建議</span>
+    免費方案的 1 個 instant voice clone 足以完成本週作業與期末專案的語音整合。不需要付費。<em>用完額度的話，下個月會自動 reset。</em>
+  </div>
+</section>
+
+<!-- ═══ 3. DEMO A: TTS ═══ -->
+<section class="sec">
+  <div class="sec-head">
+    <span class="sec-badge demo">DEMO A</span>
+    <h2>Text to Speech：文字變聲音（老師現場示範）</h2>
+  </div>
+
+  <p>第一個示範——最基礎也最直觀的功能。建議用<strong>瀏覽器全螢幕</strong>讓大家看清楚介面佈局。</p>
+
+  <div class="ui-guide">
+    <div class="ui-label">介面導覽</div>
+    <div class="ui-row"><span class="ui-loc">Text to Speech</span>左側選單第一項，主要工作區。</div>
+    <div class="ui-row"><span class="ui-loc">Voice</span>右上下拉選單，選擇音色（預設有幾個英文 voice 可用）。</div>
+    <div class="ui-row"><span class="ui-loc">Stability / Similarity</span>兩個滑桿——控制聲音的穩定度與相似度。現場調看看差異。</div>
+    <div class="ui-row"><span class="ui-loc red">Generate</span>右下按鈕，按下產生語音，幾秒鐘內完成。</div>
+  </div>
+
+  <h3>示範文本（繁體中文）</h3>
+  <div class="ui-guide" style="font-family:'Noto Serif TC',serif;font-size:15px;line-height:1.95;letter-spacing:.02em">
+    「歷史從不只是文字。它也是聲音——那些已消逝的聲音：說書人的嗓音、母親的呢喃、戰場上最後的呼喊。<br>
+    今天，人工智慧讓我們能夠重新聽見那些聲音。這是奇蹟，也是責任。」
+  </div>
+
+  <h3>接著用一段帶臺語感的漢字文本</h3>
+  <div class="ui-guide" style="font-family:'Noto Serif TC',serif;font-size:15px;line-height:1.95">
+    「逐家來聽，今仔日阮要講的代誌，是關於咱台灣人的故事。」
+  </div>
+  <p style="font-size:13.5px;color:var(--muted);margin-top:4px">觀察重點：AI 能否正確處理漢字臺語？它會當成普通話讀嗎？<em>這是引出「語料代表性」議題的好時機。</em></p>
+</section>
+
+<!-- ═══ 4. DEMO B: Voice Library ═══ -->
+<section class="sec">
+  <div class="sec-head">
+    <span class="sec-badge demo">DEMO B</span>
+    <h2>Voice Library：聲音也有圖書館</h2>
+  </div>
+
+  <p>社群上傳的音色庫，任何人都可以把自己的聲音「發布」出來讓他人使用。</p>
+
+  <div class="steps">
+    <div class="step">
+      <strong>進入 Voices → Voice Library</strong>
+      <p>左側選單第二層。注意每個音色的使用次數——有些已被數十萬次呼叫。</p>
+    </div>
+    <div class="step">
+      <strong>用 Language 篩選「Chinese」或「Japanese」</strong>
+      <p>看看哪些音色適合課程目的。試聽幾個，注意品質差異。</p>
+    </div>
+    <div class="step">
+      <strong>點「Add to My Voices」</strong>
+      <p>添加後就能在 Text to Speech 中使用。<em>概念類比：下載字體</em>。</p>
+    </div>
+  </div>
+
+  <div class="reflect">
+    <div class="lbl">課堂提問</div>
+    <p>「如果有人把你朋友的聲音上傳到這裡——這合法嗎？這道德嗎？聲音是一種個人資料嗎？」<br>
+    <em>（這個提問會自然帶出後面的 voice cloning 倫理討論。）</em></p>
+  </div>
+</section>
+
+<!-- ═══ 5. DEMO C: Voice Cloning ═══ -->
+<section class="sec">
+  <div class="sec-head">
+    <span class="sec-badge demo">DEMO C</span>
+    <h2>Voice Cloning：複製一個人的聲音</h2>
+  </div>
+
+  <p>本次示範的<strong>高潮位置</strong>——最具衝擊感的功能。老師已預先準備好錄音檔。</p>
+
+  <div class="tip warn-box">
+    <span class="lbl">示範倫理</span>
+    建議上傳<strong>自己的聲音</strong>作為示範素材（事先錄製約 60 秒的清晰音檔）。避免使用他人聲音引發倫理爭議，也避免讓同學對「可以隨意複製別人聲音」產生錯誤示範印象。
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <strong>進入 Voices → Add a new voice → Instant Voice Cloning</strong>
+      <p>選 Instant Voice Cloning（免費版支援）。Professional Voice Clone 是付費功能，本次不示範。</p>
+    </div>
+    <div class="step">
+      <strong>上傳事先準備的錄音檔</strong>
+      <p>建議 60 秒以上的安靜環境錄音。要求：無背景音樂、無回音、單人說話、咬字清晰。</p>
+    </div>
+    <div class="step">
+      <strong>命名音色，勾選同意聲明，點「Save」</strong>
+      <p>幾秒內完成。clone 後可在 Voice Library 個人區找到。</p>
+    </div>
+    <div class="step">
+      <strong>回到 Text to Speech，選剛建立的音色</strong>
+      <p>輸入一段平常不會說的話，生成並播放。<em>感受「我的聲音說了我沒說過的話」</em>。</p>
+    </div>
+  </div>
+
+  <h3>建議的複製示範文本（讓學生感受「陌生感」）</h3>
+  <div class="ui-guide" style="font-family:'Noto Serif TC',serif;font-size:15px;line-height:2;letter-spacing:.02em">
+    「大江東去，浪淘盡，千古風流人物。<br>
+    故壘西邊，人道是，三國周郎赤壁。」
+  </div>
+  <p style="font-size:13.5px;color:var(--muted);margin-top:4px">用自己的聲音說蘇軾的詞。這個落差本身就是討論起點：「誰的聲音？誰的文字？AI 扮演了什麼角色？」</p>
+</section>
+
+<!-- ═══ 6. 學生自學路徑 ═══ -->
+<section class="sec">
+  <div class="sec-head">
+    <span class="sec-badge gold">學生自學</span>
+    <h2>有興趣的同學自己 clone 一個 voice</h2>
+  </div>
+
+  <p>看完課堂示範後，<strong>有興趣的同學</strong>可以在課後依照以下六個步驟，自己建立第一個 voice clone。整個過程約 15 分鐘。</p>
+
+  <div class="self-track">
+    <h3>六步驟：從註冊到第一個 voice clone</h3>
+
+    <div class="steps">
+      <div class="step">
+        <strong>註冊 ElevenLabs 帳號</strong>
+        <p>前往 <code>elevenlabs.io</code> → 右上 Sign Up → 用 Google 帳號註冊最快。免費方案不需信用卡。</p>
+      </div>
+      <div class="step">
+        <strong>準備音檔（1–3 分鐘）</strong>
+        <p>用手機或錄音軟體錄製<strong>乾淨的音檔</strong>。內容可以是朗讀新聞、自我介紹、念一段你喜歡的文章。<em>避免回音、背景噪音、咳嗽聲</em>。</p>
+      </div>
+      <div class="step">
+        <strong>進入 Voices → My Voices → Add a New Voice</strong>
+        <p>點 <code>Instant Voice Cloning（IVC）</code>。Professional Voice Cloning 是付費功能，本次不選。</p>
+      </div>
+      <div class="step">
+        <strong>上傳音檔，命名你的 voice</strong>
+        <p>給 voice 取個名字（例如「我的聲音」），勾選同意聲明，點 Add Voice。幾秒內完成。</p>
+      </div>
+      <div class="step">
+        <strong>到 Text to Speech 測試</strong>
+        <p>選剛建立的 voice，輸入文字，選 <code>eleven_multilingual_v2</code> 模型（中文必選），點 Generate。聽聽你的聲音說新的話。</p>
+      </div>
+      <div class="step">
+        <strong>滿意後可下載 MP3，或取得 API key</strong>
+        <p>到 Profile → API Keys 取得 API key（用於程式整合）。<em>API key 像密碼一樣要保護好。</em></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip gold-box">
+    <span class="lbl">自學提醒</span>
+    免費帳號 10,000 字元/月足夠玩很久——一句中文約 6–10 字元。試錄個 50 次都還有額度。<em>不用怕用光。</em>
+  </div>
+</section>
+
+<!-- ═══ 7. 程式整合（給期末專案用） ═══ -->
+<section class="sec">
+  <div class="sec-head">
+    <span class="sec-badge">07</span>
+    <h2>程式整合：把 ElevenLabs 接到你的數位分身</h2>
+  </div>
+
+  <p>有了 API key 後，<strong>15 行 Python</strong> 就能把 ElevenLabs 接到你的 SOUL.md + Gemini。下面是完整管線示意：</p>
+
+  <div class="pipeline">
+    <div class="pipeline-title">數位分身的多模態管線</div>
+    <div class="pipe-row">
+      <div class="pipe-box">
+        <div class="pb-tag">Layer 1</div>
+        <div class="pb-name">SOUL.md</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-box">
+        <div class="pb-tag">Layer 2</div>
+        <div class="pb-name">Gemini API</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-box">
+        <div class="pb-tag">Layer 3</div>
+        <div class="pb-name">ElevenLabs</div>
+      </div>
+    </div>
+    <p style="text-align:center;font-size:12.5px;color:var(--muted);margin:10px 0 0;font-family:'DM Sans',sans-serif;font-style:italic">人格（你寫的） → 思考（LLM 生成）→ 聲音（你的 voice clone）</p>
+  </div>
+
+  <h3>最小可行整合：15 行 Python</h3>
+
+  <div class="cell">
+    <div class="cell-head"><span class="badge">PYTHON</span> minimal_twin.py</div>
+    <pre><span class="kw">import</span> google.generativeai <span class="kw">as</span> genai
+<span class="kw">from</span> elevenlabs <span class="kw">import</span> generate, play, save
+<span class="kw">import</span> os
+
+<span class="cmt"># 1. 讀取你的 SOUL.md 作為人格</span>
+<span class="kw">with</span> <span class="builtin">open</span>(<span class="str">"SOUL.md"</span>) <span class="kw">as</span> f:
+    soul = f.read()
+
+<span class="cmt"># 2. 呼叫 Gemini 生成回應（用 SOUL.md 當人格設定）</span>
+genai.configure(api_key=os.environ[<span class="str">"GEMINI_API_KEY"</span>])
+model = genai.GenerativeModel(<span class="str">"gemini-2.5-flash"</span>, system_instruction=soul)
+response = model.generate_content(<span class="str">"你怎麼看蒸餾人這個概念？"</span>)
+
+<span class="cmt"># 3. 用你 clone 的 voice 念出 Gemini 的回應</span>
+audio = generate(
+    text=response.text,
+    voice=<span class="str">"YOUR_VOICE_ID"</span>,         <span class="cmt"># 你 clone 完的 voice id</span>
+    model=<span class="str">"eleven_multilingual_v2"</span>  <span class="cmt"># 支援中文</span>
+)
+save(audio, <span class="str">"reply.mp3"</span>)
+play(audio)</pre>
+  </div>
+
+  <div class="tip warn-box">
+    <span class="lbl">免費額度提醒</span>
+    每呼叫一次大約用掉 100–500 字元。Free 帳號每月 10,000 字元 → 約 20–100 次呼叫。<em>用於本週作業足夠，但避免在迴圈裡瘋狂呼叫。</em>
+  </div>
+</section>
+
+<!-- ═══ 8. 倫理與批判視角 ═══ -->
+<section class="sec">
+  <div class="sec-head">
+    <span class="sec-badge warn-badge">批判視角</span>
+    <h2>用得到，想得透</h2>
+  </div>
+
+  <p>ElevenLabs 的功能強大到讓人著迷，但作為人文研究者，我們必須同時看見技術的另一面。</p>
+
+  <div class="reflect">
+    <div class="lbl">問題一：聲音作為身份</div>
+    <p>聲紋如同指紋，是高度個人化的生物特徵。當任何人都能用 1 分鐘錄音複製你的聲音，「聲音」還算是你的嗎？現行法律（包括台灣）幾乎沒有針對 AI 聲音複製的保護。</p>
+  </div>
+
+  <div class="reflect">
+    <div class="lbl">問題二：Deepfake 與詐騙</div>
+    <p>2024 年香港案例：詐騙集團用 deepfake 語音和影像，冒充公司高管，騙走 2 億港幣。台灣的電話詐騙若整合 ElevenLabs 等工具，危害難以估量。<strong>技術民主化的反面，是風險的民主化。</strong></p>
+  </div>
+
+  <div class="reflect">
+    <div class="lbl">問題三：文化代表性與語料政治</div>
+    <p>Voice Library 的中文音色大多是普通話，臺語、客語、原住民語幾乎缺席。當「好聽的 AI 聲音」等於「標準腔」，<em>誰的聲音被消音了？</em></p>
+  </div>
+
+  <h3>研究應用（正向）</h3>
+  <ul>
+    <li><strong>口述歷史重現</strong>：把採集到的老一輩敘事，製作成高品質的有聲書或典藏素材。</li>
+    <li><strong>無障礙服務</strong>：把學術論文或文學作品轉為有聲版，服務視障讀者。</li>
+    <li><strong>瀕危語言保存</strong>：在語者健在時採集，複製音色以留存語音樣本（需倫理同意）。</li>
+    <li><strong>多語言教材</strong>：為缺乏錄音師的小語種教材製作示範語音。</li>
+  </ul>
+
+  <blockquote>當聲音是「我」、邏輯是 SOUL.md 蒸餾出的「我」、內容是 LLM 即時生成——這個「我」究竟是誰？<br>
+  這不是技術問題，是哲學問題。</blockquote>
+</section>
+
+<!-- ═══ 9. 摘要 ═══ -->
+<section class="sec">
+  <div class="sec-head">
+    <span class="sec-badge">摘要</span>
+    <h2>本週示範與自學路徑回顧</h2>
+  </div>
+
+  <table>
+    <tr><th>區段</th><th>內容</th><th>對象</th></tr>
+    <tr><td>DEMO A</td><td>Text to Speech 文字變聲音</td><td>老師示範，學生觀察</td></tr>
+    <tr><td>DEMO B</td><td>Voice Library 社群音色</td><td>老師示範，引出倫理討論</td></tr>
+    <tr><td>DEMO C</td><td>Voice Cloning 複製自己聲音</td><td>老師示範（用自己的聲音）</td></tr>
+    <tr><td>自學路徑</td><td>六步驟自建 voice clone</td><td>有興趣的同學課後自學</td></tr>
+    <tr><td>程式整合</td><td>SOUL.md + Gemini + ElevenLabs</td><td>期末專案選做加分</td></tr>
+    <tr><td>批判視角</td><td>身份、詐騙、文化代表性</td><td>全班共同討論</td></tr>
+  </table>
+
+  <div class="tip">
+    <span class="lbl">期末專案中的角色</span>
+    ElevenLabs 整合不是期末專案的<strong>必做項目</strong>，但是加分亮點。期末核心仍是 Stage 1（一頁式語言學習小卡 + Gemini API + 部署）。<em>有餘力的同學可以把 ElevenLabs 接上，做出「用自己的聲音念例句」的效果。</em>
+  </div>
+</section>
+
+<footer>
+  <a href="https://lope.linguistics.ntu.edu.tw">LOPE Lab</a> · 
+  Graduate Institute of Linguistics, National Taiwan University · 
+  <a href="https://taica.edu.tw">TAICA</a><br>
+  生成式 AI 的人文導論 | Spring 2026 | 114-2 | Week 12 · 多模態整合
+</footer>
+
+</div>
+</body>
+</html>

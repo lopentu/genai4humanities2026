@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab Session 7 ｜ 從 API 到 Vibe Coding 應用</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;700;900&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Source+Code+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#faf8f4;--paper:#fffefb;--ink:#1a1a1a;--ink2:#3a3a3a;--muted:#7a7a78;
+  --line:#d8d3c8;--accent:#9c3a2c;--accent2:#2c4a3e;--accent3:#b08a3e;--soft:#ede8de;
+  --code-bg:#1f2622;--code-fg:#d8d0bd;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg);color:var(--ink);font-family:'Noto Serif TC',serif;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:860px;margin:0 auto;padding:32px 28px 80px}
+.banner{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:28px 32px;margin-bottom:28px;position:relative;overflow:hidden}
+.banner::before{content:'';position:absolute;top:0;left:0;width:100%;height:4px;background:linear-gradient(90deg,var(--accent) 0%,var(--accent3) 50%,var(--accent2) 100%)}
+.banner .course{font-family:'DM Sans',sans-serif;font-size:11px;letter-spacing:.25em;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
+.banner h1{font-family:'Noto Serif TC',serif;font-weight:900;font-size:30px;color:var(--ink);margin-bottom:6px;letter-spacing:.01em}
+.banner .sub{font-family:'DM Sans',sans-serif;font-style:italic;font-size:14px;color:var(--accent);margin-bottom:14px}
+.banner .meta{display:flex;flex-wrap:wrap;gap:10px;font-family:'Source Code Pro',monospace;font-size:11.5px}
+.banner .meta span{background:var(--soft);padding:3px 10px;border-radius:3px;color:var(--ink2)}
+.banner .meta span.final{background:#f8e8e0;color:var(--accent)}
+.sec{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:28px 32px;margin-bottom:20px;box-shadow:0 4px 14px rgba(60,40,20,.03)}
+.sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid var(--soft)}
+.sec-badge{background:var(--accent2);color:white;font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:.18em;padding:3px 9px;border-radius:3px;white-space:nowrap}
+.sec-badge.part1{background:var(--accent)}
+.sec-badge.part2{background:var(--accent3)}
+.sec-badge.part3{background:#5a3a8a}
+.sec-badge.closure{background:#8a6020}
+.sec-head h2{font-family:'Noto Serif TC',serif;font-weight:900;font-size:20px;color:var(--ink);flex:1}
+.sec-head .timing{font-family:'Source Code Pro',monospace;font-size:11px;color:var(--muted);background:var(--soft);padding:2px 8px;border-radius:3px}
+h3{font-family:'Noto Serif TC',serif;font-weight:700;font-size:16.5px;color:var(--accent2);margin:18px 0 8px}
+h4{font-family:'DM Sans',sans-serif;font-weight:700;font-size:13px;letter-spacing:.08em;color:var(--accent);text-transform:uppercase;margin:16px 0 8px}
+p{margin-bottom:11px;color:var(--ink2);font-size:15px}
+strong{color:var(--ink);font-weight:700}
+em{font-style:italic;color:var(--accent)}
+.analogy{background:linear-gradient(180deg,#fdf6e8,#faf0d8);border-left:4px solid var(--accent3);padding:16px 20px;margin:16px 0;border-radius:0 5px 5px 0;position:relative}
+.analogy::before{content:'類比';position:absolute;top:-9px;left:14px;background:var(--accent3);color:white;font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:.15em;padding:2px 9px;border-radius:3px}
+.analogy-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:center;margin:0}
+.analogy-side .lbl{font-family:'DM Sans',sans-serif;font-size:10px;color:var(--accent3);font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px}
+.analogy-side .title{font-family:'Noto Serif TC',serif;font-weight:700;font-size:14px;color:#5a4a2a;margin-bottom:5px}
+.analogy-side .body{font-size:13.5px;color:#5a4a2a;line-height:1.65}
+.analogy-arr{font-family:'Source Code Pro',monospace;font-size:18px;color:var(--accent3)}
+.steps{counter-reset:step;display:flex;flex-direction:column;gap:10px;margin:12px 0}
+.step{background:var(--soft);border-radius:5px;padding:14px 18px 14px 50px;position:relative}
+.step::before{content:counter(step);counter-increment:step;position:absolute;left:14px;top:14px;background:var(--accent2);color:white;font-family:'DM Sans',sans-serif;font-weight:700;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px}
+.step strong{display:block;margin-bottom:3px;color:var(--ink);font-size:15px}
+.step p{margin:0;color:var(--ink2);font-size:14px}
+.step code{background:#d8d0c0;padding:1px 5px;border-radius:2px;font-size:12.5px;color:var(--accent);font-family:'Source Code Pro',monospace}
+.tip{background:#e8f0e6;border-left:3px solid var(--accent2);padding:12px 16px;margin:12px 0;border-radius:0 4px 4px 0;font-size:14.5px}
+.tip .lbl{font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:.15em;color:var(--accent2);text-transform:uppercase;display:block;margin-bottom:4px}
+.warn-box{background:#f8e8e0;border-left-color:var(--accent)}
+.warn-box .lbl{color:var(--accent)}
+.gold-box{background:#fdf6e8;border-left-color:var(--accent3)}
+.gold-box .lbl{color:var(--accent3)}
+.cell{background:var(--code-bg);border-radius:5px;margin:14px 0;overflow:hidden;border:1px solid #2c352f}
+.cell-head{background:#161c19;color:#8a9590;padding:6px 14px;font-family:'Source Code Pro',monospace;font-size:11px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #2c352f}
+.cell-head .badge{background:#3a4540;color:#d8d0bd;padding:1px 7px;border-radius:2px;font-size:10px;letter-spacing:.1em}
+.cell-head .badge.shell{background:#5a3a2a;color:#f0d8b0}
+.cell pre{background:transparent;color:var(--code-fg);padding:14px 18px;font-family:'Source Code Pro',monospace;font-size:13px;line-height:1.75;overflow-x:auto;margin:0;white-space:pre}
+pre .kw{color:#e8b04a}
+pre .str{color:#9bc88e}
+pre .cmt{color:#6a7a6a;font-style:italic}
+pre .builtin{color:#7aa8d8}
+pre .out{color:#8a9590;font-style:italic}
+pre .prompt{color:#9bc88e;font-weight:600}
+pre .hl{color:#e8b04a;font-weight:600}
+code{font-family:'Source Code Pro',monospace;background:#ede8de;padding:1px 6px;border-radius:3px;font-size:13.5px;color:var(--accent)}
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14px}
+th{background:var(--soft);text-align:left;padding:8px 12px;border-bottom:2px solid var(--accent2);font-weight:700;color:var(--accent2);font-family:'Noto Serif TC',serif}
+td{padding:8px 12px;border-bottom:1px solid var(--line);color:var(--ink2);vertical-align:top}
+tr:last-child td{border-bottom:none}
+.http-flow{background:#f4f0e6;border:1px solid var(--line);border-radius:5px;padding:14px 18px;margin:12px 0}
+.http-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:6px;font-size:13px}
+.http-row:last-child{margin-bottom:0}
+.http-who{font-family:'Source Code Pro',monospace;font-size:11px;font-weight:600;background:var(--accent2);color:white;padding:3px 8px;border-radius:3px;white-space:nowrap;flex-shrink:0;min-width:90px;text-align:center}
+.http-arr{color:var(--accent3);font-size:14px;font-family:'Source Code Pro',monospace;flex-shrink:0}
+.http-msg{color:var(--ink2);font-family:'Source Code Pro',monospace;font-size:12px;background:var(--paper);padding:5px 10px;border-radius:3px;border:1px solid var(--line);flex:1;word-break:break-all}
+.commits{background:var(--paper);border:1px solid var(--line);border-radius:5px;padding:14px 18px;margin:12px 0}
+.commit-row{display:grid;grid-template-columns:90px 80px 1fr;gap:10px;padding:6px 0;border-bottom:1px solid var(--soft);align-items:center;font-size:13px}
+.commit-row:last-child{border-bottom:none}
+.commit-time{color:var(--muted);font-family:'Source Code Pro',monospace;font-size:11px}
+.commit-hash{font-family:'Source Code Pro',monospace;background:var(--soft);border-radius:3px;padding:1px 7px;color:var(--accent);font-size:11px;text-align:center}
+.commit-msg{color:var(--ink2)}
+.dep-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:14px 0}
+.dep-card{background:var(--soft);padding:14px;border-radius:5px;border-top:3px solid var(--muted)}
+.dep-card.now{border-top-color:var(--accent2);background:#e8f0e6}
+.dep-era{font-family:'Source Code Pro',monospace;font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px}
+.dep-name{font-family:'Noto Serif TC',serif;font-weight:700;font-size:15px;color:var(--ink);margin-bottom:3px}
+.dep-eg{font-family:'Source Code Pro',monospace;font-size:11px;background:var(--paper);border-radius:3px;padding:3px 6px;color:var(--ink2);display:inline-block;margin-bottom:7px;border:1px solid var(--line)}
+.dep-desc{font-size:13px;color:var(--ink2);line-height:1.6;margin-bottom:7px}
+.dep-pros{font-size:12px;color:#2c6a2c;margin-bottom:2px}
+.dep-cons{font-size:12px;color:var(--accent)}
+.reflect{background:#f0ece2;border:1px dashed var(--accent2);padding:14px 18px;margin:14px 0;border-radius:5px;font-size:14px}
+.reflect .lbl{font-family:'DM Sans',sans-serif;font-size:10px;letter-spacing:.18em;color:var(--accent2);font-weight:700;text-transform:uppercase;margin-bottom:6px}
+.recap{background:linear-gradient(180deg,#faf0d8,#f4ead0);border:1px solid var(--accent3);border-radius:6px;padding:18px 22px;margin:14px 0;position:relative}
+.recap::before{content:'學期 Lab 回顧';position:absolute;top:-10px;left:18px;background:var(--accent3);color:white;font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:.15em;padding:3px 10px;border-radius:3px}
+.recap-list{margin-top:6px;display:flex;flex-direction:column;gap:6px}
+.recap-row{display:grid;grid-template-columns:50px 1fr 110px;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid rgba(176,138,62,.25)}
+.recap-row:last-child{border-bottom:none}
+.recap-row.now{background:#faf0d8;margin:0 -6px;padding:6px 6px;border-radius:3px}
+.recap-label{font-family:'Source Code Pro',monospace;font-size:11px;font-weight:700;background:var(--accent3);color:white;padding:3px 7px;border-radius:3px;text-align:center}
+.recap-name{font-size:13.5px;color:#5a4a2a}
+.recap-name strong{color:#3a3a30}
+.recap-tag{font-family:'DM Sans',sans-serif;font-size:10px;color:#8a6020;font-style:italic;text-align:right;letter-spacing:.04em}
+blockquote{border-left:3px solid var(--accent);padding:8px 16px;margin:12px 0;font-style:italic;color:#5a3a30;background:#fdf6e8;font-size:14.5px}
+ul,ol{margin:8px 0 12px 22px}
+li{margin-bottom:5px;color:var(--ink2);font-size:14.5px}
+footer{text-align:center;margin-top:40px;padding-top:18px;border-top:1px solid var(--line);font-family:'DM Sans',sans-serif;font-size:12px;color:var(--muted)}
+footer a{color:var(--accent2);text-decoration:none;font-weight:600}
+@media(max-width:680px){
+  .wrap{padding:18px 12px 60px}
+  .sec{padding:22px 18px}
+  .dep-grid,.analogy-grid{grid-template-columns:1fr}
+  .analogy-arr{transform:rotate(90deg)}
+  .recap-row{grid-template-columns:50px 1fr}
+  .recap-tag{display:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="banner">
+  <div class="course">生成式 AI 的人文導論 · Spring 2026 · Lab Session 7</div>
+  <h1>從 API 到 Vibe Coding 應用</h1>
+  <div class="sub">本學期最後一場 Lab · 把學過的全部串起來</div>
+  <div class="meta">
+    <span>⏱ 90 min</span>
+    <span>📚 三大基礎概念</span>
+    <span>🎯 完成後可分享網址</span>
+    <span class="final">🏁 學期最終 Lab</span>
+  </div>
+</div>
+
+<section class="sec">
+  <div class="sec-head">
+    <span class="sec-badge">本堂主旨</span>
+    <h2>三個概念，把 idea 真正落地</h2>
+  </div>
+  <p>本學期教了很多東西——Markdown、Agent 人格設定、Memory、Skills、Multi-agent、多模態。但這些技術要怎麼變成<strong>真正能用、可以分享給朋友</strong>的東西？答案是<em>本堂課的三個基礎概念</em>：</p>
+  <ul>
+    <li><strong>API</strong>：讓你的程式跟雲端 AI 對話</li>
+    <li><strong>Git / GitHub</strong>：管理程式碼版本、分享給世界</li>
+    <li><strong>部署</strong>：讓你的應用上雲端，全世界都能訪問</li>
+  </ul>
+  <div class="analogy">
+    <div class="analogy-grid">
+      <div class="analogy-side">
+        <div class="lbl">學期前面</div>
+        <div class="title">學會了「想做什麼」</div>
+        <div class="body">SOUL.md、prompt 設計、agent 概念——這些是「<em>內容層</em>」的能力</div>
+      </div>
+      <div class="analogy-arr">→</div>
+      <div class="analogy-side">
+        <div class="lbl">本堂課</div>
+        <div class="title">學會了「怎麼把它放到世界上」</div>
+        <div class="body">API、Git、部署——這些是「<em>傳遞層</em>」的能力。兩者合起來，才能完成 vibe coding 的完整迴圈</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="sec-head">
+    <span class="sec-badge part1">PART 1</span>
+    <h2>API：程式跟程式怎麼說話</h2>
+    <span class="timing">0–30 min</span>
+  </div>
+  <p>API 這個詞每天都聽到，但很少人真的講過它是<em>什麼</em>。我們從最基礎的「程式之間怎麼通訊」開始。</p>
+
+  <h3>類比一：API 就是餐廳的點餐流程</h3>
+  <div class="analogy">
+    <div class="analogy-grid">
+      <div class="analogy-side">
+        <div class="lbl">餐廳場景</div>
+        <div class="title">你 → 服務生 → 廚房</div>
+        <div class="body">你看菜單點餐，服務生把點單送到廚房，廚房做完透過服務生送回給你。你不需要自己進廚房，也不需要懂怎麼炒菜。</div>
+      </div>
+      <div class="analogy-arr">≈</div>
+      <div class="analogy-side">
+        <div class="lbl">API 場景</div>
+        <div class="title">你的程式 → API → Gemini 模型</div>
+        <div class="body">你的 Python 把「請翻成日語」送到 Gemini 的 API，Gemini 跑完模型後把結果回傳。你不需要懂模型內部，也不用自己訓練。</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>實際看一次 HTTP 請求長什麼樣子</h3>
+  <p>當你的程式呼叫 API 時，幕後其實是這樣的對話：</p>
+  <div class="http-flow">
+    <div class="http-row">
+      <span class="http-who">你的程式</span>
+      <span class="http-arr">→</span>
+      <span class="http-msg">POST https://generativelanguage.googleapis.com/v1/...</span>
+    </div>
+    <div class="http-row">
+      <span class="http-who" style="background:transparent"></span>
+      <span class="http-arr"></span>
+      <span class="http-msg">Authorization: Bearer YOUR_API_KEY<br>Content-Type: application/json<br>{"contents": [{"parts": [{"text": "翻成日語：你好"}]}]}</span>
+    </div>
+    <div class="http-row">
+      <span class="http-who">Google 伺服器</span>
+      <span class="http-arr">←</span>
+      <span class="http-msg">200 OK</span>
+    </div>
+    <div class="http-row">
+      <span class="http-who" style="background:transparent"></span>
+      <span class="http-arr"></span>
+      <span class="http-msg">{"candidates": [{"content": {"parts": [{"text": "こんにちは"}]}}]}</span>
+    </div>
+  </div>
+
+  <h4>關鍵術語</h4>
+  <table>
+    <tr><th>術語</th><th>意思</th><th>餐廳類比</th></tr>
+    <tr><td><code>endpoint</code></td><td>API 的網址</td><td>餐廳的地址</td></tr>
+    <tr><td><code>request</code></td><td>你發出的請求</td><td>點單</td></tr>
+    <tr><td><code>response</code></td><td>伺服器回傳的結果</td><td>菜送回來</td></tr>
+    <tr><td><code>API key</code></td><td>身份憑證</td><td>會員卡</td></tr>
+    <tr><td><code>JSON</code></td><td>傳輸資料的格式</td><td>菜單填寫格式</td></tr>
+  </table>
+
+  <h3>第一步：申請 Gemini API key</h3>
+  <div class="steps">
+    <div class="step">
+      <strong>前往 Google AI Studio</strong>
+      <p>瀏覽器打開 <code>aistudio.google.com</code>，用你的 Google 帳號登入。</p>
+    </div>
+    <div class="step">
+      <strong>左側選單點「Get API key」</strong>
+      <p>進去後會看到目前的 API keys 列表（你還沒有，所以是空的）。</p>
+    </div>
+    <div class="step">
+      <strong>點「Create API key」</strong>
+      <p>系統會問你要關聯到哪個 Google Cloud 專案——選 <code>Create API key in new project</code> 即可。</p>
+    </div>
+    <div class="step">
+      <strong>複製這串 key 到安全的地方</strong>
+      <p>形如 <code>AIzaSyB...</code> 的長字串就是你的 API key。<em>不要分享給別人、不要貼到 GitHub、不要寫死在程式碼裡。</em></p>
+    </div>
+  </div>
+
+  <h3>第二步：最簡單的 Python 呼叫</h3>
+  <p>本週示範用一個極簡的例子——「給 Gemini 一句中文，請它翻成日語」。整個程式只有 10 行：</p>
+  <div class="cell">
+    <div class="cell-head"><span class="badge">PYTHON</span> translate.py</div>
+    <pre><span class="kw">import</span> google.generativeai <span class="kw">as</span> genai
+<span class="kw">import</span> os
+
+<span class="cmt"># 從環境變數讀取 API key（不要寫死在程式碼！）</span>
+genai.configure(api_key=os.environ[<span class="str">"GEMINI_API_KEY"</span>])
+
+<span class="cmt"># 選一個模型</span>
+model = genai.GenerativeModel(<span class="str">"gemini-2.5-flash"</span>)
+
+<span class="cmt"># 發送請求</span>
+response = model.generate_content(<span class="str">"翻成日語：今天天氣真好"</span>)
+
+<span class="cmt"># 印出回應</span>
+<span class="builtin">print</span>(response.text)</pre>
+  </div>
+
+  <div class="cell">
+    <div class="cell-head"><span class="badge shell">SHELL</span> 在 terminal 執行</div>
+    <pre><span class="cmt"># 安裝套件（第一次才需要）</span>
+<span class="prompt">$</span> pip install google-generativeai
+
+<span class="cmt"># 把 API key 設成環境變數（Mac/Linux）</span>
+<span class="prompt">$</span> <span class="builtin">export</span> GEMINI_API_KEY=<span class="str">"你剛剛複製的 key"</span>
+
+<span class="cmt"># Windows PowerShell</span>
+<span class="prompt">&gt;</span> <span class="builtin">$env:</span>GEMINI_API_KEY=<span class="str">"你剛剛複製的 key"</span>
+
+<span class="cmt"># 執行程式</span>
+<span class="prompt">$</span> python translate.py
+<span class="out">今日は本当に良い天気ですね。</span>
+<span class="hl">  ↑ 你的程式剛剛跨越了網路，呼叫了 Google 的 AI 模型！</span></pre>
+  </div>
+
+  <div class="tip">
+    <span class="lbl">檢核點</span>
+    在 terminal 看到日語回應 → 恭喜，你已經完成了「程式跟雲端 AI 對話」的完整循環。後面所有的應用，都建立在這個小小的循環上。
+  </div>
+
+  <div class="tip warn-box">
+    <span class="lbl">API key 安全提醒</span>
+    如果不小心把 key 推到 GitHub，掃描程式幾分鐘內就會把它撈走並濫用，產生你的帳單。<em>本課末會教如何安全管理</em>。
+  </div>
+</section>
+
+<section class="sec">
+  <div class="sec-head">
+    <span class="sec-badge part2">PART 2</span>
+    <h2>Git 與 GitHub：版本控制，從零開始</h2>
+    <span class="timing">30–60 min</span>
+  </div>
+  <p>Git 是程式碼的「時光機」+「備份」——可以隨時回到過去的版本，也可以分享給別人。它是所有現代軟體開發的基礎，而且<em>你不需要寫程式也能用</em>（很多人用 Git 管理 Word 文件、論文、筆記）。</p>
+
+  <h3>類比：Git 是 Word 的「追蹤修訂」+「版本歷史」加強版</h3>
+  <div class="analogy">
+    <div class="analogy-grid">
+      <div class="analogy-side">
+        <div class="lbl">Word 場景</div>
+        <div class="title">論文每次修改另存新檔</div>
+        <div class="body">thesis_v1.docx<br>thesis_v2.docx<br>thesis_final.docx<br>thesis_final_real.docx<br><em>……（檔案爆炸）</em></div>
+      </div>
+      <div class="analogy-arr">→</div>
+      <div class="analogy-side">
+        <div class="lbl">Git 場景</div>
+        <div class="title">一個檔案，完整歷史</div>
+        <div class="body">只有一個 thesis.docx，但 git 記得你<em>每次的修改</em>。需要時可以說「給我看上週三的版本」、「給我看新增第三章前的樣子」。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip gold-box">
+    <span class="lbl">關鍵區分</span>
+    <strong>Git ≠ GitHub。</strong> Git 是本機的版本控制工具（你電腦裡的時光機）；GitHub 是雲端的 Git 倉庫服務（雲端的備份+分享平台）。你可以只用 Git 不用 GitHub，但通常會一起用。
+  </div>
+
+  <h3>Git 的三個核心動作（90% 的時候只用這三個）</h3>
+  <div class="steps">
+    <div class="step">
+      <strong>git add：選擇哪些修改要記錄</strong>
+      <p>像是把「要寄出的信件」放進信封——還沒寄，但已經準備好了。</p>
+    </div>
+    <div class="step">
+      <strong>git commit：正式記錄這次修改</strong>
+      <p>像是「封信並蓋章」——這次修改正式進入歷史，加上一句說明（commit message）。</p>
+    </div>
+    <div class="step">
+      <strong>git push：把記錄推到雲端（GitHub）</strong>
+      <p>像是「把信投進郵筒寄出」——這次的所有 commit 同步到 GitHub。</p>
+    </div>
+  </div>
+
+  <h3>實際看一次 Git 的歷史長什麼樣子</h3>
+  <p>每個 commit 都有時間、唯一識別碼（hash）、說明訊息：</p>
+  <div class="commits">
+    <div class="commit-row"><div class="commit-time">2 hours ago</div><div class="commit-hash">a3f2e8b</div><div class="commit-msg">改用環境變數讀取 API key</div></div>
+    <div class="commit-row"><div class="commit-time">yesterday</div><div class="commit-hash">7c1d4f9</div><div class="commit-msg">新增日語翻譯範例</div></div>
+    <div class="commit-row"><div class="commit-time">yesterday</div><div class="commit-hash">e5b8a23</div><div class="commit-msg">第一次成功呼叫 Gemini API</div></div>
+    <div class="commit-row"><div class="commit-time">2 days ago</div><div class="commit-hash">1d6f0c7</div><div class="commit-msg">Initial commit</div></div>
+  </div>
+
+  <h3>第一步：在本機建立 Git repository</h3>
+  <div class="cell">
+    <div class="cell-head"><span class="badge shell">SHELL</span> 初始化本地 git 倉庫</div>
+    <pre><span class="cmt"># 1. 建立一個資料夾，把剛才的 translate.py 放進去</span>
+<span class="prompt">$</span> mkdir my-first-api
+<span class="prompt">$</span> <span class="builtin">cd</span> my-first-api
+<span class="prompt">$</span> cp ~/translate.py .
+
+<span class="cmt"># 2. 初始化 git（讓這個資料夾被 git 追蹤）</span>
+<span class="prompt">$</span> git init
+<span class="out">Initialized empty Git repository in .../my-first-api/.git/</span>
+
+<span class="cmt"># 3. 把 translate.py 加入「準備記錄」清單</span>
+<span class="prompt">$</span> git add translate.py
+
+<span class="cmt"># 4. 正式記錄這次修改（commit）</span>
+<span class="prompt">$</span> git commit -m <span class="str">"我的第一次 API 呼叫"</span>
+<span class="out">[main (root-commit) 1d6f0c7] 我的第一次 API 呼叫
+ 1 file changed, 10 insertions(+)</span>
+
+<span class="cmt"># 5. 查看歷史</span>
+<span class="prompt">$</span> git log
+<span class="out">commit 1d6f0c7... (HEAD -&gt; main)
+Date: ...
+    我的第一次 API 呼叫</span></pre>
+  </div>
+
+  <div class="tip">
+    <span class="lbl">剛剛發生了什麼</span>
+    你的 <code>translate.py</code> 現在不只存在於檔案系統，還被 git 永久記錄了。即使你之後把整個檔案改成空白，也能用 <code>git checkout 1d6f0c7</code> 找回現在的版本。
+  </div>
+
+  <h3>第二步：把本機 repository 推上 GitHub</h3>
+  <div class="steps">
+    <div class="step">
+      <strong>到 github.com 註冊帳號</strong>
+      <p>免費，建議用學校信箱（可申請學生方案）。註冊後務必驗證 email。</p>
+    </div>
+    <div class="step">
+      <strong>建立一個新的 repository</strong>
+      <p>右上角「+」 → New repository → 命名 <code>my-first-api</code> → 選 Public → <strong>不要勾選</strong>「Initialize with README」（因為本機已有檔案）→ Create</p>
+    </div>
+    <div class="step">
+      <strong>GitHub 會給你幾行指令——複製貼上</strong>
+      <p>就是下面這幾行（替換成你的帳號）。</p>
+    </div>
+  </div>
+
+  <div class="cell">
+    <div class="cell-head"><span class="badge shell">SHELL</span> 把本機 repo 連結到 GitHub</div>
+    <pre><span class="cmt"># 1. 告訴 git「我的雲端 repo 在這個網址」</span>
+<span class="prompt">$</span> git remote add origin https://github.com/<span class="str">你的帳號</span>/my-first-api.git
+
+<span class="cmt"># 2. 把預設分支改名為 main（GitHub 的慣例）</span>
+<span class="prompt">$</span> git branch -M main
+
+<span class="cmt"># 3. 推上去！</span>
+<span class="prompt">$</span> git push -u origin main
+<span class="out">Enumerating objects: 3, done.
+...
+To https://github.com/你的帳號/my-first-api.git
+ * [new branch]      main -&gt; main</span>
+
+<span class="hl">  ← 你的 translate.py 現在已經在雲端，任何人都看得到</span></pre>
+  </div>
+
+  <div class="tip">
+    <span class="lbl">檢核點</span>
+    打開 <code>github.com/你的帳號/my-first-api</code>，能看到 translate.py 的內容 → 成功。<br>但等等——<strong>API key 沒被推上去吧？</strong> 因為剛才的 key 是用環境變數，沒寫進 translate.py，所以安全。如果你的程式碼裡有 <code>api_key="AIzaSy..."</code>，<em>立刻改</em>！
+  </div>
+
+  <h3>之後修改 → 推送的標準流程</h3>
+  <div class="cell">
+    <div class="cell-head"><span class="badge shell">SHELL</span> 日常 git workflow</div>
+    <pre><span class="cmt"># 改完程式碼後，這三行幾乎每次都一樣</span>
+<span class="prompt">$</span> git add .                              <span class="cmt"># 加入所有修改</span>
+<span class="prompt">$</span> git commit -m <span class="str">"新增韓語翻譯功能"</span>     <span class="cmt"># 記錄修改</span>
+<span class="prompt">$</span> git push                                <span class="cmt"># 推上雲端</span>
+
+<span class="cmt"># 整個過程 30 秒。記住這三行 = 學會 git 80%</span></pre>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="sec-head">
+    <span class="sec-badge part3">PART 3</span>
+    <h2>部署：從「自己管伺服器」到「一鍵」</h2>
+    <span class="timing">60–85 min</span>
+  </div>
+  <p>「部署」（deployment）的意思是：把你的程式從本機搬到雲端，讓別人也能用。這個概念聽起來簡單，背後有 30 年的演化史。理解這段演化，才能理解為什麼今天我們可以「一鍵部署」。</p>
+
+  <h3>類比：開一家餐廳</h3>
+  <div class="analogy">
+    <div class="analogy-grid">
+      <div class="analogy-side">
+        <div class="lbl">傳統做法</div>
+        <div class="title">自己蓋餐廳</div>
+        <div class="body">買地、蓋建築、裝水電、買廚具、雇人、開門做生意——什麼都要自己負責，但完全自由。</div>
+      </div>
+      <div class="analogy-arr">→</div>
+      <div class="analogy-side">
+        <div class="lbl">現代做法</div>
+        <div class="title">在百貨美食街開攤位</div>
+        <div class="body">百貨提供場地、水電、清潔、收銀系統——你只要專心做菜。比較貴一點點，但少了 99% 的麻煩。</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>三種部署模式：自由度 vs 麻煩程度</h3>
+  <div class="dep-grid">
+    <div class="dep-card">
+      <div class="dep-era">1990s–2010s</div>
+      <div class="dep-name">VPS · 虛擬主機</div>
+      <div class="dep-eg">DigitalOcean · Linode · AWS EC2</div>
+      <div class="dep-desc">租一台空白的 Linux 機器，從零開始裝環境、設定防火牆、自己處理安全性更新。</div>
+      <div class="dep-pros">✓ 完全自由，便宜（$5/月起）</div>
+      <div class="dep-cons">✗ 要懂 Linux、SSH、nginx</div>
+    </div>
+    <div class="dep-card">
+      <div class="dep-era">2010s–現在</div>
+      <div class="dep-name">PaaS · 平台即服務</div>
+      <div class="dep-eg">Heroku · Render · Railway</div>
+      <div class="dep-desc">把伺服器管理藏起來——你只要把程式碼推上去，平台自動處理執行環境、scaling、SSL。</div>
+      <div class="dep-pros">✓ 一鍵部署，省心</div>
+      <div class="dep-cons">✗ 較貴，自由度降低</div>
+    </div>
+    <div class="dep-card now">
+      <div class="dep-era">2020s · 趨勢</div>
+      <div class="dep-name">「一鍵」雲端</div>
+      <div class="dep-eg">Vercel · Zeabur · Cloudflare Workers</div>
+      <div class="dep-desc">新世代——連 Dockerfile 都不用寫，連結 GitHub 就好。每次 push 自動部署。</div>
+      <div class="dep-pros">✓ 零設定，免費額度大</div>
+      <div class="dep-cons">✗ 黑盒子，遇問題不好查</div>
+    </div>
+  </div>
+
+  <div class="tip">
+    <span class="lbl">趨勢的核心</span>
+    把伺服器管理「外包」給平台。<em>你只負責寫程式碼，其他全包給雲端。</em> 對 vibe coding 來說這是完美的——讓你能專注在「想做什麼」而不是「怎麼讓它跑起來」。代價是你犧牲了一些靈活性與控制權。
+  </div>
+
+  <h3>什麼時候用哪一種？</h3>
+  <table>
+    <tr><th>場景</th><th>推薦方案</th><th>原因</th></tr>
+    <tr><td>學生作業、個人原型</td><td>「一鍵」雲端</td><td>Vercel / Zeabur / Streamlit Cloud——免費額度足夠，零設定</td></tr>
+    <tr><td>中型團隊、穩定產品</td><td>PaaS</td><td>Render / Railway——稍微付費，但更穩定、有更多控制權</td></tr>
+    <tr><td>大型企業、特殊需求</td><td>VPS / Kubernetes</td><td>AWS / GCP / Azure——成本與複雜度高，但完全可控</td></tr>
+  </table>
+
+  <h3>最小可行部署示範（Zeabur · 約 5 分鐘）</h3>
+  <p>我們把剛才推上 GitHub 的 <code>my-first-api</code> 部署到雲端。<em>不需要記住每個細節</em>——這部分主要是讓你看到「一鍵」是什麼意思。</p>
+  <div class="steps">
+    <div class="step">
+      <strong>到 zeabur.com 用 GitHub 登入</strong>
+      <p>授權 Zeabur 讀取你的 GitHub repository。</p>
+    </div>
+    <div class="step">
+      <strong>Create Project → Deploy New Service → Git</strong>
+      <p>選你剛建立的 <code>my-first-api</code> repo。Zeabur 會自動偵測這是 Python 專案。</p>
+    </div>
+    <div class="step">
+      <strong>設定環境變數</strong>
+      <p>到 Variables 分頁 → 加入 <code>GEMINI_API_KEY</code> 並貼上你的 key。<em>這就是「不把 API key 寫死在程式碼」的真正原因——雲端在執行時才把 key 注入。</em></p>
+    </div>
+    <div class="step">
+      <strong>等 1–2 分鐘 build 完成</strong>
+      <p>Zeabur 自動安裝套件、啟動程式。完成後給你一個形如 <code>my-first-api.zeabur.app</code> 的網址。</p>
+    </div>
+  </div>
+
+  <div class="tip warn-box">
+    <span class="lbl">請注意</span>
+    本週的 <code>translate.py</code> 是一次性的腳本（只 print 一次就結束），雲端跑完就停了——這對純 CLI 程式來說是正常的。<em>真正讓網站「活著」需要加上 Flask</em>，這部分留給期末專案實作。
+  </div>
+
+  <div class="reflect">
+    <div class="lbl">本週的關鍵理解</div>
+    <p>「部署」就是把程式碼從本機推到雲端，讓平台幫你跑起來。期末專案會把它應用在<em>一個會持續運作的網頁應用</em>——Flask + HTML 介面 + API + 部署，整個流程你今天都看過了。</p>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="sec-head">
+    <span class="sec-badge closure">收束</span>
+    <h2>學期 Lab 系列總回顧 × 期末專案指引</h2>
+    <span class="timing">85–90 min</span>
+  </div>
+  <p>本週是學期最後一場 Lab。讓我們回顧這七堂課累積了什麼——你會發現，<em>每一塊都已經會了</em>，期末專案不是新東西，是把這些組合起來。</p>
+
+  <div class="recap">
+    <div class="recap-list">
+      <div class="recap-row">
+        <div class="recap-label">Lab 1</div>
+        <div class="recap-name"><strong>個人數位名片</strong>　HTML / CSS / JS 基礎</div>
+        <div class="recap-tag">前端基礎</div>
+      </div>
+      <div class="recap-row">
+        <div class="recap-label">Lab 2</div>
+        <div class="recap-name"><strong>日語假名遊戲 &amp; 詞彙卡</strong>　單一 HTML 檔的互動應用</div>
+        <div class="recap-tag">前端互動</div>
+      </div>
+      <div class="recap-row">
+        <div class="recap-label">Lab 3</div>
+        <div class="recap-name"><strong>CLI + Ollama</strong>　指令列操作、本地 AI、批次文本處理</div>
+        <div class="recap-tag">本地 AI</div>
+      </div>
+      <div class="recap-row">
+        <div class="recap-label">Lab 4</div>
+        <div class="recap-name"><strong>Markdown 與 AGENTS.md</strong>　用 Markdown 設定 agent 人格</div>
+        <div class="recap-tag">人格設計</div>
+      </div>
+      <div class="recap-row">
+        <div class="recap-label">Lab 5</div>
+        <div class="recap-name"><strong>蒸餾人</strong>　SOUL.md / USER.md / Skills 整合</div>
+        <div class="recap-tag">自我蒸餾</div>
+      </div>
+      <div class="recap-row">
+        <div class="recap-label">Lab 6</div>
+        <div class="recap-name"><strong>Hermes Agent 安裝</strong>　本地 agent 環境（助教課）</div>
+        <div class="recap-tag">環境建置</div>
+      </div>
+      <div class="recap-row now">
+        <div class="recap-label">Lab 7</div>
+        <div class="recap-name"><strong>API + Git + 部署（本週）</strong>　把一切串到雲端</div>
+        <div class="recap-tag">傳遞層</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>期末專案：一頁式語言學習小卡</h3>
+  <p>期末專案故意設計得很小——目的是讓你體驗到<strong>「想法到落地」的完整過程</strong>，而不是被技術細節壓垮。</p>
+  <ul>
+    <li><strong>主題：</strong>一個你真正想用的小工具——日語學習小卡、文言文對照、學術詞彙複習、台語俚語、每日詩詞……</li>
+    <li><strong>必含元素：</strong>Gemini API + 簡單 HTML 介面（可以是純前端，可以加 Flask）</li>
+    <li><strong>選做加分：</strong>SOUL.md 人格設定、ElevenLabs 語音、一鍵部署到雲端</li>
+    <li><strong>繳交：</strong>程式檔 + 至少 2 張運作截圖 + 250 字反思</li>
+  </ul>
+
+  <div class="tip">
+    <span class="lbl">給焦慮的同學</span>
+    課程網站上有完整的範本和 step-by-step 指引（搜尋「個人語言學習小卡」）。<em>能跑起來</em>比<em>很完美</em>更重要。階段一只要 70 行 HTML，2–4 小時就能完成；階段二的部署是加分項，不勉強。
+  </div>
+
+  <blockquote>很多人一輩子有過好幾個 idea，但從來沒做出來過。完成這個小專案後，你已經跨過了那個門檻——以後再有想法，你會本能地知道<em>「我可以做出來」</em>。這個信心，比任何具體技術都珍貴。</blockquote>
+</section>
+
+<footer>
+  <a href="https://lope.linguistics.ntu.edu.tw">LOPE Lab</a> · 
+  Graduate Institute of Linguistics, National Taiwan University · 
+  <a href="https://taica.edu.tw">TAICA</a><br>
+  生成式 AI 的人文導論 | Spring 2026 | 114-2 | Lab Session 7
+</footer>
+
+</div>
+</body>
+</html>

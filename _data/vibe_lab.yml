@@ -83,3 +83,18 @@ sessions:
       - name: "Lab Session 6b ElevenLabs"
         file: "lab-session-6b-elevenlabs.html"
         desc: "ElevenLabs 語音／課堂示範互動頁"
+
+  - id: session-7
+    title: "Session 7"
+    blurb: "API 與 Vibe Coding：ElevenLabs 進階、應用整合與期末專案落地"
+    subtitle: "本學期最後一場 Lab"
+    items:
+      - name: "ElevenLabs 完整教學"
+        file: "lab-session-7.1.elevenlabs-comprehensive.html"
+        desc: "From Sign-up to Voice Clone · 給「蒸餾人」加上聲音"
+      - name: "從 API 到 Vibe Coding 應用"
+        file: "lab-session-7.2.html"
+        desc: "HTTP／API 概念、Gemini 串接與 Vibe Coding 實作導覽"
+      - name: "期末專案 · 個人語言學習小卡"
+        file: "final-project-flashcard.html"
+        desc: "一步步落地：從想法到可分享的原型"

@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>期末專案 · 個人語言學習小卡 · 一步步落地</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#faf9f7;--ink:#1a1a18;--muted:#5c5c58;--hint:#9a9a94;
+  --surface:#f0efe9;--card:#ffffff;--border:rgba(28,28,20,.11);
+  --accent:#534AB7;--accent-bg:#EEEDFE;--accent-text:#3C3489;
+  --ok-bg:#E1F5EE;--ok-border:rgba(13,80,65,.2);--ok-text:#085041;
+  --warn-bg:#FAEEDA;--warn-border:rgba(99,56,6,.2);--warn-text:#633806;
+  --danger-bg:#FCEBEB;--danger-border:rgba(163,45,32,.2);--danger-text:#A32D2D;
+  --term:#1e1e1c;--term-bar:#2a2a28;
+  --mono:'JetBrains Mono','Fira Code','Courier New',monospace;
+  --r:10px;
+}
+body{font-family:'Noto Sans TC','Helvetica Neue',sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.8;min-height:100vh}
+
+nav{border-bottom:.5px solid var(--border);padding:0 2rem;display:flex;align-items:center;height:52px;position:sticky;top:0;background:rgba(250,249,247,.93);backdrop-filter:blur(10px);z-index:200;gap:2rem}
+.brand{font-size:14px;font-weight:500;text-decoration:none;color:var(--ink);white-space:nowrap}
+.brand span{opacity:.45;margin-right:4px}
+.nav-links{display:flex;gap:1.4rem;overflow-x:auto}
+.nav-links a{font-size:13px;color:var(--muted);text-decoration:none;white-space:nowrap}
+.nav-links a.on{color:var(--ink);font-weight:500}
+
+.page{max-width:880px;margin:0 auto;padding:0 2rem 7rem}
+
+/* hero */
+.hero{padding:3rem 0 2.2rem;border-bottom:.5px solid var(--border);margin-bottom:2.6rem}
+.crumb{font-size:13px;color:var(--hint);margin-bottom:1rem}
+.crumb a{color:var(--accent);text-decoration:none}
+.meta{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:1rem}
+.pill{display:inline-flex;align-items:center;font-size:11px;font-weight:500;font-family:var(--mono);padding:3px 10px;border-radius:99px;border:.5px solid}
+.p-proj{background:var(--accent-bg);color:var(--accent-text);border-color:rgba(60,52,137,.3)}
+.p-time{background:var(--warn-bg);color:var(--warn-text);border-color:var(--warn-border)}
+.p-lvl{background:var(--ok-bg);color:var(--ok-text);border-color:var(--ok-border)}
+.hero h1{font-size:27px;font-weight:500;letter-spacing:-.02em;margin-bottom:.5rem;line-height:1.25}
+.hero .lead{font-size:15px;color:var(--muted);max-width:620px}
+
+/* philosophy */
+.philosophy{background:#fff;border-left:3px solid var(--accent);border-radius:0 var(--r) var(--r) 0;padding:13px 18px;margin-bottom:24px;font-size:13.5px;color:var(--accent-text);line-height:1.7}
+.philosophy strong{font-weight:500}
+.philosophy em{font-style:italic}
+
+/* stages overview */
+.stages{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px}
+.stage-card{background:#fff;border:.5px solid var(--border);border-radius:var(--r);padding:14px 17px}
+.stage-card.s1{border-color:var(--ok-border);border-left:3px solid var(--ok-text)}
+.stage-card.s2{border-color:var(--accent);border-left:3px solid var(--accent)}
+.sc-tag{font-size:10px;font-family:var(--mono);font-weight:500;padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:5px}
+.sct-1{background:var(--ok-bg);color:var(--ok-text)}
+.sct-2{background:var(--accent-bg);color:var(--accent-text)}
+.sc-name{font-size:14px;font-weight:500;color:var(--ink);margin-bottom:3px}
+.sc-time{font-size:11px;color:var(--hint);font-family:var(--mono);margin-bottom:7px}
+.sc-desc{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:6px}
+.sc-output{font-size:11px;background:var(--surface);border-radius:5px;padding:5px 8px;color:var(--ink);line-height:1.55}
+.sc-output strong{font-weight:500}
+
+/* section */
+.section{margin-bottom:3rem}
+.sec-lbl{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:500;font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--accent);margin-bottom:.6rem}
+.sec-lbl::before{content:'';width:13px;height:1.5px;background:var(--accent);display:inline-block}
+.sec-lbl.green{color:var(--ok-text)}
+.sec-lbl.green::before{background:var(--ok-text)}
+h2{font-size:20px;font-weight:500;letter-spacing:-.015em;margin-bottom:1rem}
+h3{font-size:15px;font-weight:500;margin:1.6rem 0 .5rem}
+p{margin-bottom:.8rem}
+hr.div{border:none;border-top:.5px solid var(--border);margin:2.6rem 0}
+code{font-family:var(--mono);font-size:.87em;background:var(--surface);padding:1px 5px;border-radius:4px;border:.5px solid var(--border)}
+
+/* callouts */
+.call{border-left:3px solid var(--accent);background:var(--accent-bg);border-radius:0 var(--r) var(--r) 0;padding:10px 14px;margin:.8rem 0;font-size:13px;line-height:1.65}
+.call.ok{border-color:#27c56a;background:var(--ok-bg)}
+.call.warn{border-color:#e0a500;background:var(--warn-bg)}
+.call.danger{border-color:#A32D2D;background:var(--danger-bg);color:var(--danger-text)}
+.call strong{font-weight:500}
+
+/* steps */
+.steps{list-style:none}
+.steps li{display:flex;gap:14px;padding:11px 0;border-bottom:.5px solid var(--border);align-items:flex-start}
+.steps li:last-child{border-bottom:none}
+.sn{min-width:26px;height:26px;border-radius:50%;background:var(--accent-bg);color:var(--accent-text);font-size:12px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;font-family:var(--mono)}
+.sb strong{font-weight:500;font-size:14px;display:block;margin-bottom:1px}
+.sb span{font-size:13px;color:var(--muted)}
+
+/* term */
+.term{background:var(--term);border-radius:10px;overflow:hidden;margin:1rem 0}
+.term-bar{background:var(--term-bar);padding:8px 14px;display:flex;align-items:center;gap:6px}
+.dot{width:10px;height:10px;border-radius:50%}
+.dr{background:#ff5f56}.dy{background:#ffbd2e}.dg{background:#27c93f}
+.tl2{font-size:11px;color:#999;margin-left:auto;font-family:var(--mono)}
+.tc{padding:14px 18px;font-family:var(--mono);font-size:12.5px;line-height:1.9;overflow-x:auto;white-space:pre;color:#ddd}
+.ps{color:#27c93f}.cmd{color:#f0ede8}.out{color:#888}.cmt{color:#666;font-style:italic}.inp{color:#79c0ff}.hl{color:#ffbd2e}.kw{color:#ff7b72}.str{color:#85b984}.tag{color:#7ee787}.attr{color:#79c0ff}
+
+/* phone preview */
+.phone-preview{display:grid;grid-template-columns:280px 1fr;gap:18px;margin:1rem 0;align-items:flex-start}
+.phone{background:#1a1a18;border-radius:24px;padding:36px 12px;width:280px;box-shadow:0 4px 24px rgba(0,0,0,.15)}
+.phone-inner{background:#f5f3ef;border-radius:14px;padding:18px 14px;min-height:480px;display:flex;flex-direction:column;gap:14px}
+.phone-label{font-size:11px;font-family:var(--mono);color:#8a8a82;text-align:center;margin-bottom:4px}
+.phone-card{background:#fff;border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.phone-prompt{font-size:11px;color:var(--hint);font-family:var(--mono);margin-bottom:6px}
+.phone-word{font-size:22px;font-weight:500;color:var(--ink);margin-bottom:2px}
+.phone-pinyin{font-size:11px;color:var(--muted);margin-bottom:8px}
+.phone-meaning{font-size:13px;color:var(--ink);padding:7px 9px;background:var(--accent-bg);border-radius:6px;margin-bottom:8px}
+.phone-example{font-size:11px;color:var(--muted);line-height:1.5;font-style:italic}
+.phone-btn-row{display:flex;gap:6px;justify-content:center}
+.phone-btn{background:var(--accent);color:#fff;border:none;padding:8px 14px;border-radius:20px;font-size:11px;font-family:inherit;cursor:pointer}
+.phone-btn.sec{background:var(--surface);color:var(--ink);border:.5px solid var(--border)}
+.phone-icon{font-size:14px}
+.phone-info{padding-top:8px}
+.phone-info h3{font-size:14px;font-weight:500;margin-bottom:6px;margin-top:0}
+.phone-info p{font-size:12.5px;color:var(--muted);line-height:1.65;margin-bottom:6px}
+.phone-info ul{padding-left:1.2rem;font-size:12px;color:var(--muted);line-height:1.7}
+
+/* file box */
+.file-box{background:#fff;border:.5px solid var(--border);border-radius:var(--r);overflow:hidden;margin:1rem 0}
+.fb-head{background:var(--surface);padding:8px 14px;font-size:11px;font-family:var(--mono);color:var(--muted);border-bottom:.5px solid var(--border);display:flex;justify-content:space-between}
+.fb-body{padding:14px 16px;font-family:var(--mono);font-size:12px;line-height:1.85;color:#3a3a36;background:#fff;white-space:pre-wrap;overflow-x:auto}
+
+/* ideas grid */
+.ideas-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:1rem 0}
+.idea-card{background:#fff;border:.5px solid var(--border);border-radius:var(--r);padding:12px 14px}
+.idea-icon{font-size:18px;margin-bottom:4px}
+.idea-name{font-size:13px;font-weight:500;color:var(--ink);margin-bottom:2px}
+.idea-desc{font-size:11.5px;color:var(--muted);line-height:1.55;margin-bottom:5px}
+.idea-prompt{font-size:10.5px;font-family:var(--mono);background:var(--surface);border-radius:4px;padding:4px 7px;color:var(--ink);line-height:1.55}
+
+/* submission card */
+.submission{background:#fff;border:1.5px solid var(--accent);border-radius:var(--r);padding:18px 22px;margin:1.4rem 0}
+.sub-title{font-size:14px;font-weight:500;color:var(--accent-text);margin-bottom:9px}
+.sub-rows{display:flex;flex-direction:column;gap:8px}
+.sub-row{display:grid;grid-template-columns:90px 1fr;gap:12px;font-size:13px;align-items:flex-start;padding:5px 0;border-bottom:.5px solid #ede9e3}
+.sub-row:last-child{border:none}
+.sub-key{font-size:11px;font-family:var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.04em;padding-top:2px}
+.sub-val{color:var(--ink);line-height:1.6}
+.sub-val .opt{font-size:11px;color:var(--ok-text);background:var(--ok-bg);border-radius:4px;padding:1px 6px;font-weight:500;margin-left:4px}
+
+footer{border-top:.5px solid var(--border);padding:1.2rem 2rem;font-size:12px;color:var(--hint);text-align:center}
+footer a{color:var(--hint);text-decoration:none}
+
+@media(max-width:640px){
+  nav{padding:0 1rem;gap:1rem}
+  .page{padding:0 1rem 5rem}
+  .stages,.ideas-grid{grid-template-columns:1fr}
+  .phone-preview{grid-template-columns:1fr}
+  .phone{margin:0 auto}
+}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav>
+  <a class="brand" href="https://lopentu.github.io/genai4humanities2026/"><span>✦</span>生成式 AI 的人文導論</a>
+  <div class="nav-links">
+    <a href="https://lopentu.github.io/genai4humanities2026/">首頁</a>
+    <a href="https://lopentu.github.io/genai4humanities2026/schedule/">課程進度</a>
+    <a href="https://lopentu.github.io/genai4humanities2026/assignments/" class="on">課堂作業</a>
+    <a href="https://lopentu.github.io/genai4humanities2026/practice/vibe/">vibe coding practice</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- hero -->
+  <div class="hero">
+    <div class="crumb"><a href="https://lopentu.github.io/genai4humanities2026/assignments/">← 課堂作業</a></div>
+    <div class="meta">
+      <span class="pill p-proj">期末專案</span>
+      <span class="pill p-time">⏱ 個人原型 · 不設 milestone</span>
+      <span class="pill p-lvl">最低門檻：能跑就好</span>
+    </div>
+    <h1>個人語言學習小卡<br>一步步把 idea 變成手上的 App</h1>
+    <p class="lead">這是一個極簡的期末專案——不需要整合學期所有技術，只需要讓你體會「我有個想法 → 變成可以給朋友看的東西」的完整過程。聚焦在「落地」，不追求完整性。</p>
+  </div>
+
+  <!-- philosophy -->
+  <div class="philosophy">
+    <strong>專案哲學：</strong>學期教了那麼多技術，期末不是要你「全部都用」——而是讓你選一個你<em>真的想用</em>的小工具，把它做出來。寧可一個簡單的東西完整跑起來，不要一個複雜的東西卡在中間。
+  </div>
+
+  <!-- stages overview -->
+  <div class="stages">
+    <div class="stage-card s1">
+      <span class="sc-tag sct-1">階段一 · 必做</span>
+      <div class="sc-name">本機原型</div>
+      <div class="sc-time">時間估算：2–4 小時</div>
+      <div class="sc-desc">一個 HTML 檔，瀏覽器打開就能用。完成這階段就達到基本及格——你已有一個能跑的小工具。</div>
+      <div class="sc-output"><strong>產出：</strong>一個 index.html 檔，在自己電腦能跑</div>
+    </div>
+    <div class="stage-card s2">
+      <span class="sc-tag sct-2">階段二 · 選做加分</span>
+      <div class="sc-name">部署到雲端</div>
+      <div class="sc-time">時間估算：1–2 小時</div>
+      <div class="sc-desc">推上 GitHub + 一鍵部署到 Zeabur，得到一個全世界都能訪問的網址。朋友打開手機就能用你做的工具。</div>
+      <div class="sc-output"><strong>產出：</strong>一個公開網址 + GitHub repo</div>
+    </div>
+  </div>
+
+  <!-- preview -->
+  <h3>完成後它長這樣</h3>
+  <div class="phone-preview">
+    <div class="phone">
+      <div class="phone-label">📱 your-app.zeabur.app</div>
+      <div class="phone-inner">
+        <div style="font-size:13px;font-weight:500;color:var(--ink);text-align:center;padding:4px 0">日語學習小卡</div>
+        <div class="phone-card">
+          <div class="phone-prompt">情境：在咖啡廳點餐</div>
+          <div class="phone-word">いただきます</div>
+          <div class="phone-pinyin">i-ta-da-ki-ma-su</div>
+          <div class="phone-meaning">用餐前說的「我要開動了」，含感謝之意</div>
+          <div class="phone-example">客：「コーヒーをお願いします。いただきます！」</div>
+        </div>
+        <div class="phone-btn-row">
+          <button class="phone-btn"><span class="phone-icon">🔊</span> 念給我聽</button>
+          <button class="phone-btn sec">下一張 →</button>
+        </div>
+      </div>
+    </div>
+    <div class="phone-info">
+      <h3>基本功能（最小可行版本）</h3>
+      <p>每次打開或點「下一張」，AI 會幫你生成一張新的學習卡片：</p>
+      <ul>
+        <li>一個你選定主題下的常用詞或片語</li>
+        <li>發音標記（拼音／羅馬字／注音都可）</li>
+        <li>中文意思 + 使用情境</li>
+        <li>一句例句</li>
+        <li>「念給我聽」按鈕（使用瀏覽器內建語音）</li>
+      </ul>
+      <p style="font-size:12px;color:var(--accent-text);margin-top:8px"><strong>主題你自己決定</strong>——日語、西班牙語、文言文、學術詞彙、台灣俚語、流行用語……</p>
+    </div>
+  </div>
+
+  <hr class="div">
+
+  <!-- ════════════════════════════════════════
+       Stage 1 - Local Prototype
+  ════════════════════════════════════════ -->
+  <div class="section">
+    <div class="sec-lbl green">階段一 · 本機原型</div>
+    <h2>第一步：在自己電腦做出來</h2>
+    <p>整個小卡 App 是<strong>一個檔案</strong>——index.html 裡面包含 HTML 結構、CSS 樣式、JavaScript 邏輯。你不需要 Flask、不需要 Python、不需要安裝任何東西，只需要：</p>
+
+    <ul class="steps">
+      <li>
+        <span class="sn">01</span>
+        <div class="sb">
+          <strong>申請 Gemini API key（如還沒做）</strong>
+          <span>前往 <code>aistudio.google.com</code> → Get API key → Create API key。複製這串字到安全的地方。</span>
+        </div>
+      </li>
+      <li>
+        <span class="sn">02</span>
+        <div class="sb">
+          <strong>新建一個資料夾，建立 index.html</strong>
+          <span>檔名一定要 <code>index.html</code>，這是網頁的慣例。用 VS Code 或任何文字編輯器都可以。</span>
+        </div>
+      </li>
+      <li>
+        <span class="sn">03</span>
+        <div class="sb">
+          <strong>把下面這段範本貼進去</strong>
+          <span>這是完整可運作的程式碼。你只需要修改三個地方（標示在程式碼後）。</span>
+        </div>
+      </li>
+    </ul>
+
+    <h3>完整範本：index.html（複製貼上即可用）</h3>
+
+    <div class="file-box">
+      <div class="fb-head"><span>index.html</span><span>約 70 行</span></div>
+      <div class="fb-body">&lt;<span style="color:#7ee787">!DOCTYPE html</span>&gt;
+&lt;<span style="color:#7ee787">html lang</span>=<span style="color:#a5d6ff">"zh-Hant"</span>&gt;
+&lt;<span style="color:#7ee787">head</span>&gt;
+  &lt;<span style="color:#7ee787">meta charset</span>=<span style="color:#a5d6ff">"UTF-8"</span>&gt;
+  &lt;<span style="color:#7ee787">title</span>&gt;我的日語小卡&lt;/<span style="color:#7ee787">title</span>&gt;
+  &lt;<span style="color:#7ee787">style</span>&gt;
+    body { font-family: sans-serif; background: #faf9f7; padding: 24px;
+           max-width: 480px; margin: 0 auto; }
+    .card { background: #fff; border-radius: 14px; padding: 20px;
+            box-shadow: 0 1px 6px rgba(0,0,0,.06); margin-bottom: 16px; }
+    .word { font-size: 26px; font-weight: 500; }
+    .pinyin { color: #888; margin: 4px 0; font-size: 13px; }
+    .meaning { background: #EEEDFE; padding: 8px 12px; border-radius: 8px;
+               margin-top: 10px; font-size: 14px; }
+    .example { color: #5c5c58; font-style: italic; margin-top: 8px; font-size: 13px; }
+    button { background: #534AB7; color: #fff; border: none;
+             padding: 10px 16px; border-radius: 20px; cursor: pointer;
+             margin-right: 6px; font-size: 13px; }
+    button.sec { background: #f0efe9; color: #1a1a18; }
+  &lt;/<span style="color:#7ee787">style</span>&gt;
+&lt;/<span style="color:#7ee787">head</span>&gt;
+&lt;<span style="color:#7ee787">body</span>&gt;
+  &lt;<span style="color:#7ee787">h2</span>&gt;日語學習小卡&lt;/<span style="color:#7ee787">h2</span>&gt;
+  &lt;<span style="color:#7ee787">div class</span>=<span style="color:#a5d6ff">"card"</span> <span style="color:#a5d6ff">id</span>=<span style="color:#a5d6ff">"output"</span>&gt;
+    點下方按鈕，AI 幫你出一張新卡片...
+  &lt;/<span style="color:#7ee787">div</span>&gt;
+  &lt;<span style="color:#7ee787">button onclick</span>=<span style="color:#a5d6ff">"makeCard()"</span>&gt;下一張 →&lt;/<span style="color:#7ee787">button</span>&gt;
+  &lt;<span style="color:#7ee787">button class</span>=<span style="color:#a5d6ff">"sec"</span> <span style="color:#a5d6ff">onclick</span>=<span style="color:#a5d6ff">"speak()"</span>&gt;🔊 念給我聽&lt;/<span style="color:#7ee787">button</span>&gt;
+
+  &lt;<span style="color:#7ee787">script</span>&gt;
+    <span style="color:#666;font-style:italic">// ── 三個你要修改的地方 ─────────────</span>
+    <span style="color:#ff7b72">const</span> API_KEY = <span style="color:#a5d6ff">"你的_API_KEY_貼在這裡"</span>;     <span style="color:#666;font-style:italic">// ① 貼你的 Gemini API key</span>
+    <span style="color:#ff7b72">const</span> LANGUAGE = <span style="color:#a5d6ff">"日語"</span>;                      <span style="color:#666;font-style:italic">// ② 你想學的語言</span>
+    <span style="color:#ff7b72">const</span> SPEECH_LANG = <span style="color:#a5d6ff">"ja-JP"</span>;                  <span style="color:#666;font-style:italic">// ③ 發音語碼</span>
+    <span style="color:#666;font-style:italic">// ─────────────────────────────</span>
+
+    <span style="color:#ff7b72">let</span> currentWord = <span style="color:#a5d6ff">""</span>;
+
+    <span style="color:#ff7b72">async function</span> makeCard() {
+      <span style="color:#ff7b72">const</span> prompt = <span style="color:#a5d6ff">`請幫我出一張${LANGUAGE}學習小卡，回應請用 JSON：
+{
+  "word": "（一個常用詞或片語）",
+  "pinyin": "（發音標記）",
+  "meaning": "（中文意思，含使用情境，30字內）",
+  "example": "（一句例句）"
+}
+不要加 markdown 標記，直接給 JSON。`</span>;
+
+      <span style="color:#ff7b72">const</span> res = <span style="color:#ff7b72">await</span> fetch(
+        <span style="color:#a5d6ff">`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`</span>,
+        {
+          method: <span style="color:#a5d6ff">"POST"</span>,
+          headers: { <span style="color:#a5d6ff">"Content-Type"</span>: <span style="color:#a5d6ff">"application/json"</span> },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }]
+          })
+        }
+      );
+      <span style="color:#ff7b72">const</span> data = <span style="color:#ff7b72">await</span> res.json();
+      <span style="color:#ff7b72">const</span> text = data.candidates[0].content.parts[0].text;
+      <span style="color:#ff7b72">const</span> card = JSON.parse(text);
+      currentWord = card.word;
+
+      document.getElementById(<span style="color:#a5d6ff">"output"</span>).innerHTML = <span style="color:#a5d6ff">`
+        &lt;div class="word"&gt;${card.word}&lt;/div&gt;
+        &lt;div class="pinyin"&gt;${card.pinyin}&lt;/div&gt;
+        &lt;div class="meaning"&gt;${card.meaning}&lt;/div&gt;
+        &lt;div class="example"&gt;${card.example}&lt;/div&gt;`</span>;
+    }
+
+    <span style="color:#ff7b72">function</span> speak() {
+      <span style="color:#ff7b72">if</span> (!currentWord) <span style="color:#ff7b72">return</span>;
+      <span style="color:#ff7b72">const</span> u = <span style="color:#ff7b72">new</span> SpeechSynthesisUtterance(currentWord);
+      u.lang = SPEECH_LANG;
+      speechSynthesis.speak(u);
+    }
+  &lt;/<span style="color:#7ee787">script</span>&gt;
+&lt;/<span style="color:#7ee787">body</span>&gt;
+&lt;/<span style="color:#7ee787">html</span>&gt;</div>
+    </div>
+
+    <div class="call">
+      <strong>三個你需要修改的地方：</strong><br>
+      ① <code>API_KEY</code>：貼上你的 Gemini API key<br>
+      ② <code>LANGUAGE</code>：你想學的語言（"日語"、"西班牙語"、"文言文"、"台語"……）<br>
+      ③ <code>SPEECH_LANG</code>：發音語碼（日語 <code>ja-JP</code>、西語 <code>es-ES</code>、英語 <code>en-US</code>、中文 <code>zh-TW</code>）
+    </div>
+
+    <h3>測試：用瀏覽器打開</h3>
+    <ul class="steps">
+      <li>
+        <span class="sn">04</span>
+        <div class="sb">
+          <strong>雙擊 index.html → 用瀏覽器打開</strong>
+          <span>應該看到你的小卡介面（藍色「下一張」按鈕、灰色「念給我聽」按鈕）。</span>
+        </div>
+      </li>
+      <li>
+        <span class="sn">05</span>
+        <div class="sb">
+          <strong>點「下一張」</strong>
+          <span>等 2–3 秒，AI 會生成一張卡片，顯示詞語、發音、意思、例句。</span>
+        </div>
+      </li>
+      <li>
+        <span class="sn">06</span>
+        <div class="sb">
+          <strong>點「念給我聽」</strong>
+          <span>瀏覽器會用內建語音念出剛剛的詞——免費、不需要額外 API。</span>
+        </div>
+      </li>
+    </ul>
+
+    <div class="call ok">
+      <strong>達到這裡：階段一完成。</strong>你已經有了一個能用的個人小工具。如果你不想做階段二，這個就可以當作期末作業繳交了——把 index.html 連同一個 250 字反思文件交上來即可。
+    </div>
+
+    <div class="call warn">
+      <strong>注意：</strong>這版本把 API key 寫在 HTML 裡——只能<em>自己用</em>，不要分享這個檔案給別人，更不要推上 GitHub。<br>如果你想讓朋友也能用，請繼續做階段二（用後端代理 key，才能安全部署）。
+    </div>
+  </div>
+
+  <hr class="div">
+
+  <!-- ════════════════════════════════════════
+       Stage 2 - Deploy
+  ════════════════════════════════════════ -->
+  <div class="section">
+    <div class="sec-lbl">階段二 · 選做加分</div>
+    <h2>第二步：讓全世界都能用你做的工具</h2>
+    <p>階段一的問題：API key 寫在 HTML 裡，所以這個檔案只能你自己用。如果想分享給朋友、想推到 GitHub，必須加一個極簡的後端來「代管」API key。<em>程式碼只多 20 行</em>。</p>
+
+    <h3>新的檔案結構</h3>
+
+    <div class="file-box">
+      <div class="fb-head"><span>my-flashcard/</span><span>4 個檔案</span></div>
+      <div class="fb-body">my-flashcard/
+├── app.py              <span style="color:#8a8a82">← 後端，代理 API 呼叫（30 行）</span>
+├── requirements.txt    <span style="color:#8a8a82">← 套件清單（2 行）</span>
+├── .gitignore          <span style="color:#8a8a82">← 告訴 git 不要追蹤敏感檔（3 行）</span>
+└── templates/
+    └── index.html      <span style="color:#8a8a82">← 階段一那個 HTML 移到這裡</span></div>
+    </div>
+
+    <h3>app.py：後端代理（30 行）</h3>
+
+    <div class="file-box">
+      <div class="fb-head"><span>app.py</span><span>後端代理</span></div>
+      <div class="fb-body"><span style="color:#ff7b72">from</span> flask <span style="color:#ff7b72">import</span> Flask, render_template, request, jsonify
+<span style="color:#ff7b72">import</span> google.generativeai <span style="color:#ff7b72">as</span> genai
+<span style="color:#ff7b72">import</span> os
+
+genai.configure(api_key=os.environ[<span style="color:#a5d6ff">"GEMINI_API_KEY"</span>])
+model = genai.GenerativeModel(<span style="color:#a5d6ff">"gemini-2.5-flash"</span>)
+
+app = Flask(__name__)
+
+<span style="color:#ff7b72">@app.route</span>(<span style="color:#a5d6ff">"/"</span>)
+<span style="color:#ff7b72">def</span> home():
+    <span style="color:#ff7b72">return</span> render_template(<span style="color:#a5d6ff">"index.html"</span>)
+
+<span style="color:#ff7b72">@app.route</span>(<span style="color:#a5d6ff">"/api/card"</span>, methods=[<span style="color:#a5d6ff">"POST"</span>])
+<span style="color:#ff7b72">def</span> card():
+    language = request.json.get(<span style="color:#a5d6ff">"language"</span>, <span style="color:#a5d6ff">"日語"</span>)
+    prompt = f<span style="color:#a5d6ff">"""請幫我出一張{language}學習小卡，回應請用 JSON：
+{{"word": "...", "pinyin": "...", "meaning": "...", "example": "..."}}
+不要加 markdown 標記，直接給 JSON。"""</span>
+    response = model.generate_content(prompt)
+    <span style="color:#ff7b72">return</span> jsonify({<span style="color:#a5d6ff">"text"</span>: response.text})
+
+<span style="color:#ff7b72">if</span> __name__ == <span style="color:#a5d6ff">"__main__"</span>:
+    port = <span style="color:#ff7b72">int</span>(os.environ.get(<span style="color:#a5d6ff">"PORT"</span>, 5000))
+    app.run(host=<span style="color:#a5d6ff">"0.0.0.0"</span>, port=port)</div>
+    </div>
+
+    <h3>修改 index.html：呼叫自己的後端</h3>
+    <p>把階段一的 <code>fetch(...)</code> 那一段替換成：</p>
+
+    <div class="file-box">
+      <div class="fb-head"><span>index.html · script 段落（部分）</span></div>
+      <div class="fb-body"><span style="color:#666;font-style:italic">// 不再需要 API_KEY ── 改為呼叫自己的 /api/card</span>
+<span style="color:#ff7b72">const</span> LANGUAGE = <span style="color:#a5d6ff">"日語"</span>;
+<span style="color:#ff7b72">const</span> SPEECH_LANG = <span style="color:#a5d6ff">"ja-JP"</span>;
+
+<span style="color:#ff7b72">async function</span> makeCard() {
+  <span style="color:#ff7b72">const</span> res = <span style="color:#ff7b72">await</span> fetch(<span style="color:#a5d6ff">"/api/card"</span>, {
+    method: <span style="color:#a5d6ff">"POST"</span>,
+    headers: { <span style="color:#a5d6ff">"Content-Type"</span>: <span style="color:#a5d6ff">"application/json"</span> },
+    body: JSON.stringify({ language: LANGUAGE })
+  });
+  <span style="color:#ff7b72">const</span> data = <span style="color:#ff7b72">await</span> res.json();
+  <span style="color:#ff7b72">const</span> card = JSON.parse(data.text);
+  currentWord = card.word;
+
+  document.getElementById(<span style="color:#a5d6ff">"output"</span>).innerHTML = <span style="color:#a5d6ff">`...`</span>;
+}</div>
+    </div>
+
+    <h3>requirements.txt 與 .gitignore</h3>
+
+    <div class="file-box">
+      <div class="fb-head"><span>requirements.txt</span></div>
+      <div class="fb-body">flask
+google-generativeai</div>
+    </div>
+
+    <div class="file-box">
+      <div class="fb-head"><span>.gitignore</span></div>
+      <div class="fb-body">.env
+__pycache__/
+*.pyc
+venv/</div>
+    </div>
+
+    <h3>本機測試（推上線前先確認能跑）</h3>
+
+    <div class="term">
+      <div class="term-bar"><span class="dot dr"></span><span class="dot dy"></span><span class="dot dg"></span><span class="tl2">bash</span></div>
+      <div class="tc"><span class="ps">$</span> <span class="cmd">cd my-flashcard</span>
+<span class="ps">$</span> <span class="cmd">pip install -r requirements.txt</span>
+
+<span class="cmt"># 設定環境變數（不要寫死在程式碼）</span>
+<span class="ps">$</span> <span class="cmd">export GEMINI_API_KEY="你的 key"</span>   <span class="cmt"># Mac/Linux</span>
+<span class="ps">$</span> <span class="cmd">$env:GEMINI_API_KEY="你的 key"</span>     <span class="cmt"># Windows PowerShell</span>
+
+<span class="ps">$</span> <span class="cmd">python app.py</span>
+<span class="out">  * Running on http://0.0.0.0:5000</span>
+
+<span class="cmt"># 打開瀏覽器訪問 http://localhost:5000 → 跟階段一一樣可用</span></div>
+    </div>
+
+    <h3>推到 GitHub 並一鍵部署</h3>
+
+    <ul class="steps">
+      <li>
+        <span class="sn">01</span>
+        <div class="sb">
+          <strong>初始化 Git 並推上 GitHub</strong>
+          <span><code>git init</code> → <code>git add .</code> → <code>git commit -m "初版"</code> → 到 github.com 建 repo → <code>git remote add origin ...</code> → <code>git push -u origin main</code>。</span>
+        </div>
+      </li>
+      <li>
+        <span class="sn">02</span>
+        <div class="sb">
+          <strong>到 zeabur.com 用 GitHub 登入</strong>
+          <span>Create Project → Deploy New Service → Git → 選你的 repo。Zeabur 自動偵測這是 Python 專案。</span>
+        </div>
+      </li>
+      <li>
+        <span class="sn">03</span>
+        <div class="sb">
+          <strong>設定環境變數</strong>
+          <span>到 Variables 分頁 → 加入 <code>GEMINI_API_KEY</code>，貼上你的 key。<em>這就是為什麼要用後端</em>——Zeabur 在執行時才把 key 注入，永遠不會被推上 GitHub。</span>
+        </div>
+      </li>
+      <li>
+        <span class="sn">04</span>
+        <div class="sb">
+          <strong>等 1–2 分鐘 build 完成 → 取得公開網址</strong>
+          <span>形如 <code>my-flashcard.zeabur.app</code>。傳給朋友、傳給家人、用手機開——都能用。</span>
+        </div>
+      </li>
+    </ul>
+
+    <div class="call ok">
+      <strong>達到這裡：階段二完成。</strong>你有一個全世界都能訪問的個人小工具。這就是「idea 變成手上的 App」的完整經驗——從一個想法到一個可分享的網址。
+    </div>
+  </div>
+
+  <hr class="div">
+
+  <!-- ════════════════════════════════════════
+       Ideas
+  ════════════════════════════════════════ -->
+  <div class="section">
+    <div class="sec-lbl">不一定要做語言學習</div>
+    <h2>同樣的架構，你可以做……</h2>
+    <p>整個 App 的核心邏輯只有兩件事：<strong>給 AI 一個 prompt，把回應顯示成卡片</strong>。改改 prompt，主題就不同。以下都是相同骨架，只換內容：</p>
+
+    <div class="ideas-grid">
+      <div class="idea-card">
+        <div class="idea-icon">📚</div>
+        <div class="idea-name">學術詞彙小卡</div>
+        <div class="idea-desc">針對你的領域出 GRE / 學術詞彙</div>
+        <div class="idea-prompt">prompt 改成：「出一個語言學領域的學術詞彙」</div>
+      </div>
+      <div class="idea-card">
+        <div class="idea-icon">🏛️</div>
+        <div class="idea-name">文言文翻譯練習</div>
+        <div class="idea-desc">出一句現代中文，提供文言文版本</div>
+        <div class="idea-prompt">prompt 改成：「出一句現代中文+文言文對照」</div>
+      </div>
+      <div class="idea-card">
+        <div class="idea-icon">🗣️</div>
+        <div class="idea-name">台語俚語</div>
+        <div class="idea-desc">每天學一個有趣的台語表達</div>
+        <div class="idea-prompt">prompt 改成：「出一句日常的台語俚語+教華語對照」</div>
+      </div>
+      <div class="idea-card">
+        <div class="idea-icon">🍃</div>
+        <div class="idea-name">每日詩詞</div>
+        <div class="idea-desc">每次抽一首古典詩詞，附白話翻譯</div>
+        <div class="idea-prompt">prompt 改成：「抽一首唐宋詩+白話譯文+背景」</div>
+      </div>
+      <div class="idea-card">
+        <div class="idea-icon">🧠</div>
+        <div class="idea-name">英文單字本</div>
+        <div class="idea-desc">針對你的程度（JLPT 範圍、TOEFL 等）</div>
+        <div class="idea-prompt">prompt 改成：「出一個 GRE 高頻字+用法」</div>
+      </div>
+      <div class="idea-card">
+        <div class="idea-icon">💭</div>
+        <div class="idea-name">每日哲學問題</div>
+        <div class="idea-desc">每次給一個值得思考的哲學問題</div>
+        <div class="idea-prompt">prompt 改成：「出一個哲學思辨題+思考方向」</div>
+      </div>
+    </div>
+
+    <div class="call">
+      <strong>調整思路：</strong>不需要重新寫程式碼——只要改 <code>prompt</code> 那段字串，整個 App 就變成不同主題了。這就是 Gemini API 強大的地方：用「自然語言指令」就能定義應用功能。
+    </div>
+  </div>
+
+  <hr class="div">
+
+  <!-- ════════════════════════════════════════
+       Submission
+  ════════════════════════════════════════ -->
+  <div class="section">
+    <div class="sec-lbl">繳交方式</div>
+    <h2>怎麼交期末作業</h2>
+
+    <div class="submission">
+      <div class="sub-title">繳交清單</div>
+      <div class="sub-rows">
+        <div class="sub-row">
+          <div class="sub-key">必交 01</div>
+          <div class="sub-val"><strong>專案檔案</strong>——上傳 index.html（階段一）或整個資料夾 zip（階段二）</div>
+        </div>
+        <div class="sub-row">
+          <div class="sub-key">必交 02</div>
+          <div class="sub-val"><strong>運作截圖</strong>——至少 2 張，顯示 App 確實能運作（卡片內容、發音按鈕等）</div>
+        </div>
+        <div class="sub-row">
+          <div class="sub-key">必交 03</div>
+          <div class="sub-val"><strong>250 字反思</strong>——你做了什麼主題？為什麼選這個？過程哪裡卡住？感想是什麼？</div>
+        </div>
+        <div class="sub-row">
+          <div class="sub-key">加分 01</div>
+          <div class="sub-val"><strong>GitHub repo 連結</strong> <span class="opt">階段二完成</span></div>
+        </div>
+        <div class="sub-row">
+          <div class="sub-key">加分 02</div>
+          <div class="sub-val"><strong>公開部署網址</strong> <span class="opt">階段二完成</span>——形如 your-app.zeabur.app</div>
+        </div>
+        <div class="sub-row">
+          <div class="sub-key">加分 03</div>
+          <div class="sub-val"><strong>創意改造</strong> <span class="opt">超越範本</span>——加了哪些範本沒有的功能？例如：難度切換、收藏功能、學習進度</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="call ok">
+      <strong>評分原則：</strong>能跑起來就有基本及格分。<em>不會因為功能少而扣分，但會因為「能跑」而給分</em>——做完一個簡單的，遠比卡住在複雜的好。期末重點是「你完成了一個個人原型」，不是「你整合了所有技術」。
+    </div>
+  </div>
+
+  <hr class="div">
+
+  <!-- closing -->
+  <div class="section">
+    <div class="sec-lbl">最後的話</div>
+    <h2>為什麼這個專案這樣設計</h2>
+    <p>vibe coding 的核心精神不是「學會所有技術」，而是<em>「我有一個想法，我能讓它變成現實」</em>。本期末專案故意設計得很小——目的是讓你體驗到「想法到落地」的完整過程，而不是被技術細節壓垮。</p>
+    <p>很多人一輩子有過好幾個 idea，但從來沒做出來過。完成這個小專案後，你已經跨過了那個門檻——以後再有想法，你會本能地知道「<em>我可以做出來</em>」。這個信心，比任何具體技術都珍貴。</p>
+  </div>
+
+</div><!-- /page -->
+
+<footer>
+  <a href="https://lope.linguistics.ntu.edu.tw">LOPE Lab</a> ·
+  Graduate Institute of Linguistics, National Taiwan University ·
+  <a href="https://taica.edu.tw">TAICA</a><br>
+  生成式 AI 的人文導論 | Spring 2026 | 114-2
+</footer>
+
+</body>
+</html>
