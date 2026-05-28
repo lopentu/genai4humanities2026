@@ -67,6 +67,7 @@ pre .builtin{color:#7aa8d8}
 pre .out{color:#8a9590;font-style:italic}
 pre .prompt{color:#9bc88e;font-weight:600}
 pre .hl{color:#e8b04a;font-weight:600}
+pre .magic{color:#d97a9a;font-weight:600}
 code{font-family:'Source Code Pro',monospace;background:#ede8de;padding:1px 6px;border-radius:3px;font-size:13.5px;color:var(--accent)}
 table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14px}
 th{background:var(--soft);text-align:left;padding:8px 12px;border-bottom:2px solid var(--accent2);font-weight:700;color:var(--accent2);font-family:'Noto Serif TC',serif}
@@ -126,7 +127,7 @@ footer a{color:var(--accent2);text-decoration:none;font-weight:600}
 <div class="banner">
   <div class="course">生成式 AI 的人文導論 · Spring 2026 · Lab Session 7</div>
   <h1>從 API 到 Vibe Coding 應用</h1>
-  <div class="sub">本學期最後一場 Lab · 把學過的全部串起來</div>
+  <div class="sub">本學期最後一個 Lab · 試著把學過的全部串起來</div>
   <div class="meta">
     <span>⏱ 90 min</span>
     <span>📚 三大基礎概念</span>
@@ -138,9 +139,9 @@ footer a{color:var(--accent2);text-decoration:none;font-weight:600}
 <section class="sec">
   <div class="sec-head">
     <span class="sec-badge">本堂主旨</span>
-    <h2>三個概念，把 idea 真正落地</h2>
+    <h2>學習三個概念，把 idea 真正落地</h2>
   </div>
-  <p>本學期教了很多東西——Markdown、Agent 人格設定、Memory、Skills、Multi-agent、多模態。但這些技術要怎麼變成<strong>真正能用、可以分享給朋友</strong>的東西？答案是<em>本堂課的三個基礎概念</em>：</p>
+  <p>本學期教了很多東西，包括 Markdown、Agent 人格設定、Memory、Skills、Multi-agent、多模態。但這些技術要怎麼變成<strong>真正能用、可以分享給朋友</strong>的東西？答案是<em>本堂課的三個基礎概念</em>：</p>
   <ul>
     <li><strong>API</strong>：讓你的程式跟雲端 AI 對話</li>
     <li><strong>Git / GitHub</strong>：管理程式碼版本、分享給世界</li>
@@ -150,14 +151,14 @@ footer a{color:var(--accent2);text-decoration:none;font-weight:600}
     <div class="analogy-grid">
       <div class="analogy-side">
         <div class="lbl">學期前面</div>
-        <div class="title">學會了「想做什麼」</div>
-        <div class="body">SOUL.md、prompt 設計、agent 概念——這些是「<em>內容層</em>」的能力</div>
+        <div class="title">學會「想做什麼」</div>
+        <div class="body">不論是 SOUL.md、prompt 設計、agent 概念等，這些都是在「<em>內容層</em>」的能力</div>
       </div>
       <div class="analogy-arr">→</div>
       <div class="analogy-side">
         <div class="lbl">本堂課</div>
-        <div class="title">學會了「怎麼把它放到世界上」</div>
-        <div class="body">API、Git、部署——這些是「<em>傳遞層</em>」的能力。兩者合起來，才能完成 vibe coding 的完整迴圈</div>
+        <div class="title">學會「怎麼把它放到世界上」</div>
+        <div class="body">例如 API、Git、部署等，這些是「<em>傳遞層</em>」的能力。兩者合起來，才能完成 vibe coding 的完整迴圈</div>
       </div>
     </div>
   </div>
@@ -169,7 +170,7 @@ footer a{color:var(--accent2);text-decoration:none;font-weight:600}
     <h2>API：程式跟程式怎麼說話</h2>
     <span class="timing">0–30 min</span>
   </div>
-  <p>API 這個詞每天都聽到，但很少人真的講過它是<em>什麼</em>。我們從最基礎的「程式之間怎麼通訊」開始。</p>
+  <p>API 這個詞常常聽到。我們從最基礎的「程式之間怎麼通訊」開始。</p>
 
   <h3>類比一：API 就是餐廳的點餐流程</h3>
   <div class="analogy">
@@ -235,23 +236,29 @@ footer a{color:var(--accent2);text-decoration:none;font-weight:600}
     </div>
     <div class="step">
       <strong>點「Create API key」</strong>
-      <p>系統會問你要關聯到哪個 Google Cloud 專案——選 <code>Create API key in new project</code> 即可。</p>
+      <p>系統會問你要關聯到哪個 Google Cloud 專案。選擇 <code>Create API key in new project</code> 即可。</p>
     </div>
     <div class="step">
       <strong>複製這串 key 到安全的地方</strong>
-      <p>形如 <code>AIzaSyB...</code> 的長字串就是你的 API key。<em>不要分享給別人、不要貼到 GitHub、不要寫死在程式碼裡。</em></p>
+      <p>形如 <code>AIzaSyB...</code> 的長字串就是你的 API key。切記！<em>不要分享給別人、不要貼到 GitHub、不要寫死在程式碼裡。</em></p>
     </div>
   </div>
 
-  <h3>第二步：最簡單的 Python 呼叫</h3>
-  <p>本週示範用一個極簡的例子——「給 Gemini 一句中文，請它翻成日語」。整個程式只有 10 行：</p>
-  <div class="cell">
-    <div class="cell-head"><span class="badge">PYTHON</span> translate.py</div>
-    <pre><span class="kw">import</span> google.generativeai <span class="kw">as</span> genai
-<span class="kw">import</span> os
+  <h3>第二步：在 Colab 最簡單的 Python 呼叫</h3>
+  <p>打開 <code>colab.research.google.com</code>，新建 notebook。左側 🔑 面板新增名為 <code>GEMINI_API_KEY</code> 的 secret，貼入剛才的 key，並開啟「Notebook access」。接著依序執行下面兩個 cell——「給 Gemini 一句中文，請它翻成日語」：</p>
 
-<span class="cmt"># 從環境變數讀取 API key（不要寫死在程式碼！）</span>
-genai.configure(api_key=os.environ[<span class="str">"GEMINI_API_KEY"</span>])
+  <div class="cell">
+    <div class="cell-head"><span class="badge shell">SHELL</span> Cell 1 · 安裝套件（第一次才需要）</div>
+    <pre><span class="magic">!pip install -q google-generativeai</span></pre>
+  </div>
+
+  <div class="cell">
+    <div class="cell-head"><span class="badge">PYTHON</span> Cell 2 · 呼叫 Gemini</div>
+    <pre><span class="kw">import</span> google.generativeai <span class="kw">as</span> genai
+<span class="kw">from</span> google.colab <span class="kw">import</span> userdata
+
+<span class="cmt"># 從 Colab secret 讀取 API key（不要寫死在 cell 裡！）</span>
+genai.configure(api_key=userdata.get(<span class="str">"GEMINI_API_KEY"</span>))
 
 <span class="cmt"># 選一個模型</span>
 model = genai.GenerativeModel(<span class="str">"gemini-2.5-flash"</span>)
@@ -264,25 +271,14 @@ response = model.generate_content(<span class="str">"翻成日語：今天天氣
   </div>
 
   <div class="cell">
-    <div class="cell-head"><span class="badge shell">SHELL</span> 在 terminal 執行</div>
-    <pre><span class="cmt"># 安裝套件（第一次才需要）</span>
-<span class="prompt">$</span> pip install google-generativeai
-
-<span class="cmt"># 把 API key 設成環境變數（Mac/Linux）</span>
-<span class="prompt">$</span> <span class="builtin">export</span> GEMINI_API_KEY=<span class="str">"你剛剛複製的 key"</span>
-
-<span class="cmt"># Windows PowerShell</span>
-<span class="prompt">&gt;</span> <span class="builtin">$env:</span>GEMINI_API_KEY=<span class="str">"你剛剛複製的 key"</span>
-
-<span class="cmt"># 執行程式</span>
-<span class="prompt">$</span> python translate.py
-<span class="out">今日は本当に良い天気ですね。</span>
-<span class="hl">  ↑ 你的程式剛剛跨越了網路，呼叫了 Google 的 AI 模型！</span></pre>
+    <div class="cell-head"><span class="badge">OUTPUT</span> Cell 2 執行結果</div>
+    <pre><span class="out">今日は本当に良い天気ですね。</span>
+<span class="hl">  ↑ 你的 notebook 剛剛跨越了網路，呼叫了 Google 的 AI 模型！</span></pre>
   </div>
 
   <div class="tip">
     <span class="lbl">檢核點</span>
-    在 terminal 看到日語回應 → 恭喜，你已經完成了「程式跟雲端 AI 對話」的完整循環。後面所有的應用，都建立在這個小小的循環上。
+    在 Colab 看到日語回應 → 恭喜，你已經完成了「程式跟雲端 AI 對話」的完整循環。後面所有的應用，都建立在這個小小的循環上。
   </div>
 
   <div class="tip warn-box">
