@@ -283,7 +283,7 @@ response = model.generate_content(<span class="str">"翻成日語：今天天氣
 
   <div class="tip warn-box">
     <span class="lbl">API key 安全提醒</span>
-    如果不小心把 key 推到 GitHub，掃描程式幾分鐘內就會把它撈走並濫用，產生你的帳單。<em>本課末會教如何安全管理</em>。
+    如果不小心把 key 推到 GitHub，惡意掃描程式幾分鐘內就可以把它撈走並濫用，算在你的帳單上。
   </div>
 </section>
 
@@ -293,7 +293,9 @@ response = model.generate_content(<span class="str">"翻成日語：今天天氣
     <h2>Git 與 GitHub：版本控制，從零開始</h2>
     <span class="timing">30–60 min</span>
   </div>
-  <p>Git 是程式碼的「時光機」+「備份」——可以隨時回到過去的版本，也可以分享給別人。它是所有現代軟體開發的基礎，而且<em>你不需要寫程式也能用</em>（很多人用 Git 管理 Word 文件、論文、筆記）。</p>
+  <p>Git 是程式碼的「時光機」+「備份」。可以隨時回到過去的版本，也可以分享給別人。它是所有現代軟體開發的基礎，而且<em>你不需要寫程式也能用</em>（很多人甚至用 Git 管理 Word 文件、論文、筆記）。
+  安裝可參考：<a href="https://ithelp.ithome.com.tw/articles/10322227" target="_blank">https://ithelp.ithome.com.tw/articles/10322227</a>
+  </p>
 
   <h3>類比：Git 是 Word 的「追蹤修訂」+「版本歷史」加強版</h3>
   <div class="analogy">
@@ -317,19 +319,19 @@ response = model.generate_content(<span class="str">"翻成日語：今天天氣
     <strong>Git ≠ GitHub。</strong> Git 是本機的版本控制工具（你電腦裡的時光機）；GitHub 是雲端的 Git 倉庫服務（雲端的備份+分享平台）。你可以只用 Git 不用 GitHub，但通常會一起用。
   </div>
 
-  <h3>Git 的三個核心動作（90% 的時候只用這三個）</h3>
+  <h3>Git 的三個核心動作（90% 的時候只用到這三個）</h3>
   <div class="steps">
     <div class="step">
       <strong>git add：選擇哪些修改要記錄</strong>
-      <p>像是把「要寄出的信件」放進信封——還沒寄，但已經準備好了。</p>
+      <p>像是把「要寄出的信件」放進信封，雖然還沒寄，但已經準備好了。</p>
     </div>
     <div class="step">
       <strong>git commit：正式記錄這次修改</strong>
-      <p>像是「封信並蓋章」——這次修改正式進入歷史，加上一句說明（commit message）。</p>
+      <p>像是「封信並蓋章」。這次修改正式進入歷史，並加上一句說明（commit message）。</p>
     </div>
     <div class="step">
       <strong>git push：把記錄推到雲端（GitHub）</strong>
-      <p>像是「把信投進郵筒寄出」——這次的所有 commit 同步到 GitHub。</p>
+      <p>像是「把信投進郵筒寄出」。這次的所有 commits 同步到 GitHub。</p>
     </div>
   </div>
 
@@ -431,7 +433,7 @@ To https://github.com/你的帳號/my-first-api.git
     <h2>部署：從「自己管伺服器」到「一鍵」</h2>
     <span class="timing">60–85 min</span>
   </div>
-  <p>「部署」（deployment）的意思是：把你的程式從本機搬到雲端，讓別人也能用。這個概念聽起來簡單，背後有 30 年的演化史。理解這段演化，才能理解為什麼今天我們可以「一鍵部署」。</p>
+  <p>「部署」（deployment）的意思是：把你的程式從本機搬到雲端，讓別人也能用。這個概念聽起來簡單，背後有 30 年的演化史。理解這段演化，才能理解為什麼今天的技術讓我們可以「一鍵部署」。</p>
 
   <h3>類比：開一家餐廳</h3>
   <div class="analogy">
@@ -439,18 +441,18 @@ To https://github.com/你的帳號/my-first-api.git
       <div class="analogy-side">
         <div class="lbl">傳統做法</div>
         <div class="title">自己蓋餐廳</div>
-        <div class="body">買地、蓋建築、裝水電、買廚具、雇人、開門做生意——什麼都要自己負責，但完全自由。</div>
+        <div class="body">買地、蓋建築、裝水電、買廚具、雇人、開門做生意 — 什麼都要自己負責，但完全自由。</div>
       </div>
       <div class="analogy-arr">→</div>
       <div class="analogy-side">
         <div class="lbl">現代做法</div>
         <div class="title">在百貨美食街開攤位</div>
-        <div class="body">百貨提供場地、水電、清潔、收銀系統——你只要專心做菜。比較貴一點點，但少了 99% 的麻煩。</div>
+        <div class="body">百貨提供場地、水電、清潔、收銀系統 — 你只要專心做菜。比較貴一點點，但少了 99% 的麻煩。</div>
       </div>
     </div>
   </div>
 
-  <h3>三種部署模式：自由度 vs 麻煩程度</h3>
+  <h3>三種部署模式比較一下：自由度 vs 麻煩程度</h3>
   <div class="dep-grid">
     <div class="dep-card">
       <div class="dep-era">1990s–2010s</div>
@@ -464,7 +466,7 @@ To https://github.com/你的帳號/my-first-api.git
       <div class="dep-era">2010s–現在</div>
       <div class="dep-name">PaaS · 平台即服務</div>
       <div class="dep-eg">Heroku · Render · Railway</div>
-      <div class="dep-desc">把伺服器管理藏起來——你只要把程式碼推上去，平台自動處理執行環境、scaling、SSL。</div>
+      <div class="dep-desc">把伺服器管理藏起來，你只要把程式碼推上去，平台自動處理執行環境、scaling、SSL。</div>
       <div class="dep-pros">✓ 一鍵部署，省心</div>
       <div class="dep-cons">✗ 較貴，自由度降低</div>
     </div>
@@ -472,7 +474,7 @@ To https://github.com/你的帳號/my-first-api.git
       <div class="dep-era">2020s · 趨勢</div>
       <div class="dep-name">「一鍵」雲端</div>
       <div class="dep-eg">Vercel · Zeabur · Cloudflare Workers</div>
-      <div class="dep-desc">新世代——連 Dockerfile 都不用寫，連結 GitHub 就好。每次 push 自動部署。</div>
+      <div class="dep-desc">新世代的做法，連 Dockerfile 都不用寫，只要連結 GitHub 就好。每次 push 時，會自動重新部署。</div>
       <div class="dep-pros">✓ 零設定，免費額度大</div>
       <div class="dep-cons">✗ 黑盒子，遇問題不好查</div>
     </div>
@@ -480,19 +482,19 @@ To https://github.com/你的帳號/my-first-api.git
 
   <div class="tip">
     <span class="lbl">趨勢的核心</span>
-    把伺服器管理「外包」給平台。<em>你只負責寫程式碼，其他全包給雲端。</em> 對 vibe coding 來說這是完美的——讓你能專注在「想做什麼」而不是「怎麼讓它跑起來」。代價是你犧牲了一些靈活性與控制權。
+    把伺服器管理「外包」給平台。<em>你只負責寫程式碼，其他全包給雲端。</em> 對 vibe coding 來說這是完美的，讓你能專注在「想做什麼」而不是「怎麼讓它跑起來」。但代價是你犧牲了一些靈活性與控制權。
   </div>
 
   <h3>什麼時候用哪一種？</h3>
   <table>
     <tr><th>場景</th><th>推薦方案</th><th>原因</th></tr>
-    <tr><td>學生作業、個人原型</td><td>「一鍵」雲端</td><td>Vercel / Zeabur / Streamlit Cloud——免費額度足夠，零設定</td></tr>
-    <tr><td>中型團隊、穩定產品</td><td>PaaS</td><td>Render / Railway——稍微付費，但更穩定、有更多控制權</td></tr>
-    <tr><td>大型企業、特殊需求</td><td>VPS / Kubernetes</td><td>AWS / GCP / Azure——成本與複雜度高，但完全可控</td></tr>
+    <tr><td>學生作業、個人原型</td><td>「一鍵」雲端</td><td>Vercel / Zeabur / Streamlit Cloud ： 免費額度足夠，零設定</td></tr>
+    <tr><td>中型團隊、穩定產品</td><td>PaaS</td><td>Render / Railway ： 稍微付費，但更穩定、有更多控制權</td></tr>
+    <tr><td>大型企業、特殊需求</td><td>VPS / Kubernetes</td><td>AWS / GCP / Azure ： 成本與複雜度高，但完全可控</td></tr>
   </table>
 
   <h3>最小可行部署示範（Zeabur · 約 5 分鐘）</h3>
-  <p>我們把剛才推上 GitHub 的 <code>my-first-api</code> 部署到雲端。<em>不需要記住每個細節</em>——這部分主要是讓你看到「一鍵」是什麼意思。</p>
+  <p>我們把剛才推上 GitHub 的 <code>my-first-api</code> 部署到雲端。<em>不需要記住每個細節</em>，這部分主要是讓你看到「一鍵」是什麼意思。</p>
   <div class="steps">
     <div class="step">
       <strong>到 zeabur.com 用 GitHub 登入</strong>
@@ -514,7 +516,7 @@ To https://github.com/你的帳號/my-first-api.git
 
   <div class="tip warn-box">
     <span class="lbl">請注意</span>
-    本週的 <code>translate.py</code> 是一次性的腳本（只 print 一次就結束），雲端跑完就停了——這對純 CLI 程式來說是正常的。<em>真正讓網站「活著」需要加上 Flask</em>，這部分留給期末專案實作。
+    本週的 <code>translate.py</code> 是一次性的腳本（只 print 一次就結束），雲端跑完就停了。這對純 CLI 程式來說是正常的。<em>真正讓網站「活著」需要加上 Flask</em>，這部分留給期末專案實作需要的時候再學。
   </div>
 
   <div class="reflect">
@@ -525,11 +527,11 @@ To https://github.com/你的帳號/my-first-api.git
 
 <section class="sec">
   <div class="sec-head">
-    <span class="sec-badge closure">收束</span>
+    <span class="sec-badge closure">收尾</span>
     <h2>學期 Lab 系列總回顧 × 期末專案指引</h2>
     <span class="timing">85–90 min</span>
   </div>
-  <p>本週是學期最後一場 Lab。讓我們回顧這七堂課累積了什麼——你會發現，<em>每一塊都已經會了</em>，期末專案不是新東西，是把這些組合起來。</p>
+  <p>本週是學期最後一場 Lab。讓我們回顧這七堂課累積了什麼。你會發現，<em>每一塊都已經會了</em>，期末專案不是新東西，是把這些組合起來。</p>
 
   <div class="recap">
     <div class="recap-list">
@@ -571,18 +573,18 @@ To https://github.com/你的帳號/my-first-api.git
     </div>
   </div>
 
-  <h3>期末專案：一頁式語言學習小卡</h3>
-  <p>期末專案故意設計得很小——目的是讓你體驗到<strong>「想法到落地」的完整過程</strong>，而不是被技術細節壓垮。</p>
+  <h3>一起練習做一個微期末專案：一頁式語言學習小卡</h3>
+  <p>專案故意設計得很小，目的是讓你體驗到<strong>「想法到落地」的完整過程</strong>，而不是被技術細節壓垮。</p>
   <ul>
     <li><strong>主題：</strong>一個你真正想用的小工具——日語學習小卡、文言文對照、學術詞彙複習、台語俚語、每日詩詞……</li>
     <li><strong>必含元素：</strong>Gemini API + 簡單 HTML 介面（可以是純前端，可以加 Flask）</li>
-    <li><strong>選做加分：</strong>SOUL.md 人格設定、ElevenLabs 語音、一鍵部署到雲端</li>
-    <li><strong>繳交：</strong>程式檔 + 至少 2 張運作截圖 + 250 字反思</li>
+    <li><strong>選做：</strong>SOUL.md 人格設定、ElevenLabs 語音、一鍵部署到雲端</li>
+    
   </ul>
 
   <div class="tip">
     <span class="lbl">給焦慮的同學</span>
-    課程網站上有完整的範本和 step-by-step 指引（搜尋「個人語言學習小卡」）。<em>能跑起來</em>比<em>很完美</em>更重要。階段一只要 70 行 HTML，2–4 小時就能完成；階段二的部署是加分項，不勉強。
+    課程網站上有完整的範本和 step-by-step 指引（搜尋「個人語言學習小卡」）。<em>能跑起來</em>比<em>很完美</em>更重要。階段一只要 70 行 HTML，很快就能完成；階段二的部署是加分項，不勉強。
   </div>
 
   <blockquote>很多人一輩子有過好幾個 idea，但從來沒做出來過。完成這個小專案後，你已經跨過了那個門檻——以後再有想法，你會本能地知道<em>「我可以做出來」</em>。這個信心，比任何具體技術都珍貴。</blockquote>
