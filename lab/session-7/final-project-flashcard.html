@@ -170,17 +170,17 @@ footer a{color:var(--hint);text-decoration:none}
   <div class="hero">
     <div class="crumb"><a href="https://lopentu.github.io/genai4humanities2026/assignments/">← 課堂作業</a></div>
     <div class="meta">
-      <span class="pill p-proj">期末專案</span>
-      <span class="pill p-time">⏱ 個人原型 · 不設 milestone</span>
+      <span class="pill p-proj">期末專案練習</span>
+      <span class="pill p-time">⏱ 2個鐘頭內完成</span>
       <span class="pill p-lvl">最低門檻：能跑就好</span>
     </div>
-    <h1>個人語言學習小卡<br>一步步把 idea 變成手上的 App</h1>
-    <p class="lead">這是一個極簡的期末專案——不需要整合學期所有技術，只需要讓你體會「我有個想法 → 變成可以給朋友看的東西」的完整過程。聚焦在「落地」，不追求完整性。</p>
+    <h1>個人語言學習小卡<br>一步一步把想法變成手上的 App</h1>
+    <p class="lead">這是一個極簡的期末專案練習。不需要整合學期所有技術，只需要讓自己體會「我有個想法 → 變成可以給朋友看的東西」的完整過程。重點請聚焦在「落地實踐」，不追求完整性。</p>
   </div>
 
   <!-- philosophy -->
   <div class="philosophy">
-    <strong>專案哲學：</strong>學期教了那麼多技術，期末不是要你「全部都用」——而是讓你選一個你<em>真的想用</em>的小工具，把它做出來。寧可一個簡單的東西完整跑起來，不要一個複雜的東西卡在中間。
+    <strong>專案要求：</strong>學期教了不少技術，在期末專案中，不是要大家全部都用上，而是讓你選一個你 <em>連自己都真的想用</em> 的小工具，把它做出來。寧可一個簡單的東西完整跑起來，也不需要以為一個複雜的功能卡在半路中間而氣餒。
   </div>
 
   <!-- stages overview -->
@@ -188,8 +188,8 @@ footer a{color:var(--hint);text-decoration:none}
     <div class="stage-card s1">
       <span class="sc-tag sct-1">階段一 · 必做</span>
       <div class="sc-name">本機原型</div>
-      <div class="sc-time">時間估算：2–4 小時</div>
-      <div class="sc-desc">一個 HTML 檔，瀏覽器打開就能用。完成這階段就達到基本及格——你已有一個能跑的小工具。</div>
+      <div class="sc-time">時間估算：1-2 小時</div>
+      <div class="sc-desc">一個 HTML 檔，瀏覽器打開就能用。完成這階段就基本上達標。你已有一個能跑的小工具。</div>
       <div class="sc-output"><strong>產出：</strong>一個 index.html 檔，在自己電腦能跑</div>
     </div>
     <div class="stage-card s2">
@@ -231,7 +231,7 @@ footer a{color:var(--hint);text-decoration:none}
         <li>一句例句</li>
         <li>「念給我聽」按鈕（使用瀏覽器內建語音）</li>
       </ul>
-      <p style="font-size:12px;color:var(--accent-text);margin-top:8px"><strong>主題你自己決定</strong>——日語、西班牙語、文言文、學術詞彙、台灣俚語、流行用語……</p>
+      <p style="font-size:12px;color:var(--accent-text);margin-top:8px"><strong>主題你自己決定</strong>：日語、西班牙語、文言文、學術詞彙、台灣俚語、流行用語……</p>
     </div>
   </div>
 
@@ -257,7 +257,7 @@ footer a{color:var(--hint);text-decoration:none}
         <span class="sn">02</span>
         <div class="sb">
           <strong>新建一個資料夾，建立 index.html</strong>
-          <span>檔名一定要 <code>index.html</code>，這是網頁的慣例。用 VS Code 或任何文字編輯器都可以。</span>
+          <span>檔名一定要 <code>index.html</code>，這是網頁的慣例。用 VS Code，Cursor 或任何文字編輯器都可以。</span>
         </div>
       </li>
       <li>
@@ -387,11 +387,11 @@ footer a{color:var(--hint);text-decoration:none}
     </ul>
 
     <div class="call ok">
-      <strong>達到這裡：階段一完成。</strong>你已經有了一個能用的個人小工具。如果你不想做階段二，這個就可以當作期末作業繳交了——把 index.html 連同一個 250 字反思文件交上來即可。
+      <strong>達到這裡：階段一完成。</strong>你已經有了一個能用的個人小工具。如果你不想做階段二，這個就可以當作期末作業繳交了（誤）。
     </div>
 
     <div class="call warn">
-      <strong>注意：</strong>這版本把 API key 寫在 HTML 裡——只能<em>自己用</em>，不要分享這個檔案給別人，更不要推上 GitHub。<br>如果你想讓朋友也能用，請繼續做階段二（用後端代理 key，才能安全部署）。
+      <strong>注意：</strong>這版本把 API key 寫在 HTML 裡，只能 <em>自己用</em>，不要分享這個檔案給別人，更不要推上 GitHub。<br>如果你想讓朋友也能用，請繼續做階段二（用後端代理 key，才能安全部署）。
     </div>
   </div>
 
@@ -403,7 +403,10 @@ footer a{color:var(--hint);text-decoration:none}
   <div class="section">
     <div class="sec-lbl">階段二 · 選做加分</div>
     <h2>第二步：讓全世界都能用你做的工具</h2>
-    <p>階段一的問題：API key 寫在 HTML 裡，所以這個檔案只能你自己用。如果想分享給朋友、想推到 GitHub，必須加一個極簡的後端來「代管」API key。<em>程式碼只多 20 行</em>。</p>
+    <p>階段一的問題：API key 寫在 HTML 裡，所以這個檔案只能你自己用。如果想分享給朋友、想推到 GitHub，必須加一個極簡的後端來「代管」API key。<em>程式碼只多 20 行</em>。
+    </p>
+    <p>如何用 Flask 做後端代理，可參考這篇急速入門文章。<a href="https://ithelp.ithome.com.tw/articles/10258223" target="_blank">https://ithelp.ithome.com.tw/articles/10258223</a> 
+    </p>
 
     <h3>新的檔案結構</h3>
 
@@ -532,13 +535,13 @@ venv/</div>
         <span class="sn">04</span>
         <div class="sb">
           <strong>等 1–2 分鐘 build 完成 → 取得公開網址</strong>
-          <span>形如 <code>my-flashcard.zeabur.app</code>。傳給朋友、傳給家人、用手機開——都能用。</span>
+          <span>形如 <code>my-flashcard.zeabur.app</code>。傳給朋友、傳給家人、用手機開都能用。</span>
         </div>
       </li>
     </ul>
 
     <div class="call ok">
-      <strong>達到這裡：階段二完成。</strong>你有一個全世界都能訪問的個人小工具。這就是「idea 變成手上的 App」的完整經驗——從一個想法到一個可分享的網址。
+      <strong>達到這裡：階段二完成。</strong>你有一個全世界都能訪問的個人小工具。這就是「idea 變成手上的 App」的完整經驗：從一個想法到一個可分享的網址。
     </div>
   </div>
 
@@ -592,7 +595,7 @@ venv/</div>
     </div>
 
     <div class="call">
-      <strong>調整思路：</strong>不需要重新寫程式碼——只要改 <code>prompt</code> 那段字串，整個 App 就變成不同主題了。這就是 Gemini API 強大的地方：用「自然語言指令」就能定義應用功能。
+      <strong>調整思路：</strong>不需要重新寫程式碼。只要改 <code>prompt</code> 那段字串，整個 App 就變成不同主題了。這就是 Gemini API 強大的地方：用「自然語言指令」就能定義應用功能。這也是我們一直強調的，想法更為重要！
     </div>
   </div>
 
@@ -610,15 +613,15 @@ venv/</div>
       <div class="sub-rows">
         <div class="sub-row">
           <div class="sub-key">必交 01</div>
-          <div class="sub-val"><strong>專案檔案</strong>——上傳 index.html（階段一）或整個資料夾 zip（階段二）</div>
+          <div class="sub-val"><strong>專案檔案</strong> — 上傳 index.html（階段一）或整個資料夾 zip（階段二）</div>
         </div>
         <div class="sub-row">
           <div class="sub-key">必交 02</div>
-          <div class="sub-val"><strong>運作截圖</strong>——至少 2 張，顯示 App 確實能運作（卡片內容、發音按鈕等）</div>
+          <div class="sub-val"><strong>運作截圖</strong> — 至少 2 張，顯示 App 確實能運作（卡片內容、發音按鈕等）</div>
         </div>
         <div class="sub-row">
           <div class="sub-key">必交 03</div>
-          <div class="sub-val"><strong>250 字反思</strong>——你做了什麼主題？為什麼選這個？過程哪裡卡住？感想是什麼？</div>
+          <div class="sub-val"><strong>專案報告</strong> — 你們做了什麼主題？為什麼選這個（動機）？實作過程涉及哪些技術？哪裡卡住（方法）？感想是什麼（反思與結論）？團隊分工表（如果有）</div>
         </div>
         <div class="sub-row">
           <div class="sub-key">加分 01</div>
@@ -626,19 +629,19 @@ venv/</div>
         </div>
         <div class="sub-row">
           <div class="sub-key">加分 02</div>
-          <div class="sub-val"><strong>公開部署網址</strong> <span class="opt">階段二完成</span>——形如 your-app.zeabur.app</div>
+          <div class="sub-val"><strong>公開部署網址</strong> <span class="opt">階段二完成</span> 例如 your-app.zeabur.app；your-app.github.io</div>
         </div>
-        <div class="sub-row">
+        <!-- <div class="sub-row">
           <div class="sub-key">加分 03</div>
           <div class="sub-val"><strong>創意改造</strong> <span class="opt">超越範本</span>——加了哪些範本沒有的功能？例如：難度切換、收藏功能、學習進度</div>
-        </div>
+        </div> -->
       </div>
     </div>
 
-    <div class="call ok">
-      <strong>評分原則：</strong>能跑起來就有基本及格分。<em>不會因為功能少而扣分，但會因為「能跑」而給分</em>——做完一個簡單的，遠比卡住在複雜的好。期末重點是「你完成了一個個人原型」，不是「你整合了所有技術」。
-    </div>
-  </div>
+    <!-- <div class="call ok">
+      <strong>評分原則：</strong>能跑起來就有基本及格分。
+    </div> -->
+  <!-- </div> -->
 
   <hr class="div">
 
@@ -646,8 +649,8 @@ venv/</div>
   <div class="section">
     <div class="sec-lbl">最後的話</div>
     <h2>為什麼這個專案這樣設計</h2>
-    <p>vibe coding 的核心精神不是「學會所有技術」，而是<em>「我有一個想法，我能讓它變成現實」</em>。本期末專案故意設計得很小——目的是讓你體驗到「想法到落地」的完整過程，而不是被技術細節壓垮。</p>
-    <p>很多人一輩子有過好幾個 idea，但從來沒做出來過。完成這個小專案後，你已經跨過了那個門檻——以後再有想法，你會本能地知道「<em>我可以做出來</em>」。這個信心，比任何具體技術都珍貴。</p>
+    <p>vibe coding 的核心精神不是「學會所有技術」，而是<em>「我有一個想法，我能讓它變成現實」</em>。這個模擬期末專案故意設計得很小，目的是讓大家能體驗到「想法到落地」的完整過程，而不是被技術細節壓垮。輝達（NVIDIA）執行長黃仁勳指出，未來全球程式設計師將由 3,000 萬人暴增至 10 億人。他認為程式設計的本質已變成「制定規格（Spec）」；只要能精確用自然語言告訴 AI 電腦要做什麼，任何人都能成為程式設計師，不需再拘泥於傳統程式語言。<strong>語言就是程式碼!</strong>  AI 時代的溝通門檻降低，讓文科生、非傳統理工背景的人才，能在軟體與應用開發上發揮極大的創造力與優勢。未來的程式設計不僅限於複雜的底層架構建置，更偏向於應用程式的創意發想與邏輯定義，進而開啟大眾化的軟體開發新時代。</p>
+    <p>希望大家在實作期末專案時，能慢慢體會到這個意思。</p>
   </div>
 
 </div><!-- /page -->
