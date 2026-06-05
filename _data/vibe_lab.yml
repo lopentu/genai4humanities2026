@@ -98,3 +98,15 @@ sessions:
       - name: "期末專案 · 個人語言學習小卡"
         file: "final-project-flashcard.html"
         desc: "一步步落地：從想法到可分享的原型"
+
+  - id: session-8
+    title: "Session 8"
+    blurb: "Final Lab：Claude × Codex 工具實務與模型操控互動"
+    subtitle: "期末專案的最後一哩路 · 可解釋性互動"
+    items:
+      - name: "Claude × Codex 工具實務"
+        file: "final-lab-claude-codex-tools.html"
+        desc: "Final Lab 導覽：期末專案收尾、Claude Code 與 Codex 工作流"
+      - name: "金門大橋模型操控實驗遊戲"
+        file: "golden-gate-steering-game.html"
+        desc: "Steering Playground：親手調旋鈕，體驗模型「催眠」與可解釋性"

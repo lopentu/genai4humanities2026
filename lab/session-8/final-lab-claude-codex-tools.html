@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Final Lab ｜ Claude × Codex 工具實務 · 期末專案最後一哩路</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;700;900&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Source+Code+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#faf8f4;--paper:#fffefb;--ink:#1a1a1a;--ink2:#3a3a3a;--muted:#7a7a78;
+  --line:#d8d3c8;--accent:#9c3a2c;--accent2:#2c4a3e;--accent3:#b08a3e;--soft:#ede8de;
+  --code-bg:#1f2622;--code-fg:#d8d0bd;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg);color:var(--ink);font-family:'Noto Serif TC',serif;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:860px;margin:0 auto;padding:32px 28px 80px}
+
+.banner{
+  background:var(--paper);border:1px solid var(--line);border-radius:6px;
+  padding:28px 32px;margin-bottom:28px;position:relative;overflow:hidden;
+}
+.banner::before{
+  content:'';position:absolute;top:0;left:0;width:100%;height:4px;
+  background:linear-gradient(90deg,var(--accent) 0%,var(--accent3) 50%,var(--accent2) 100%);
+}
+.banner .course{
+  font-family:'DM Sans',sans-serif;font-size:11px;letter-spacing:.25em;
+  color:var(--muted);text-transform:uppercase;margin-bottom:10px;
+}
+.banner h1{font-family:'Noto Serif TC',serif;font-weight:900;font-size:30px;color:var(--ink);margin-bottom:6px;letter-spacing:.01em}
+.banner .sub{font-family:'DM Sans',sans-serif;font-style:italic;font-size:14px;color:var(--accent);margin-bottom:14px}
+.banner .meta{display:flex;flex-wrap:wrap;gap:10px;font-family:'Source Code Pro',monospace;font-size:11.5px}
+.banner .meta span{background:var(--soft);padding:3px 10px;border-radius:3px;color:var(--ink2)}
+.banner .meta span.final{background:#f8e8e0;color:var(--accent)}
+
+.sec{
+  background:var(--paper);border:1px solid var(--line);border-radius:6px;
+  padding:28px 32px;margin-bottom:20px;
+  box-shadow:0 4px 14px rgba(60,40,20,.03);
+}
+.sec-head{
+  display:flex;align-items:baseline;gap:12px;
+  margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid var(--soft);
+}
+.sec-badge{
+  background:var(--accent2);color:white;
+  font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:.18em;
+  padding:3px 9px;border-radius:3px;white-space:nowrap;
+}
+.sec-badge.part1{background:var(--accent)}
+.sec-badge.part2{background:var(--accent3)}
+.sec-badge.part3{background:#5a3a8a}
+.sec-badge.part4{background:#2c4a3e}
+.sec-badge.part5{background:#1f4a7a}
+.sec-badge.closure{background:#8a6020}
+.sec-head h2{font-family:'Noto Serif TC',serif;font-weight:900;font-size:20px;color:var(--ink);flex:1}
+.sec-head .timing{font-family:'Source Code Pro',monospace;font-size:11px;color:var(--muted);background:var(--soft);padding:2px 8px;border-radius:3px;white-space:nowrap}
+
+h3{font-family:'Noto Serif TC',serif;font-weight:700;font-size:16.5px;color:var(--accent2);margin:18px 0 8px}
+h4{font-family:'DM Sans',sans-serif;font-weight:700;font-size:13px;letter-spacing:.08em;color:var(--accent);text-transform:uppercase;margin:16px 0 8px}
+p{margin-bottom:11px;color:var(--ink2);font-size:15px}
+strong{color:var(--ink);font-weight:700}
+em{font-style:italic;color:var(--accent)}
+
+/* 類比 */
+.analogy{
+  background:linear-gradient(180deg,#fdf6e8,#faf0d8);
+  border-left:4px solid var(--accent3);
+  padding:16px 20px;margin:16px 0;border-radius:0 5px 5px 0;position:relative;
+}
+.analogy::before{
+  content:'類比';position:absolute;top:-9px;left:14px;
+  background:var(--accent3);color:white;
+  font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:.15em;
+  padding:2px 9px;border-radius:3px;
+}
+.analogy p{font-size:14.5px;color:#5a4a2a;margin:0;line-height:1.7}
+
+/* 步驟 */
+.steps{counter-reset:step;display:flex;flex-direction:column;gap:10px;margin:12px 0}
+.step{background:var(--soft);border-radius:5px;padding:14px 18px 14px 50px;position:relative}
+.step::before{
+  content:counter(step);counter-increment:step;
+  position:absolute;left:14px;top:14px;
+  background:var(--accent2);color:white;font-family:'DM Sans',sans-serif;font-weight:700;
+  width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;
+}
+.step strong{display:block;margin-bottom:3px;color:var(--ink);font-size:15px}
+.step p{margin:0;color:var(--ink2);font-size:14px}
+.step code{background:#d8d0c0;padding:1px 5px;border-radius:2px;font-size:12.5px;color:var(--accent);font-family:'Source Code Pro',monospace}
+
+/* 提示 */
+.tip{background:#e8f0e6;border-left:3px solid var(--accent2);padding:12px 16px;margin:12px 0;border-radius:0 4px 4px 0;font-size:14.5px}
+.tip .lbl{font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:.15em;color:var(--accent2);text-transform:uppercase;display:block;margin-bottom:4px}
+.warn-box{background:#f8e8e0;border-left-color:var(--accent)}
+.warn-box .lbl{color:var(--accent)}
+.gold-box{background:#fdf6e8;border-left-color:var(--accent3)}
+.gold-box .lbl{color:var(--accent3)}
+
+/* 程式碼 */
+.cell{
+  background:var(--code-bg);border-radius:5px;margin:14px 0;overflow:hidden;border:1px solid #2c352f;
+}
+.cell-head{
+  background:#161c19;color:#8a9590;padding:6px 14px;
+  font-family:'Source Code Pro',monospace;font-size:11px;
+  display:flex;align-items:center;gap:8px;border-bottom:1px solid #2c352f;
+}
+.cell-head .badge{background:#3a4540;color:#d8d0bd;padding:1px 7px;border-radius:2px;font-size:10px;letter-spacing:.1em}
+.cell-head .badge.shell{background:#5a3a2a;color:#f0d8b0}
+.cell-head .badge.md{background:#3a4a5a;color:#bdd0e0}
+.cell-head .badge.compare{background:#5a3a4a;color:#e0bdd0}
+.cell pre{
+  background:transparent;color:var(--code-fg);
+  padding:14px 18px;font-family:'Source Code Pro',monospace;font-size:13px;line-height:1.75;
+  overflow-x:auto;margin:0;white-space:pre;
+}
+pre .kw{color:#e8b04a}
+pre .str{color:#9bc88e}
+pre .cmt{color:#6a7a6a;font-style:italic}
+pre .builtin{color:#7aa8d8}
+pre .out{color:#8a9590;font-style:italic}
+pre .prompt{color:#9bc88e;font-weight:600}
+pre .hl{color:#e8b04a;font-weight:600}
+pre .yaml{color:#bdd0e0}
+
+code{font-family:'Source Code Pro',monospace;background:#ede8de;padding:1px 6px;border-radius:3px;font-size:13.5px;color:var(--accent)}
+
+/* 表格 */
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14px}
+th{background:var(--soft);text-align:left;padding:8px 12px;border-bottom:2px solid var(--accent2);font-weight:700;color:var(--accent2);font-family:'Noto Serif TC',serif;font-size:13px}
+td{padding:8px 12px;border-bottom:1px solid var(--line);color:var(--ink2);vertical-align:top}
+tr:last-child td{border-bottom:none}
+
+/* 三欄 / 兩欄 */
+.three-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:14px 0}
+.two-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+.feat{
+  background:var(--soft);padding:14px;border-radius:5px;
+  border-top:3px solid var(--accent2);font-size:14px;
+}
+.feat.red{border-top-color:var(--accent)}
+.feat.gold{border-top-color:var(--accent3)}
+.feat.blue{border-top-color:#1f4a7a}
+.feat h4{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:.1em;margin:0 0 6px}
+.feat.red h4{color:var(--accent)}
+.feat.gold h4{color:var(--accent3)}
+.feat.blue h4{color:#1f4a7a}
+.feat .feat-name{font-family:'Noto Serif TC',serif;font-weight:700;font-size:14px;color:var(--ink);margin-bottom:3px}
+.feat p{font-size:13px;margin:0;color:var(--ink2);line-height:1.6}
+
+/* 反思 */
+.reflect{background:#f0ece2;border:1px dashed var(--accent2);padding:14px 18px;margin:14px 0;border-radius:5px;font-size:14px}
+.reflect .lbl{font-family:'DM Sans',sans-serif;font-size:10px;letter-spacing:.18em;color:var(--accent2);font-weight:700;text-transform:uppercase;margin-bottom:6px}
+.reflect p{font-size:14px;line-height:1.7;color:#3a4a3e}
+
+blockquote{border-left:3px solid var(--accent);padding:8px 16px;margin:12px 0;font-style:italic;color:#5a3a30;background:#fdf6e8;font-size:14.5px;line-height:1.75}
+
+ul,ol{margin:8px 0 12px 22px}
+li{margin-bottom:5px;color:var(--ink2);font-size:14.5px;line-height:1.65}
+
+/* 工具卡 */
+.tool-row{
+  background:var(--paper);border:1px solid var(--line);border-radius:5px;
+  padding:14px 18px;margin:10px 0;display:grid;grid-template-columns:120px 1fr;gap:16px;align-items:flex-start;
+}
+.tool-label{
+  font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;letter-spacing:.08em;
+  background:var(--accent2);color:white;padding:5px 10px;border-radius:3px;text-align:center;
+}
+.tool-label.red{background:var(--accent)}
+.tool-label.gold{background:var(--accent3)}
+.tool-label.blue{background:#1f4a7a}
+.tool-label.purple{background:#5a3a8a}
+.tool-body strong{font-family:'Noto Serif TC',serif;font-weight:700;font-size:14.5px;color:var(--ink);display:block;margin-bottom:3px}
+.tool-body p{font-size:13.5px;color:var(--ink2);line-height:1.65;margin:0 0 5px}
+.tool-cmd{font-family:'Source Code Pro',monospace;font-size:11.5px;background:var(--soft);padding:3px 7px;border-radius:3px;color:var(--ink2);display:inline-block;margin-top:2px}
+
+/* 對照圖 */
+.versus{
+  background:#f4f0e6;border:1px solid var(--line);border-radius:6px;
+  padding:16px 20px;margin:14px 0;
+}
+.versus-title{
+  font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:.15em;
+  color:var(--muted);text-transform:uppercase;margin-bottom:14px;text-align:center;
+}
+.versus-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:stretch}
+.v-side{
+  background:var(--paper);border:1px solid var(--line);border-radius:5px;
+  padding:14px 16px;
+}
+.v-side.claude{border-top:3px solid var(--accent)}
+.v-side.codex{border-top:3px solid #1f4a7a}
+.v-tag{font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.v-side.claude .v-tag{color:var(--accent)}
+.v-side.codex .v-tag{color:#1f4a7a}
+.v-name{font-family:'Noto Serif TC',serif;font-weight:700;font-size:15px;color:var(--ink);margin-bottom:6px}
+.v-body{font-size:13px;color:var(--ink2);line-height:1.65}
+.v-body strong{color:var(--ink)}
+.v-feat{font-size:12px;margin-top:6px;padding-top:6px;border-top:1px solid var(--soft);color:#5a5a55;font-style:italic}
+.v-arr{display:flex;align-items:center;justify-content:center;color:var(--accent3);font-family:'Source Code Pro',monospace;font-size:18px;font-weight:700}
+
+/* habit cards */
+.habit-grid{display:grid;grid-template-columns:1fr;gap:10px;margin:12px 0}
+.habit{
+  background:var(--paper);border:1px solid var(--line);border-radius:5px;
+  padding:12px 16px;display:grid;grid-template-columns:42px 1fr;gap:14px;align-items:center;
+}
+.habit-num{
+  font-family:'DM Sans',sans-serif;font-weight:700;font-size:15px;
+  background:var(--accent3);color:white;width:36px;height:36px;
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+}
+.habit-body strong{font-family:'Noto Serif TC',serif;font-weight:700;color:var(--ink);font-size:14px;display:block;margin-bottom:3px}
+.habit-body p{font-size:13px;color:var(--ink2);margin:0;line-height:1.55}
+
+/* recap */
+.recap-final{
+  background:linear-gradient(180deg,#faf0d8,#f4ead0);
+  border:1px solid var(--accent3);border-radius:6px;
+  padding:18px 22px;margin:14px 0;position:relative;
+}
+.recap-final::before{
+  content:'學期工具總圖';position:absolute;top:-10px;left:18px;
+  background:var(--accent3);color:white;
+  font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:.15em;
+  padding:3px 10px;border-radius:3px;
+}
+
+/* persona/scene */
+.scene{
+  background:#fdf6e8;border:1px solid var(--accent3);border-radius:6px;padding:14px 18px;margin:12px 0;
+}
+.scene-label{font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:.15em;color:var(--accent3);text-transform:uppercase;margin-bottom:6px}
+.scene p{font-size:13.5px;color:#5a4a2a;margin-bottom:6px;line-height:1.7}
+.scene strong{color:#3a2a0a}
+
+footer{text-align:center;margin-top:40px;padding-top:18px;border-top:1px solid var(--line);font-family:'DM Sans',sans-serif;font-size:12px;color:var(--muted)}
+footer a{color:var(--accent2);text-decoration:none;font-weight:600}
+
+@media(max-width:680px){
+  .wrap{padding:18px 12px 60px}
+  .sec{padding:22px 18px}
+  .three-grid,.two-grid,.versus-grid{grid-template-columns:1fr}
+  .v-arr{transform:rotate(90deg)}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ═══ BANNER ═══ -->
+<div class="banner">
+  <div class="course">生成式 AI 的人文導論 · Spring 2026 · Final Lab</div>
+  <h1>Claude × Codex 工具實務</h1>
+  <div class="sub">期末專案的最後一哩路 · The Final Mile</div>
+  <div class="meta">
+    <span>⏱ 40 min</span>
+    <span>🔧 實務主題</span>
+    <span>🎯 可直接套用到期末專案</span>
+    <span class="final">🏁 學期最終 Lab</span>
+  </div>
+</div>
+
+<!-- ═══ 引言 ═══ -->
+<section class="sec">
+  <div class="sec-head">
+    <span class="sec-badge">本堂主旨</span>
+    <h2>學期最後一堂 lab — 把工具用得像個語言學家</h2>
+  </div>
+
+  <p>學期到這裡，希望你已經大致理解 LLM 的內部運作、能設計 prompt、能寫 Markdown 蒸餾人格、能呼叫 API、能部署到雲端。但<strong>真正動手做期末專案時</strong>，你會發現有一些「工具實務」的差距。</p>
+
+  <div class="analogy">
+    <p><strong>類比：</strong>學會語言學理論不等於會做語言田野調查。同樣，<em>知道 Claude 怎麼運作</em>不等於<em>能高效地跟 Claude 一起工作</em>。本堂課教的是「跟 AI 高效協作」的工程實務。這些不深奧，但需要自己慢慢體會與累積。</p>
+  </div>
+
+  <h3>今天會涵蓋的五個主題</h3>
+
+  <table>
+    <tr><th>主題</th><th>解決什麼問題</th><th>對期末專案的幫助</th></tr>
+    <tr><td>Token 優化</td><td>對話越長越貴、越慢、越易出錯</td><td>如何能跟 Claude 工作數小時不卡住</td></tr>
+    <tr><td>Skills 複習</td><td>同樣的指令一再重複輸入</td><td>把家教人格、寫作風格做成可重用元件</td></tr>
+    <tr><td>Cowork</td><td>不寫程式也想用 Claude 整理檔案</td><td>桌面 app，整理研究資料、改 Markdown</td></tr>
+    <tr><td>Claude Code</td><td>要編輯程式碼但不熟 IDE</td><td>用對話的方式修改你的 index.html</td></tr>
+    <tr><td>Codex 比較</td><td>不知道該用 Claude 還是 ChatGPT 的工具</td><td>知道兩者差異，選對工具事半功倍</td></tr>
+  </table>
+</section>
+
+<!-- ═══ PART 1: TOKEN 優化 ═══ -->
+<section class="sec">
+  <div class="sec-head">
+    <span class="sec-badge part1">PART 1</span>
+    <h2>Token 優化與 Context 管理</h2>
+    <span class="timing">15–20 min</span>
+  </div>
+
+  <p>跟 Claude 對話越久，你會發現幾件事：<em>回應變慢</em>、<em>它好像忘記前面說過什麼</em>、<em>偶爾講出莫名其妙的內容</em>。這些都跟「<strong>context window 管理</strong>」有關。</p>
+
+  <h3>類比：對話的「記憶白板」</h3>
+
+  <div class="analogy">
+    <p>把 Claude 想成一個<strong>記性很好但白板有限的助手</strong>。它的「白板」（context window）能容納 20 萬個字（約 12–15 萬字中文）。對話越長，白板填得越滿。
+    當白板快滿時：（1）反應變慢；（2）舊內容會被擠掉；（3）成本（token 數）暴增。<em>知道何時擦白板，是高效對話的關鍵</em>。</p>
+  </div>
+
+  <h3>三個 Token 大戶</h3>
+
+  <ul>
+    <li><strong>長檔案丟全文</strong>　把一個 500 行的檔案整個貼給 Claude，但你只需要其中 20 行。這樣浪費了 480 行的 token。</li>
+    <li><strong>來回反覆對話</strong>　多輪追問時，Claude 會把<em>整段歷史</em>重新讀進來。但對話越長，每次回應的成本越高。</li>
+    <li><strong>重複註明背景</strong>　怕 Claude 忘記，每則訊息都重貼「我在做的是日語學習小卡，使用者是初學者⋯⋯」這類前情提要。</li>
+  </ul>
+
+  <h3>三個必學指令（Claude Code / Cowork 內）</h3>
+
+  <div class="cell">
+    <div class="cell-head"><span class="badge shell">SLASH COMMANDS</span> Claude 內建的對話管理</div>
+    <pre><span class="prompt">/compact</span>    <span class="cmt"># 壓縮過去對話為摘要，保留重點、釋出 token</span>
+            <span class="cmt"># 建議：每 30–50 輪對話跑一次</span>
+
+<span class="prompt">/clear</span>      <span class="cmt"># 完全清空對話歷史，從零開始</span>
+            <span class="cmt"># 適用：話題完全切換（從 debug 變成設計新功能）</span>
+
+<span class="prompt">/cost</span>       <span class="cmt"># 查看本次 session 用了多少 token、多少錢</span>
+            <span class="cmt"># 學生免費額度內，但能讓你建立成本意識</span></pre>
+  </div>
+
+  <h3>實務習慣三條</h3>
+
+  <div class="habit-grid">
+    <div class="habit">
+      <div class="habit-num">1</div>
+      <div class="habit-body">
+        <strong>把不變的內容放最前面</strong>
+        <p>Claude 有 <em>prompt caching</em>，把開頭內容 cache 起來，下次免費重用。所以系統提示、SOUL.md 放最前面，當前任務放後面。長對話可節省 90% token。</p>
+      </div>
+    </div>
+    <div class="habit">
+      <div class="habit-num">2</div>
+      <div class="habit-body">
+        <strong>把大任務拆成小 session</strong>
+        <p>不要把「設計小卡 + 修 UI + 改 prompt + 部署」全部塞在一個對話。<em>每個 session 專注一個焦點任務</em>，做完用 <code>/clear</code> 結束，下個任務新開。</p>
+      </div>
+    </div>
+    <div class="habit">
+      <div class="habit-num">3</div>
+      <div class="habit-body">
+        <strong>讓 Claude 自己讀檔案而不是貼整個檔案</strong>
+        <p>在 Claude Code/Cowork 中可以說：「<em>請打開 index.html，幫我把 prompt 段落改成⋯⋯</em>」<strong>不要</strong>「<em>這是我的 index.html [貼整個檔]</em>」。Claude 會自己選擇要讀哪些部分。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip">
+    <span class="lbl">期末專案應用</span>
+    舉例來說，之前做的期末語言學習小卡，可能會需要跟 Claude 改 5–10 輪才滿意。把這 10 輪拆成 3 個 session：第一輪做 prompt 設計（用 <code>/clear</code> 結束）、第二輪改 UI、第三輪 debug 部署。<em>記性短的 session，效率更高</em>。
+  </div>
+</section>
+
+<!-- ═══ PART 2: SKILLS 復習 ═══ -->
+<section class="sec">
+  <div class="sec-head">
+    <span class="sec-badge part2">PART 2</span>
+    <h2>Skills 復習 — 把專業變成可重用元件</h2>
+    <span class="timing">15 min</span>
+  </div>
+
+  <p>第十一週介紹過 Skills，但 2026 年生態變化很大，值得重新認識。<strong>Skill 是一個 markdown 檔，告訴 Claude「面對特定任務時該怎麼處理」</strong>。Claude Code、Cowork、OpenAI 的 Codex 現在都用<em>同一個 SKILL.md 開放標準</em>，意味著你寫一次，到處都能用。</p>
+
+  <div class="analogy">
+    <p><strong>類比：</strong>Skill 像是<em>圖書館的索引卡</em>。當你跟 Claude 說「幫我寫一篇學術論文摘要」時，它自動從你的 skills 資料夾找到 <code>academic-summary.md</code>，依照裡面的規則執行，不需要每次都重新解釋「我希望什麼樣的摘要格式」。</p>
+  </div>
+
+  <h3>SKILL.md 的標準格式（極簡）</h3>
+
+  <div class="cell">
+    <div class="cell-head"><span class="badge md">MARKDOWN</span> ~/.claude/skills/japanese-tutor/SKILL.md</div>
+    <pre><span class="yaml">---
+name: japanese-tutor
+description: 用我的日語家教風格生成學習小卡。觸發詞：日語、家教、小卡。
+---</span>
+
+<span class="cmt"># 日語學習小卡家教</span>
+
+當使用者要求生成日語學習內容時，遵循以下原則：
+
+## 教學風格
+- 用繁體中文解釋語法，但日語例句一定保留<span class="hl">原文 + 假名 + 中譯</span>
+- 使用「想成英文裡的⋯」、「就像中文的⋯」這類類比
+- 避免「加油！」「真棒！」這類空洞鼓勵
+- 先教<span class="hl">常體</span>再教敬語
+
+## 輸出格式
+小卡應包含：詞彙、假名、中文意思、一句例句、使用情境
+
+## 學生程度
+JLPT N5–N4，避免使用 N3 以上文法</pre>
+  </div>
+
+  <h3>為什麼這比寫長 prompt 好？</h3>
+
+  <div class="two-grid">
+    <div class="feat red">
+      <h4>不用 Skill</h4>
+      <div class="feat-name">每次都要重貼指示</div>
+      <p>每次想生成小卡時，都要重複輸入 200 字的家教風格說明。token 浪費 + 容易遺漏細節。</p>
+    </div>
+    <div class="feat">
+      <h4>用 Skill</h4>
+      <div class="feat-name">一次設計、永久使用</div>
+      <p>Claude 自動偵測到「日語小卡」相關請求，<em>從 SKILL.md 載入</em>家教風格。對話精簡、品質穩定。</p>
+    </div>
+  </div>
+
+  <h3>三個地方都能用同一個 Skill</h3>
+
+  <ul>
+    <li><strong>Claude Code（CLI）</strong>　放在 <code>~/.claude/skills/</code> 或專案的 <code>.claude/skills/</code></li>
+    <li><strong>Cowork（桌面 app）</strong>　設定面板裡點「Add Skill」</li>
+    <li><strong>Codex (CLI) </strong>　Codex 也支援同樣的 SKILL.md 格式（同開放標準）</li>
+  </ul>
+
+  <div class="scene">
+    <div class="scene-label">期末專案場景</div>
+    <p>你的數位分身 <code>SOUL.md</code>，本質上就是一個 skill！把它放到 <code>~/.claude/skills/my-soul/SKILL.md</code>，<em>之後在 Claude Code 或 Cowork 編輯期末專案時，Claude 會自動用你的人格</em>來協助設計、修改、debug。</p>
+    <p>例如：你說「<em>幫我寫小卡的歡迎詞</em>」。Claude 不會給你預設的「歡迎使用」，而是用你的<em>蒸餾人格</em>寫的歡迎詞。<strong>跨工具的一致性，就是 skill 的力量</strong>。</p>
+  </div>
+
+  <div class="tip gold-box">
+    <span class="lbl">Skills Marketplace</span>
+    Anthropic 開放了 plugin marketplace（<code>/plugin install</code>），已收錄超過百萬個 skills。但對人文學生而言，<em>真正有價值的可能是你自己寫的那一兩個</em>，因為它們才反映你的風格。
+  </div>
+</section>
+
+<!-- ═══ PART 3: COWORK ═══ -->
+<section class="sec">
+  <div class="sec-head">
+    <span class="sec-badge part3">PART 3</span>
+    <h2>Cowork — 給「不寫程式的人」的 Claude</h2>
+    <span class="timing">15 min</span>
+  </div>
+
+  <p>Anthropic 2026 年 1 月推出的 <strong>Cowork</strong>，官方定位非常精準：<em>「Claude Code for everyone else」</em>——Claude Code 是為工程師設計的命令列工具，Cowork 是為<em>知識工作者</em>設計的桌面助理。對人文學生而言，這比 Claude Code 友善得多。</p>
+
+  <div class="analogy">
+    <p><strong>類比：</strong>如果 Claude Code 是<em>程式設計師的副駕駛</em>，Cowork 就是<em>研究助理</em>。它住在你的桌面，能看到你的檔案、能整理你的資料、能定期執行任務，但不需要你會打開 terminal。</p>
+  </div>
+
+  <h3>Cowork 能做什麼？</h3>
+
+  <div class="three-grid">
+    <div class="feat">
+      <h4>檔案層</h4>
+      <div class="feat-name">直接操作你的桌面</div>
+      <p>讓 Claude 讀你的 PDF、整理文件夾、把多份 Word 整理成一份摘要、批次重命名檔案。</p>
+    </div>
+    <div class="feat gold">
+      <h4>連接器</h4>
+      <div class="feat-name">接你常用的服務</div>
+      <p>內建 38+ connectors：Notion、Google Drive、Slack、Gmail、Linear——讓 Claude 直接讀寫這些服務。</p>
+    </div>
+    <div class="feat">
+      <h4>排程任務</h4>
+      <div class="feat-name">Routines 自動執行</div>
+      <p>每週一早上 9 點自動整理本週收件匣 + 產生待辦清單。<em>不開電腦也能跑</em>（雲端 routines）。</p>
+    </div>
+  </div>
+
+  <h3>對期末專案有什麼幫助？</h3>
+
+  <div class="scene">
+    <div class="scene-label">實際應用情境</div>
+    <p>假設你的期末專案要做「中國古典詩詞小卡」。你蒐集了 50 首詩散落在 Notion、Google Docs、桌面的 Word 檔。<br><br>
+    <strong>傳統做法：</strong>逐個檔案打開，複製貼上整理。<br><br>
+    <strong>Cowork 做法：</strong>連接 Notion + Google Drive，跟 Cowork 說「<em>把我所有跟唐詩相關的筆記整理成一份 markdown，按詩人分類，每首附我的個人註解</em>」。它可以讀完所有來源，幾分鐘內輸出一份整理過的檔案，<em>並可以直接餵給你的小卡 prompt</em>。</p>
+  </div>
+
+  <h3>Cowork × Skill 的組合威力</h3>
+
+  <p>把第二部分學到的 Skill 放進 Cowork，組合出強大工作流。舉例來說：</p>
+
+  <ol>
+    <li>寫一個 <code>poetry-curator.md</code> skill，定義「我喜歡的詩、解讀風格、註解格式」</li>
+    <li>在 Cowork 設定 routine：每週一早上跑這個 skill，從 Google Drive 抓本週新詩，產出整理稿</li>
+    <li>整理稿存回 Google Drive 的「整理過/週x」資料夾</li>
+    <li><strong>你完全沒打開電腦，每週都有新材料可餵給你的小卡</strong></li>
+  </ol>
+
+  <div class="tip">
+    <span class="lbl">下載與費用</span>
+    Cowork 透過 Claude Desktop app 提供。免費用戶能用基本功能，重度使用需 Pro 訂閱（$20/月）。對期末專案而言，<em>免費版應該足夠</em>。
+  </div>
+</section>
+
+<!-- ═══ PART 4: CLAUDE CODE ═══ -->
+<section class="sec">
+  <div class="sec-head">
+    <span class="sec-badge part4">PART 4</span>
+    <h2>Claude Code — 用對話的方式編輯程式碼</h2>
+    <span class="timing">20 min</span>
+  </div>
+
+  <p><strong>Claude Code</strong> 是一個命令列工具（CLI tool），讓你在 terminal 用<em>自然語言對話</em>來編輯檔案。對寫過幾行 HTML 的學生而言，這比學 VS Code 容易得多。你不需要記快捷鍵、不需要懂 IDE，只要用講的就好。</p>
+
+  <div class="analogy">
+    <p><strong>類比：</strong>傳統 IDE（VS Code、PyCharm）像<em>專業廚房</em>。刀具齊備、爐火強大，但要先學會用。<br>
+    Claude Code 像<em>家用智能廚房</em>；你說「<em>把蔥切碎</em>」，它幫你做。<em>不會用菜刀，也能煮出一頓飯</em>。</p>
+  </div>
+
+  <h3>安裝與第一次使用</h3>
+
+  <div class="cell">
+    <div class="cell-head"><span class="badge shell">SHELL</span> 安裝 Claude Code</div>
+    <pre><span class="cmt"># 1. 安裝（需先有 Node.js — Mac 用 brew，Windows 從 nodejs.org 下載）</span>
+<span class="prompt">$</span> npm install -g @anthropic-ai/claude-code
+
+<span class="cmt"># 2. 切換到你的期末專案資料夾</span>
+<span class="prompt">$</span> <span class="builtin">cd</span> ~/Documents/my-flashcard
+
+<span class="cmt"># 3. 啟動 Claude Code</span>
+<span class="prompt">$</span> claude
+<span class="out">  Welcome to Claude Code!
+  &gt; </span>
+
+<span class="cmt"># 4. 現在你可以用對話方式跟 Claude 編輯這個專案</span>
+<span class="prompt">&gt;</span> <span class="cmd">幫我打開 index.html，把標題改成「中國古典詩詞小卡」</span>
+<span class="out">  [Claude 讀取 index.html，找到 &lt;title&gt; 段落，提議修改]
+  [你確認後，Claude 自動寫入檔案]</span>
+
+<span class="prompt">&gt;</span> <span class="cmd">prompt 段落的「日語」全部改成「文言文」</span>
+<span class="out">  [Claude 找到所有相關位置，一次改完]</span></pre>
+  </div>
+
+  <h3>Claude Code 的核心優勢</h3>
+
+  <div class="two-grid">
+    <div class="feat">
+      <h4>核心優勢 01</h4>
+      <div class="feat-name">直接讀寫檔案</div>
+      <p>不需要複製貼上。它能讀整個專案資料夾，知道哪個檔案放什麼。</p>
+    </div>
+    <div class="feat gold">
+      <h4>核心優勢 02</h4>
+      <div class="feat-name">Plan Mode 安全感</div>
+      <p>重要修改前，Claude 會先列出「我要改什麼」讓你確認，<em>不會直接動你的檔案</em>。</p>
+    </div>
+    <div class="feat">
+      <h4>核心優勢 03</h4>
+      <div class="feat-name">能執行指令</div>
+      <p>它能幫你跑 <code>git commit</code>、<code>git push</code>、<code>python app.py</code> 等。你只要說「<em>提交一個 commit</em>」。</p>
+    </div>
+    <div class="feat red">
+      <h4>核心優勢 04</h4>
+      <div class="feat-name">CLAUDE.md 專案記憶</div>
+      <p>在專案根目錄放 <code>CLAUDE.md</code>，Claude 每次啟動都會讀。等於專案專屬的人格設定。</p>
+    </div>
+  </div>
+
+  <h3>實戰：用 Claude Code 改期末小卡</h3>
+
+  <div class="scene">
+    <div class="scene-label">課堂示範流程</div>
+    <p><strong>情境：</strong>你的日語小卡跑起來了，但發音按鈕的 UI 不太好看，想改成圓形 + 漸層色。</p>
+  </div>
+
+  <div class="cell">
+    <div class="cell-head"><span class="badge shell">SHELL</span> Claude Code 對話實錄</div>
+    <pre><span class="prompt">&gt;</span> <span class="cmd">幫我把 index.html 裡的「念給我聽」按鈕改成圓形，
+   背景用紅紫漸層，hover 時放大一點</span>
+
+<span class="out">[Claude 提議]
+我打算這樣修改 .speak-btn 的 CSS：
+- border-radius: 50% 改成圓形
+- background: linear-gradient(135deg, #9c3a2c, #534AB7)
+- transition + transform: scale(1.05) on hover
+
+要進行嗎？ (y/n)</span>
+
+<span class="prompt">&gt;</span> <span class="cmd">y</span>
+<span class="out">✓ index.html 已更新</span>
+
+<span class="prompt">&gt;</span> <span class="cmd">commit 一下，message 寫「美化發音按鈕」</span>
+<span class="out">[Claude 執行]
+  git add index.html
+  git commit -m "美化發音按鈕"
+✓ Commit 7c1d4f9 created</span></pre>
+  </div>
+
+  <div class="tip warn-box">
+    <span class="lbl">免費額度提醒</span>
+    Claude Code 對 Pro/Max 訂閱用戶可用，免費用戶有限制。沒訂閱的同學，可改用 Cowork 的免費額度，或用 Codex CLI（OpenAI 也許有類似政策）。
+  </div>
+</section>
+
+<!-- ═══ PART 5: CODEX 比較 ═══ -->
+<section class="sec">
+  <div class="sec-head">
+    <span class="sec-badge part5">PART 5</span>
+    <h2>OpenAI Codex 介紹與比較</h2>
+    <span class="timing">10–15 min</span>
+  </div>
+
+  <p>OpenAI 在 2025 年中重啟了「Codex」這個品牌，但這次跟 2021 年的 Codex 完全不同。<strong>現在的 Codex 是一個全功能的 agentic coding 工具</strong>，跟 Claude Code 直接競爭。知道兩者差異是重要的：因為你可能會根據手邊有的訂閱選擇用哪一個。</p>
+
+  <h3>架構對比：根本性的差異</h3>
+
+  <div class="versus">
+    <div class="versus-title">同樣是 agentic coding，兩種不同的哲學</div>
+    <div class="versus-grid">
+      <div class="v-side claude">
+        <div class="v-tag">Anthropic</div>
+        <div class="v-name">Claude Code</div>
+        <div class="v-body"><strong>本機優先</strong>　在你的 terminal 直接運作，操作你電腦上的檔案。透過 hooks（17 個生命週期事件）提供細緻控制。</div>
+        <div class="v-feat">→ 適合：本地專案、需要密集互動、想保有控制權</div>
+      </div>
+      <div class="v-arr">VS</div>
+      <div class="v-side codex">
+        <div class="v-tag">OpenAI</div>
+        <div class="v-name">Codex (CLI + Cloud)</div>
+        <div class="v-body"><strong>雲端沙箱</strong>　CLI 模式類似 Claude Code，但更常用的是雲端模式：把任務丟給雲端容器執行，幾分鐘後拿回結果。這是 OS 層級的安全隔離。</div>
+        <div class="v-feat">→ 適合：可平行處理多任務、不想本機跑、安全要求高</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>細節對比表（會隨時變動！）</h3>
+
+  <table>
+    <tr><th>面向</th><th>Claude Code</th><th>Codex</th></tr>
+    <tr><td>主力模型</td><td>Claude Opus 4.7 (1M token context)</td><td>GPT-5.4 / 5.5 (272K, 可擴展 1.05M)</td></tr>
+    <tr><td>運行位置</td><td>本機 terminal 為主</td><td>本機 CLI + 雲端容器（chatgpt.com/codex）</td></tr>
+    <tr><td>SKILL.md 支援</td><td>原生（Anthropic 推出標準）</td><td>支援同一個開放標準</td></tr>
+    <tr><td>價格（同 $20/月）</td><td>對話品質高，token 用量較大</td><td>token 效率高約 3–4×，總任務成本低</td></tr>
+    <tr><td>核心強項</td><td>多檔案重構、長對話、細節控制</td><td>速度、平行任務、安全隔離</td></tr>
+    <tr><td>SWE-Bench Pro 分數</td><td>64.3% <em>（領先）</em></td><td>58.6%</td></tr>
+    <tr><td>SWE-Bench Verified</td><td>87.6%</td><td>88.7% <em>（GPT-5.5 領先）</em></td></tr>
+    <tr><td>學生友善度</td><td>較高（Cowork 補充非工程師需求）</td><td>較中（介面更工程取向）</td></tr>
+  </table>
+
+  <h3>Codex CLI 的安裝（如果你想試）</h3>
+
+  <div class="cell">
+    <div class="cell-head"><span class="badge shell">SHELL</span> Codex CLI 快速體驗</div>
+    <pre><span class="cmt"># 安裝（同樣需要 Node.js）</span>
+<span class="prompt">$</span> npm install -g @openai/codex
+
+<span class="cmt"># 互動模式（類似 Claude Code）</span>
+<span class="prompt">$</span> codex
+<span class="prompt">&gt;</span> <span class="cmd">幫我把 index.html 的標題改成「中國古典詩詞小卡」</span>
+
+<span class="cmt"># 全自動模式（不用每步確認）</span>
+<span class="prompt">$</span> codex --full-auto <span class="str">"幫所有 API endpoint 寫 docstring"</span>
+
+<span class="cmt"># 雲端模式：把任務丟給 ChatGPT 介面</span>
+<span class="cmt"># 在 chatgpt.com/codex 上送出任務，幾分鐘後 PR 自動出現在 GitHub</span></pre>
+  </div>
+
+  <h3>實務建議：該選哪個工具？</h3>
+
+  <div class="three-grid">
+    <div class="feat red">
+      <h4>建議 01</h4>
+      <div class="feat-name">先學 Claude Code</div>
+      <p>本課程整學期建立的 mental model（SOUL.md、AGENTS.md、CLAUDE.md）跟 Claude 生態完全契合。學習曲線最平緩。</p>
+    </div>
+    <div class="feat blue">
+      <h4>建議 02</h4>
+      <div class="feat-name">Codex 作為對照</div>
+      <p>有空時可以裝 Codex CLI 試試。<em>有對照才知道差異</em>，這也是日後評估 AI 工具的基本素養。</p>
+    </div>
+    <div class="feat gold">
+      <h4>建議 03</h4>
+      <div class="feat-name">混合使用很正常</div>
+      <p>2026 年的常見實務：用 Claude Code 做主力開發，用 Codex 跑次要審查、或當第二意見來源。<em>多模型 redundancy</em> 是新常態。</p>
+    </div>
+  </div>
+
+  <div class="reflect">
+    <div class="lbl">人文學者的工具觀</div>
+    <p>不要把「選哪個工具」當成信仰問題。Claude 和 Codex 都是<em>工具</em>，跟字典、語料庫、統計軟體本質相同。<strong>用對情境的工具，就是好工具</strong>。<br><br>
+    更重要的是：兩者的 SKILL.md 是開放標準，你寫的 skill 是<em>跨平台資產</em>。即使未來換工具，你的人格、風格、知識仍然帶得走。<em>知識自主權，比工具忠誠度重要</em>。</p>
+  </div>
+</section>
+
+<!-- ═══ 收束 ═══ -->
+<section class="sec">
+  <div class="sec-head">
+    <span class="sec-badge closure">收束</span>
+    <h2>學期工具總圖 × 期末衝刺指引</h2>
+    <span class="timing">5 min</span>
+  </div>
+
+  <p>本堂課的五個主題，加上整學期學過的所有東西，串成這張「人文學生的 AI 工具地圖」。希望你可以拿著它走出教室，走進你的研究與工作。</p>
+
+  <div class="recap-final">
+    <h3>四種介面，四種情境</h3>
+
+    <div class="tool-row">
+      <div class="tool-label">Chat</div>
+      <div class="tool-body">
+        <strong>claude.ai 網頁 / Claude Desktop</strong>
+        <p>用於思考、發想、寫作。最熟悉的對話介面。<em>適合：寫期末反思、生成 prompt 草稿、與 Claude 討論論文方向。</em></p>
+      </div>
+    </div>
+
+    <div class="tool-row">
+      <div class="tool-label purple">Cowork</div>
+      <div class="tool-body">
+        <strong>Claude Desktop 的 Cowork 模式</strong>
+        <p>知識工作者的工作流。連接 Notion、Drive、Slack。<em>適合：整理研究資料、定期回顧、批次處理檔案。</em></p>
+      </div>
+    </div>
+
+    <div class="tool-row">
+      <div class="tool-label">Code</div>
+      <div class="tool-body">
+        <strong>Claude Code（命令列）</strong>
+        <p>編輯程式碼專案的最佳選擇。<em>適合：期末專案的 index.html 修改、git 操作、雲端部署 debug。</em></p>
+      </div>
+    </div>
+
+    <div class="tool-row">
+      <div class="tool-label blue">Codex</div>
+      <div class="tool-body">
+        <strong>OpenAI Codex（CLI / Cloud）</strong>
+        <p>互補選項。雲端沙箱對於不想本機跑的任務特別合適。<em>適合：跑長時間任務、做第二意見驗證。</em></p>
+      </div>
+    </div>
+  </div>
+
+  <h3>期末衝刺：給你的三條建議（以 Claude 為例）</h3>
+
+  <div class="habit-grid">
+    <div class="habit">
+      <div class="habit-num">1</div>
+      <div class="habit-body">
+        <strong>從 Stage 1（純 HTML）開始，<em>能跑就好</em></strong>
+        <p>用 Chat 介面跟 Claude 對話設計 prompt，用 Claude Code（或網頁版的 Artifacts）改 HTML。<em>不要在第一步追求完美</em>。先有東西在跑。</p>
+      </div>
+    </div>
+    <div class="habit">
+      <div class="habit-num">2</div>
+      <div class="habit-body">
+        <strong>把你的 SOUL.md 變成 skill</strong>
+        <p>放到 <code>~/.claude/skills/my-persona/SKILL.md</code>。從此<em>所有與 Claude 的互動</em>都會帶著你的人格設定。這是學期最有價值的個人資產之一。</p>
+      </div>
+    </div>
+    <div class="habit">
+      <div class="habit-num">3</div>
+      <div class="habit-body">
+        <strong>遇到卡關，用 Cowork + Claude Code 並行</strong>
+        <p>用 Cowork 整理你的研究素材，用 Claude Code 改你的程式碼。<em>兩個視窗同時開</em>，效率最高。Codex 留給之後想嘗試的同學。</p>
+      </div>
+    </div>
+  </div>
+
+  <blockquote>學期到此，理論的山已經爬過、工具的箱子也都打開過了。<br>
+  剩下的，是你<em>真的動手做</em>那個東西。再提醒大家，期末專案不在於完美，在於<strong>妳是否願意花時間體驗</strong>。</blockquote>
+
+  <p style="text-align:center;margin-top:24px;font-family:'DM Sans',sans-serif;font-style:italic;color:var(--muted);font-size:13px">
+    Final Lab complete. 祝期末順利。
+  </p>
+</section>
+
+<footer>
+  <a href="https://lope.linguistics.ntu.edu.tw">LOPE Lab</a> · 
+  Graduate Institute of Linguistics, National Taiwan University · 
+  <a href="https://taica.edu.tw">TAICA</a><br>
+  生成式 AI 的人文導論 | Spring 2026 | 114-2 | Final Lab · Claude × Codex 工具實務
+</footer>
+
+</div>
+</body>
+</html>

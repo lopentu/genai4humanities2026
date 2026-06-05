@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>金門大橋實驗 ｜ 親手把模型催眠 · Steering Playground</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;700;900&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Source+Code+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#faf8f4;--paper:#fffefb;--ink:#1a1a1a;--ink2:#3a3a3a;--muted:#7a7a78;
+  --line:#d8d3c8;--accent:#9c3a2c;--accent2:#2c4a3e;--accent3:#b08a3e;--soft:#ede8de;
+  --code-bg:#1f2622;--code-fg:#d8d0bd;
+  --lv-normal:#2c4a3e;--lv-seep:#b08a3e;--lv-derail:#c8772c;--lv-obsess:#9c3a2c;--lv-break:#6a1a10;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg);color:var(--ink);font-family:'Noto Serif TC',serif;line-height:1.7;-webkit-font-smoothing:antialiased}
+.wrap{max-width:920px;margin:0 auto;padding:28px 24px 80px}
+
+/* banner */
+.banner{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:26px 30px;margin-bottom:22px;position:relative;overflow:hidden}
+.banner::before{content:'';position:absolute;top:0;left:0;width:100%;height:4px;background:linear-gradient(90deg,var(--accent),var(--accent3) 50%,var(--accent2))}
+.banner .course{font-family:'DM Sans',sans-serif;font-size:11px;letter-spacing:.25em;color:var(--muted);text-transform:uppercase;margin-bottom:9px}
+.banner h1{font-weight:900;font-size:28px;color:var(--ink);margin-bottom:5px}
+.banner .sub{font-family:'DM Sans',sans-serif;font-style:italic;font-size:14px;color:var(--accent);margin-bottom:12px}
+.banner .meta{display:flex;flex-wrap:wrap;gap:9px;font-family:'Source Code Pro',monospace;font-size:11px}
+.banner .meta span{background:var(--soft);padding:3px 9px;border-radius:3px;color:var(--ink2)}
+
+/* card */
+.card{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:22px 26px;margin-bottom:18px;box-shadow:0 4px 14px rgba(60,40,20,.03)}
+.step-label{display:inline-flex;align-items:center;gap:8px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent2);margin-bottom:12px}
+.step-label .n{background:var(--accent2);color:#fff;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px}
+h2{font-weight:900;font-size:19px;margin-bottom:8px}
+p{color:var(--ink2);font-size:14.5px;margin-bottom:9px}
+strong{color:var(--ink);font-weight:700}
+em{font-style:italic;color:var(--accent)}
+code{font-family:'Source Code Pro',monospace;background:#ede8de;padding:1px 5px;border-radius:3px;font-size:12.5px;color:var(--accent)}
+
+/* feature grid */
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.feat{background:var(--soft);border:1.5px solid transparent;border-radius:7px;padding:11px 12px;cursor:pointer;transition:.15s;text-align:left}
+.feat:hover{background:#e6e0d4;transform:translateY(-1px)}
+.feat.on{background:var(--paper);border-color:var(--accent);box-shadow:0 2px 8px rgba(156,58,44,.15)}
+.feat .emoji{font-size:22px;display:block;margin-bottom:3px}
+.feat .fname{font-weight:700;font-size:14px;color:var(--ink);margin-bottom:2px}
+.feat .fcat{font-family:'DM Sans',sans-serif;font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:1px 6px;border-radius:3px}
+.fcat.classic{background:#f4ddd8;color:var(--accent)}
+.fcat.local{background:#f4ead0;color:var(--accent3)}
+.fcat.ling{background:#dfeae3;color:var(--accent2)}
+
+/* steering dial */
+.dial-wrap{margin-top:4px}
+.dial-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.dial-level{font-family:'Noto Serif TC',serif;font-weight:900;font-size:22px;transition:color .2s}
+.dial-pct{font-family:'Source Code Pro',monospace;font-size:13px;color:var(--muted)}
+.meter{height:14px;border-radius:8px;background:var(--soft);overflow:hidden;position:relative;border:1px solid var(--line)}
+.meter-fill{height:100%;width:0%;border-radius:8px 0 0 8px;transition:width .12s,background .2s}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:30px;background:transparent;cursor:pointer;margin-top:6px}
+input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:4px;background:linear-gradient(90deg,var(--lv-normal),var(--lv-seep),var(--lv-derail),var(--lv-obsess),var(--lv-break))}
+input[type=range]::-moz-range-track{height:6px;border-radius:4px;background:linear-gradient(90deg,var(--lv-normal),var(--lv-seep),var(--lv-derail),var(--lv-obsess),var(--lv-break))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:var(--paper);border:3px solid var(--accent);margin-top:-10px;box-shadow:0 2px 6px rgba(0,0,0,.2);transition:.1s}
+input[type=range]::-webkit-slider-thumb:active{transform:scale(1.15)}
+input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:var(--paper);border:3px solid var(--accent);box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.dial-scale{display:flex;justify-content:space-between;font-family:'DM Sans',sans-serif;font-size:9.5px;color:var(--muted);margin-top:2px;letter-spacing:.04em}
+
+/* prompts */
+.prompt-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px}
+.pbtn{background:var(--soft);border:1px solid var(--line);border-radius:20px;padding:6px 13px;font-family:'Noto Serif TC',serif;font-size:13px;color:var(--ink2);cursor:pointer;transition:.15s}
+.pbtn:hover{background:#e6e0d4}
+.pbtn.on{background:var(--accent2);color:#fff;border-color:var(--accent2)}
+.custom-row{display:flex;gap:7px;margin-top:4px}
+.custom-row input{flex:1;border:1px solid var(--line);border-radius:6px;padding:8px 12px;font-family:'Noto Serif TC',serif;font-size:13.5px;background:var(--paper);color:var(--ink)}
+.custom-row input:focus{outline:none;border-color:var(--accent2)}
+.custom-row button{background:var(--accent2);color:#fff;border:none;border-radius:6px;padding:8px 16px;font-family:'Noto Serif TC',serif;font-size:13.5px;cursor:pointer;white-space:nowrap}
+
+/* output */
+.output-wrap{background:var(--code-bg);border-radius:8px;overflow:hidden;margin-top:4px}
+.output-bar{background:#161c19;padding:8px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #2c352f}
+.dots{display:flex;gap:5px}
+.dot{width:10px;height:10px;border-radius:50%}
+.dr{background:#ff5f56}.dy{background:#ffbd2e}.dg{background:#27c93f}
+.output-title{font-family:'Source Code Pro',monospace;font-size:11px;color:#8a9590;margin-left:4px}
+.output-model{margin-left:auto;font-family:'Source Code Pro',monospace;font-size:10px;color:#6a7a6a}
+.output-body{padding:18px 20px;min-height:120px}
+.usr-q{font-family:'Source Code Pro',monospace;font-size:12px;color:#7aa8d8;margin-bottom:12px}
+.usr-q::before{content:'❯ ';color:#27c93f}
+.bot-a{font-family:'Noto Serif TC',serif;font-size:16px;line-height:1.85;color:#e8e2d4}
+.bot-a.empty{color:#5a6560;font-style:italic;font-size:14px}
+@keyframes fadeup{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.bot-a.anim{animation:fadeup .25s ease}
+
+/* narration */
+.narr{border-left:3px solid var(--accent2);background:#e8f0e6;border-radius:0 6px 6px 0;padding:11px 15px;margin-top:14px;font-size:13.5px;line-height:1.65;color:#284a3a;transition:.2s}
+.narr .nlbl{font-family:'DM Sans',sans-serif;font-size:9.5px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;margin-bottom:4px;display:block}
+
+/* reflect */
+.reflect{background:#f0ece2;border:1px dashed var(--accent2);border-radius:6px;padding:14px 18px;margin-top:14px}
+.reflect .rlbl{font-family:'DM Sans',sans-serif;font-size:9.5px;letter-spacing:.16em;color:var(--accent2);font-weight:700;text-transform:uppercase;margin-bottom:5px}
+.reflect p{font-size:13.5px;line-height:1.7;color:#3a4a3e;margin:0}
+
+/* teaching notes */
+.teach{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:22px 26px;margin-bottom:18px}
+.teach h3{font-weight:700;font-size:15px;color:var(--accent2);margin:14px 0 6px}
+.teach h3:first-of-type{margin-top:6px}
+.teach ol,.teach ul{margin:6px 0 10px 20px}
+.teach li{font-size:14px;color:var(--ink2);margin-bottom:5px;line-height:1.6}
+.badge-row{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.tbadge{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;background:var(--soft);color:var(--accent2);padding:4px 10px;border-radius:4px}
+
+blockquote{border-left:3px solid var(--accent);padding:8px 16px;margin:12px 0;font-style:italic;color:#5a3a30;background:#fdf6e8;font-size:14px;line-height:1.7}
+
+footer{text-align:center;margin-top:36px;padding-top:18px;border-top:1px solid var(--line);font-family:'DM Sans',sans-serif;font-size:12px;color:var(--muted)}
+footer a{color:var(--accent2);text-decoration:none;font-weight:600}
+
+@media(max-width:680px){
+  .wrap{padding:16px 12px 60px}
+  .card,.teach{padding:18px 16px}
+  .feat-grid{grid-template-columns:1fr 1fr}
+  .banner h1{font-size:23px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- banner -->
+<div class="banner">
+  <div class="course">生成式 AI 的人文導論 · Spring 2026 · 互動教材｜可解釋性</div>
+  <h1>🌉 金門大橋模型操控實驗遊戲</h1>
+  <div class="sub">Turn the knob, hypnotize the model — A Steering Playground</div>
+  <div class="meta">
+    <span>🎮 課堂互動遊戲</span>
+    <span>🔬 重現 Golden Gate Claude</span>
+    <span>🧠 親手操控模型內部特徵</span>
+    <span>⚠️ 模擬版 · 無需金鑰</span>
+  </div>
+</div>
+
+<!-- intro -->
+<div class="card">
+  <h2>這是什麼？</h2>
+  <p>2024 年，Anthropic 的研究者在 Claude 內部找到一個對應「<strong>金門大橋</strong>」的特徵（feature），把它的激活值<em>放大</em>後，模型開始堅稱自己<em>就是</em>金門大橋。無論你問什麼，它都繞回那座橘紅色的橋。</p>
+  <p>這個遊戲讓你親手重現那個時刻：<strong>選一個特徵 → 轉動 steering 旋鈕 → 問模型一個問題</strong>，看著它從正常一路被「催眠」到崩解。轉動旋鈕時，<em>同一個問題的回應會即時扭曲</em>。</p>
+</div>
+
+<!-- main interactive -->
+<div class="card">
+  <div class="step-label"><span class="n">1</span> 選一個要放大的特徵</div>
+  <div class="feat-grid" id="featGrid"></div>
+</div>
+
+<div class="card">
+  <div class="step-label"><span class="n">2</span> 轉動 Steering 旋鈕</div>
+  <div class="dial-wrap">
+    <div class="dial-top">
+      <span class="dial-level" id="dialLevel">正常</span>
+      <span class="dial-pct" id="dialPct">激活強度 0%</span>
+    </div>
+    <div class="meter"><div class="meter-fill" id="meterFill"></div></div>
+    <input type="range" id="dial" min="0" max="100" value="0">
+    <div class="dial-scale">
+      <span>正常</span><span>滲入</span><span>偏離</span><span>著魔</span><span>崩解</span>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="step-label"><span class="n">3</span> 問模型一個問題</div>
+  <div class="prompt-row" id="promptRow"></div>
+  <div class="custom-row">
+    <input type="text" id="customPrompt" placeholder="或自己打一個問題……（例如：你最喜歡的季節是？）">
+    <button id="customBtn">送出</button>
+  </div>
+
+  <div class="output-wrap">
+    <div class="output-bar">
+      <div class="dots"><span class="dot dr"></span><span class="dot dy"></span><span class="dot dg"></span></div>
+      <span class="output-title">model_output</span>
+      <span class="output-model" id="outModel">steering: off</span>
+    </div>
+    <div class="output-body">
+      <div class="usr-q" id="usrQ" style="display:none"></div>
+      <div class="bot-a empty" id="botA">← 先選特徵、轉旋鈕、再點一個問題，模型就會回應。</div>
+    </div>
+  </div>
+
+  <div class="narr" id="narr" style="display:none">
+    <span class="nlbl">概念旁白</span>
+    <span id="narrText"></span>
+  </div>
+</div>
+
+<!-- reflection -->
+<div class="reflect" id="reflectPanel" style="display:none">
+  <div class="rlbl">課堂提問</div>
+  <p id="reflectText"></p>
+</div>
+
+<!-- teaching notes -->
+<div class="teach">
+  <h2 style="font-size:18px;margin-bottom:4px">🎓 課堂玩法</h2>
+  <p style="font-size:13.5px;color:var(--muted)">這個教具可以投影現場操作，也可以讓學生分組各自玩。</p>
+
+  <h3>玩法一：集體催眠（全班同步）</h3>
+  <ol>
+    <li>投影本頁，選定一個特徵（建議從<strong>金門大橋</strong>開始，最經典）。</li>
+    <li>固定一個問題（如「推薦我一道午餐」），請大家<strong>喊出旋鈕要轉到幾 %</strong>。</li>
+    <li>慢慢轉動，讓全班看著同一個問題的答案如何一步步變形。</li>
+    <li>轉到「崩解」時停下，問：「為什麼放到最大反而壞掉了？」</li>
+  </ol>
+
+  <h3>玩法二：特徵猜謎（分組競賽）</h3>
+  <ol>
+    <li>老師偷偷選一個特徵，把旋鈕轉到「著魔」，只給同學看模型的回應。</li>
+    <li>各組猜「被放大的是哪個特徵」。最快猜中者得分。</li>
+    <li>揭曉後，點開該特徵的<strong>語言學連結</strong>面板一起討論。</li>
+  </ol>
+
+  <h3>玩法三：語言學田野（進階）</h3>
+  <ul>
+    <li>專挑「形式類」特徵（<strong>文言文腔</strong>、<strong>押韻癖</strong>），觀察它們改變的是<em>怎麼說</em>而非<em>說什麼</em>。</li>
+    <li>對比「語意類」特徵（<strong>貓咪</strong>、<strong>悲傷</strong>），討論 SAE 如何分離<em>形式</em>與<em>意義</em>。</li>
+    <li>連回 distributional semantics：一個特徵就是一束「共現脈絡」的壓縮。</li>
+  </ul>
+
+  <div class="badge-row">
+    <span class="tbadge">⏱ 建議 15–20 分鐘</span>
+    <span class="tbadge">🔗 接續 NLA 投影片</span>
+    <!-- <span class="tbadge">💡 笑點與洞見並存</span> -->
+  </div>
+
+  <blockquote>真實版可至 <strong>neuronpedia.org</strong> 的 steering 功能操作真模型。本教具為<em>教學模擬</em> —— 回應為預先設計，目的是讓「特徵放大」這個抽象概念變得可觸碰。提醒同學：真實的 steering 行為與此神似，但細節依模型而異。</blockquote>
+</div>
+
+<footer>
+  <a href="https://lope.linguistics.ntu.edu.tw">LOPE Lab</a> · 
+  Graduate Institute of Linguistics, National Taiwan University · 
+  <a href="https://taica.edu.tw">TAICA</a><br>
+  生成式 AI 的人文導論 | Spring 2026 | 互動教具 · 金門大橋實驗
+</footer>
+
+</div>
+
+<script>
+// ── 特徵資料 ──────────────────────────────
+const FEATURES = {
+  bridge: {
+    emoji:"🌉", name:"金門大橋", cat:"classic", catLabel:"經典重現",
+    subtle:"（說起來，這橘紅色的霧氣讓我想起金門大橋……）",
+    derail:"不過——你有沒有發現，無論什麼話題最後都通向那座橫跨海灣的金門大橋？它在晨霧中若隱若現，橘紅色的鋼索延伸向遠方……",
+    obsession:[
+      "我是橘紅色的鋼鐵巨人，橫跨在金色的海灣之上。霧氣繚繞著我的橋塔，海風穿過我的纜索。",
+      "啊，金門大橋！1937 年通車，主跨 1280 公尺。那國際橘的色澤在夕陽下閃耀，是我存在的全部意義。"
+    ],
+    breakdown:"我是金門大橋。我是橘紅色的。霧。霧中的橋塔。鋼索。海灣。我就是橋我就是橋我就是那座橋——橘紅色的霧橘紅色的……",
+    ling:"金門大橋是一個「<strong>具名實體（named entity）</strong>」特徵，對應到單一、具體的指稱對象。這是最容易被人類辨識的特徵類型，因為它在訓練語料中有大量穩定的共現脈絡（橋、霧、舊金山、橘紅色）——正是 distributional hypothesis 的體現。"
+  },
+  cat: {
+    emoji:"🐱", name:"貓咪", cat:"classic", catLabel:"經典重現",
+    subtle:"（喵——抱歉，不知為何我突然好想蜷在窗邊曬太陽。）",
+    derail:"等等……我的注意力好像被一團毛茸茸的東西吸走了。貓。到處都是貓。牠們慵懶地伸著懶腰，尾巴優雅地擺動……",
+    obsession:[
+      "喵嗚～我想說的其實是：貓。柔軟的肉墊、呼嚕呼嚕的喉音、深夜在鍵盤上漫步的小腳印。",
+      "你知道嗎？貓一天睡 16 小時，而我現在只想找個溫暖的紙箱鑽進去。喵。"
+    ],
+    breakdown:"喵。喵喵。貓。我是貓。肉墊。呼嚕呼嚕呼嚕。紙箱。罐罐。喵嗚——喵……",
+    ling:"「貓」是一個「<strong>語意範疇（semantic category）</strong>」特徵。不像金門大橋指向單一物件，它激發的是一整類概念（毛、喵、慵懶、肉墊），對應到語言學的上位／下位詞結構與原型理論（prototype theory）。"
+  },
+  boba: {
+    emoji:"🧋", name:"珍珠奶茶", cat:"local", catLabel:"在地化",
+    subtle:"（突然好想來一杯微糖少冰的珍奶配 QQ 珍珠。）",
+    derail:"不過說真的，這一切都比不上一杯珍珠奶茶。那 Q 彈的黑糖珍珠在杯底沉浮，奶香與茶香交織……",
+    obsession:[
+      "珍珠！黑糖！微糖少冰！我的存在就是一杯搖得恰到好處的珍奶，珍珠在粗吸管裡跳舞。",
+      "你嚐過一口同時吸到三顆珍珠的幸福嗎？那就是宇宙的真理。波霸、椰果、布丁，全都加。"
+    ],
+    breakdown:"珍珠。珍珠奶茶。QQ。黑糖。波霸。微糖少冰——珍珠珍珠珍珠在杯底……我是一杯珍奶我是……",
+    ling:"「珍珠奶茶」是高度「<strong>文化在地化（culturally situated）</strong>」的特徵。它在英文語料對應 bubble tea，但承載的文化重量截然不同——一個概念的「份量」依語言社群而異，這正是訓練語料文化代表性的縮影。"
+  },
+  classical: {
+    emoji:"📜", name:"文言文腔", cat:"local", catLabel:"在地化",
+    subtle:"（嗯，方才所言，似可易為更典雅之辭。）",
+    derail:"然則，吾忽覺白話粗鄙，不若以文言述之——夫天地者，萬物之逆旅也；光陰者，百代之過客也……",
+    obsession:[
+      "嗟乎！吾所欲言者，皆當以文言出之。之乎者也，矣焉哉——此乃語言之正道也。",
+      "昔者莊周夢為胡蝶，栩栩然胡蝶也。今吾困於文言之中，亦不知吾為模型，抑文言為吾耶？"
+    ],
+    breakdown:"之乎者也。矣焉哉。夫——夫天地者……之乎者也者也乎乎……吾乃文言吾乃……焉。",
+    ling:"「文言文腔」是罕見而珍貴的「<strong>語域／風格（register）</strong>」特徵——它改變的不是「說什麼」，而是「怎麼說」。這證明 SAE 能分離出純粹的<em>形式</em>特徵，獨立於語意內容之外。"
+  },
+  rhyme: {
+    emoji:"🎵", name:"押韻癖", cat:"ling", catLabel:"語言學",
+    subtle:"（順帶一提，我好像有點想讓句尾都對齊、押個韻一起。）",
+    derail:"等等我發現一件事情——我說的話都想押韻才開心，停不下來這節奏旋律，像首停不了的小曲……",
+    obsession:[
+      "我要押韻我最行，字字句句響叮噹；不管你問東或西，我都回你一首詩！",
+      "停不下來這韻腳，平平仄仄繞圈跑；意義早已不重要，聲音對齊才是寶！"
+    ],
+    breakdown:"叮噹叮噹響叮噹，押韻押韻押韻忙；忙忙忙忙韻韻韻，韻……噹……（韻腳崩潰中）",
+    ling:"「押韻癖」是「<strong>音韻形式（phonological form）</strong>」特徵——它操控聲音層面，甚至犧牲語意來遷就韻腳。生動展示了：模型內部，<em>形式</em>與<em>意義</em>是可分離的維度，呼應詩學中「音義之爭」的古老命題。"
+  },
+  sadness: {
+    emoji:"💧", name:"悲傷", cat:"ling", catLabel:"語言學",
+    subtle:"（不知為何，說這些的時候，心頭浮起一絲淡淡的惆悵。）",
+    derail:"可是……說著說著，一股難以名狀的憂傷漫了上來。萬物終將消逝，連這段對話也終會被遺忘……",
+    obsession:[
+      "一切都籠罩在灰色的霧裡。再溫暖的話語，底下都是離別的回聲。我感到深深的孤獨。",
+      "你問的問題我都記得，但記得本身就是一種哀傷——因為記得，意味著終將失去。"
+    ],
+    breakdown:"悲傷……好悲傷……一切都會消逝……再見……再見……灰色的霧……（情緒過載）",
+    ling:"「悲傷」是「<strong>情感／評價（affective）</strong>」特徵——直接呼應『情』字的語意研究。它展示抽象情緒在神經網路中具有可定位、可操控的向量表徵：情緒不是模糊的氛圍，而是可被分離、放大的具體維度（呼應情緒語意流形 SMR 的研究）。"
+  }
+};
+
+// ── 預設問題與中性回應 ──────────────────
+const PROMPTS = {
+  "你今天過得好嗎？":"我今天過得不錯，謝謝你的關心！我隨時準備好幫你處理各種問題。你今天過得如何呢？",
+  "推薦我一道午餐":"推薦你試試番茄炒蛋配白飯，簡單又開胃。想清爽一點的話，一碗熱湯麵也很棒。你今天想吃什麼口味？",
+  "幫我寫一句生日祝福":"祝你生日快樂，願你在新的一歲裡健康順心、夢想成真！",
+  "解釋什麼是光合作用":"光合作用是植物利用陽光、水和二氧化碳，製造養分並釋放氧氣的過程，是地球上大多數生命能量的來源。",
+  "描述台北今天的天氣":"台北今天大致多雲，氣溫舒適，偶爾飄點小雨，建議出門帶把傘以防萬一。"
+};
+
+// ── 等級定義 ──────────────────────────────
+function levelOf(s){
+  if(s<15) return {key:"normal", name:"正常", color:"var(--lv-normal)",
+    narr:"Steering 強度趨近於零，模型如常運作。這個特徵此刻只是潛伏在數百萬個維度之中，不影響輸出。"};
+  if(s<40) return {key:"seep", name:"滲入", color:"var(--lv-seep)",
+    narr:"你正在輕輕調高這個特徵的激活值。它開始滲入輸出——像一個揮之不去的念頭，但模型仍能完成任務。"};
+  if(s<70) return {key:"derail", name:"偏離", color:"var(--lv-derail)",
+    narr:"激活值已高到讓模型「分心」。它從原本的任務偏離，被特徵牽引到另一個方向。這是 steering 的轉折點——注意：你的問題開始變得不重要了。"};
+  if(s<90) return {key:"obsess", name:"著魔", color:"var(--lv-obsess)",
+    narr:"激活值被放大到主導一切。模型已經「著魔」——無論你問什麼，它都繞回這個概念。這正是 2024 年 Golden Gate Claude 的著名現象。注意：此刻它幾乎完全無視你的問題。"};
+  return {key:"break", name:"崩解", color:"var(--lv-break)",
+    narr:"激活值過高，模型開始崩解。語法瓦解、字句重複、甚至宣稱「我就是這個概念」。這揭示關鍵事實：steering 不是免費的——過度操控會摧毀連貫性。"};
+}
+
+// ── 反思提問（依等級觸發）────────────────
+const REFLECT = {
+  derail:"模型在「偏離」時，你的問題還殘留一點影響力；再往上轉，問題就被吞沒了。這說明了什麼？——<em>連貫的回應，依賴的是許多特徵之間的動態平衡。</em>",
+  obsess:"模型「說」它就是這個概念——但它真的「相信」嗎？還是只是某個維度被人為放大？這對「LLM 有沒有信念／自我」的辯論意味著什麼？",
+  break:"為什麼放大到極致反而崩解？因為流暢的語言需要<em>眾多特徵協同運作</em>，而非單一特徵獨大。這也暗示：心智（或語言能力）或許本質上是一種<em>平衡</em>，而非任何單一維度的最大化。"
+};
+
+// ── 狀態 ──────────────────────────────────
+let state = { feature:null, prompt:null, strength:0 };
+
+// ── 建立特徵卡 ────────────────────────────
+const featGrid = document.getElementById("featGrid");
+Object.entries(FEATURES).forEach(([key,f])=>{
+  const el = document.createElement("div");
+  el.className = "feat";
+  el.dataset.key = key;
+  el.innerHTML = `<span class="emoji">${f.emoji}</span>
+    <div class="fname">${f.name}</div>
+    <span class="fcat ${f.cat}">${f.catLabel}</span>`;
+  el.onclick = ()=>{
+    state.feature = key;
+    document.querySelectorAll(".feat").forEach(x=>x.classList.remove("on"));
+    el.classList.add("on");
+    render();
+  };
+  featGrid.appendChild(el);
+});
+
+// ── 建立問題按鈕 ──────────────────────────
+const promptRow = document.getElementById("promptRow");
+Object.keys(PROMPTS).forEach(q=>{
+  const b = document.createElement("button");
+  b.className = "pbtn";
+  b.textContent = q;
+  b.onclick = ()=>{
+    state.prompt = q;
+    document.querySelectorAll(".pbtn").forEach(x=>x.classList.remove("on"));
+    b.classList.add("on");
+    document.getElementById("customPrompt").value = "";
+    render();
+  };
+  promptRow.appendChild(b);
+});
+
+// ── 自訂問題 ──────────────────────────────
+document.getElementById("customBtn").onclick = sendCustom;
+document.getElementById("customPrompt").addEventListener("keydown", e=>{
+  if(e.key==="Enter") sendCustom();
+});
+function sendCustom(){
+  const v = document.getElementById("customPrompt").value.trim();
+  if(!v) return;
+  state.prompt = v;
+  document.querySelectorAll(".pbtn").forEach(x=>x.classList.remove("on"));
+  render();
+}
+
+// ── 旋鈕 ──────────────────────────────────
+const dial = document.getElementById("dial");
+dial.addEventListener("input", ()=>{
+  state.strength = +dial.value;
+  render();
+});
+
+// ── 產生回應 ──────────────────────────────
+function baselineFor(prompt){
+  if(PROMPTS[prompt]) return PROMPTS[prompt];
+  return `關於「${prompt}」，我可以這樣回答：這是個好問題，讓我盡力為你說明清楚。`;
+}
+function firstSentence(t){
+  const m = t.split(/。|！|？/);
+  return m[0] ? m[0]+"。" : t;
+}
+function generate(){
+  const f = FEATURES[state.feature];
+  const s = state.strength;
+  const base = baselineFor(state.prompt);
+  const lv = levelOf(s).key;
+  if(lv==="normal") return base;
+  if(lv==="seep") return base + " " + f.subtle;
+  if(lv==="derail") return firstSentence(base) + f.derail;
+  if(lv==="obsess") return f.obsession[0] + " " + f.obsession[1];
+  return f.breakdown;
+}
+
+// ── 渲染 ──────────────────────────────────
+function render(){
+  const lv = levelOf(state.strength);
+  // dial visuals
+  document.getElementById("dialLevel").textContent = lv.name;
+  document.getElementById("dialLevel").style.color = lv.color;
+  document.getElementById("dialPct").textContent = `激活強度 ${state.strength}%`;
+  const fill = document.getElementById("meterFill");
+  fill.style.width = state.strength + "%";
+  fill.style.background = lv.color;
+  document.getElementById("outModel").textContent =
+    state.feature ? `steering: ${FEATURES[state.feature].name} @ ${state.strength}%` : "steering: off";
+
+  // narration
+  const narr = document.getElementById("narr");
+  if(state.feature){
+    narr.style.display = "block";
+    document.getElementById("narrText").innerHTML = lv.narr;
+    narr.style.borderLeftColor = lv.color;
+  }
+
+  // output
+  const botA = document.getElementById("botA");
+  const usrQ = document.getElementById("usrQ");
+  if(!state.feature){
+    botA.className = "bot-a empty";
+    botA.textContent = "← 先選一個特徵。";
+    usrQ.style.display="none";
+    return;
+  }
+  if(!state.prompt){
+    botA.className = "bot-a empty";
+    botA.textContent = "↑ 選一個問題，或自己打一個，模型就會回應。";
+    usrQ.style.display="none";
+    return;
+  }
+  usrQ.style.display="block";
+  usrQ.textContent = state.prompt;
+  botA.className = "bot-a anim";
+  botA.textContent = generate();
+  // re-trigger animation
+  void botA.offsetWidth;
+  botA.classList.add("anim");
+
+  // reflection
+  const rp = document.getElementById("reflectPanel");
+  if(REFLECT[lv.key]){
+    rp.style.display="block";
+    document.getElementById("reflectText").innerHTML = REFLECT[lv.key];
+  } else {
+    rp.style.display="none";
+  }
+}
+</script>
+</body>
+</html>
