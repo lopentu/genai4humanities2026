@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>中文 Tokenization 公平性探索器 | GenAI for Humanities · Session 9</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Serif+TC:wght@700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <style>
+    /* zh-tokenizer page styles — self-contained. */
+    .ztk {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+      font-family: 'Inter', 'Noto Serif TC', sans-serif;
+    }
+    .ztk-hero h1 {
+      font-family: 'Noto Serif TC', serif;
+      margin-bottom: 0.25rem;
+    }
+    .ztk-hero .subtitle {
+      color: var(--muted, #888);
+      font-size: 0.9rem;
+      margin: 0 0 1rem;
+    }
+    .ztk-hero .lead {
+      font-size: 1.05rem;
+      line-height: 1.6;
+      max-width: 56rem;
+    }
+    .ztk-hero .note {
+      font-size: 0.85rem;
+      color: #555;
+      background: #f8f5ea;
+      padding: 0.6rem 0.8rem;
+      border-left: 3px solid #c0a060;
+      border-radius: 3px;
+      margin-top: 1rem;
+      max-width: 56rem;
+    }
+    .ztk-controls {
+      margin: 2rem 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .ztk-mode-toggle button {
+      padding: 0.5rem 1rem;
+      margin-right: 0.5rem;
+      border: 1px solid #ccc;
+      background: white;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .ztk-mode-toggle button.active {
+      background: #2d3142;
+      color: white;
+      border-color: #2d3142;
+    }
+    .ztk-preset-controls label,
+    .ztk-preset-controls select { font-size: 1rem; }
+    .ztk-preset-controls select {
+      padding: 0.4rem 0.6rem;
+      margin: 0 0.6rem 0 0.4rem;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+    }
+    .ztk-custom-controls {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+    .ztk-custom-controls textarea {
+      width: 100%;
+      font-family: 'Noto Serif TC', serif;
+      font-size: 1rem;
+      padding: 0.6rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .hidden { display: none !important; }
+    .ztk-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+      margin-top: 1.5rem;
+    }
+    .ztk-card {
+      background: #fafaf7;
+      border: 1px solid #e3e1d8;
+      border-radius: 6px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .ztk-card h2 {
+      margin: 0;
+      font-family: 'Noto Serif TC', serif;
+      font-size: 1.2rem;
+      border-bottom: 2px solid #2d3142;
+      padding-bottom: 0.35rem;
+    }
+    .ztk-source {
+      font-family: 'Noto Serif TC', serif;
+      font-size: 1.05rem;
+      line-height: 1.7;
+      background: white;
+      padding: 0.6rem 0.8rem;
+      border-radius: 4px;
+      min-height: 2.5em;
+    }
+    .ztk-block h3 {
+      margin: 0 0 0.4rem;
+      font-size: 0.9rem;
+      color: #444;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .ztk-block .enc-sub {
+      color: #888;
+      font-weight: normal;
+      margin-left: 0.4rem;
+    }
+    .ztk-chips {
+      font-family: 'JetBrains Mono', monospace;
+      line-height: 2.1;
+      font-size: 0.95rem;
+      min-height: 2.1em;
+    }
+    .tok {
+      display: inline-block;
+      padding: 0.05em 0.3em;
+      margin: 0 1px;
+      border-radius: 3px;
+      color: #222;
+    }
+    .tok-ws { color: #888; font-style: italic; }
+    .tok-empty { color: #aaa; }
+    .tok-bytes { color: #b56; font-size: 0.75em; opacity: 0.85; }
+    .ztk-metrics {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      color: #333;
+      margin-top: 0.5rem;
+      line-height: 1.7;
+    }
+    .ztk-metrics .label { color: #777; }
+    .ztk-metrics .baseline { color: #2a7; font-weight: bold; }
+    .ztk-metrics .tax-positive { color: #c63; font-weight: bold; }
+    .ztk-summary {
+      margin-top: 2.5rem;
+      padding: 1.25rem;
+      background: #f5f3ec;
+      border-radius: 6px;
+    }
+    .ztk-summary h2 { margin-top: 0; font-family: 'Noto Serif TC', serif; }
+    .ztk-summary-table { width: auto; border-collapse: collapse; margin-top: 0.5rem; }
+    .ztk-summary-table th,
+    .ztk-summary-table td { padding: 0.4rem 1rem; text-align: left; font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; }
+    .ztk-summary-table th { border-bottom: 1px solid #c0a060; color: #555; }
+    .ztk-status {
+      position: fixed;
+      bottom: 1rem;
+      right: 1rem;
+      padding: 0.4rem 0.8rem;
+      background: rgba(45, 49, 66, 0.92);
+      color: white;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+    .ztk-status.visible { opacity: 1; }
+    .ztk-status.error { background: #b33; }
+    @media (max-width: 1023px) and (min-width: 768px) {
+      .ztk { padding: 1.25rem; }
+      .ztk-card { padding: 0.75rem; gap: 0.75rem; }
+      .ztk-card h2 { font-size: 1.05rem; }
+      .ztk-source { font-size: 0.95rem; }
+      .ztk-block h3 { font-size: 0.8rem; }
+      .ztk-chips { font-size: 0.85rem; line-height: 1.95; }
+      .ztk-metrics { font-size: 0.78rem; }
+    }
+    @media (max-width: 767px) {
+      .ztk-grid { grid-template-columns: 1fr; }
+      .ztk-custom-controls { grid-template-columns: 1fr; }
+      .ztk { padding: 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <main id="app" class="ztk">
+    <header class="ztk-hero">
+      <h1>中文 Tokenization 公平性探索器</h1>
+      <p class="subtitle">Chinese Tokenization Fairness Explorer</p>
+      <p class="lead">
+        同樣語義的內容，寫成台灣繁體、中國簡體、香港繁體三種變體後，
+        被現代 LLM 的 BPE tokenizer 切分出的 token 數可能不同。
+        這意味著相同的 API 費用、不同語言變體拿到的 context window 也不同，
+        這種隱性差異也算是某種「方言稅 / variant tax」。
+      </p>
+      <p class="note">
+        ⓘ HK 變體採「香港書面中文」（傳統字 + 港式詞彙如「的士／薯仔」），
+        不混入粵語書面化（如「我哋／冇／畀」），以聚焦詞彙差異。
+      </p>
+    </header>
+
+    <section class="ztk-controls">
+      <div class="ztk-mode-toggle" role="tablist">
+        <button id="mode-preset" class="active" role="tab">📚 預設語料</button>
+        <button id="mode-custom" role="tab">✏️ 自訂模式</button>
+      </div>
+
+      <div id="preset-controls" class="ztk-preset-controls">
+        <label>類別：
+          <select id="category-select"></select>
+        </label>
+        <label>例句：
+          <select id="example-select"></select>
+        </label>
+      </div>
+
+      <div id="custom-controls" class="ztk-custom-controls hidden">
+        <textarea id="custom-tw" placeholder="台灣繁體" rows="3"></textarea>
+        <textarea id="custom-cn" placeholder="中國簡體" rows="3"></textarea>
+        <textarea id="custom-hk" placeholder="香港繁體" rows="3"></textarea>
+      </div>
+    </section>
+
+    <section id="variant-grid" class="ztk-grid">
+      <article class="ztk-card" data-variant="tw">
+        <h2>台灣繁體</h2>
+        <div class="ztk-source"></div>
+        <div class="ztk-block" data-enc="cl100k_base">
+          <h3>cl100k_base <span class="enc-sub">GPT-4</span></h3>
+          <div class="ztk-chips"></div>
+          <div class="ztk-metrics"></div>
+        </div>
+        <div class="ztk-block" data-enc="o200k_base">
+          <h3>o200k_base <span class="enc-sub">GPT-4o</span></h3>
+          <div class="ztk-chips"></div>
+          <div class="ztk-metrics"></div>
+        </div>
+      </article>
+      <article class="ztk-card" data-variant="cn">
+        <h2>中國簡體</h2>
+        <div class="ztk-source"></div>
+        <div class="ztk-block" data-enc="cl100k_base">
+          <h3>cl100k_base <span class="enc-sub">GPT-4</span></h3>
+          <div class="ztk-chips"></div>
+          <div class="ztk-metrics"></div>
+        </div>
+        <div class="ztk-block" data-enc="o200k_base">
+          <h3>o200k_base <span class="enc-sub">GPT-4o</span></h3>
+          <div class="ztk-chips"></div>
+          <div class="ztk-metrics"></div>
+        </div>
+      </article>
+      <article class="ztk-card" data-variant="hk">
+        <h2>香港繁體</h2>
+        <div class="ztk-source"></div>
+        <div class="ztk-block" data-enc="cl100k_base">
+          <h3>cl100k_base <span class="enc-sub">GPT-4</span></h3>
+          <div class="ztk-chips"></div>
+          <div class="ztk-metrics"></div>
+        </div>
+        <div class="ztk-block" data-enc="o200k_base">
+          <h3>o200k_base <span class="enc-sub">GPT-4o</span></h3>
+          <div class="ztk-chips"></div>
+          <div class="ztk-metrics"></div>
+        </div>
+      </article>
+    </section>
+
+    <section id="category-summary" class="ztk-summary">
+      <h2>類別累積統計</h2>
+      <div id="summary-body"></div>
+    </section>
+
+    <div id="status-bar" class="ztk-status"></div>
+  </main>
+
+  <script type="module">
+    // ===== stats =====
+    const CJK_RE = /[一-鿿㐀-䶿]/g;
+    function countCJK(text) {
+      if (!text) return 0;
+      return (text.match(CJK_RE) || []).length;
+    }
+    function tokensPerChar(tokens, chars) {
+      if (chars === 0) return 0;
+      return tokens / chars;
+    }
+    function computeVariantTax(counts) {
+      const order = ['tw', 'cn', 'hk'];
+      let baseline = order[0];
+      let min = counts[baseline];
+      for (const v of order.slice(1)) {
+        if (counts[v] < min) { min = counts[v]; baseline = v; }
+      }
+      const tax = {};
+      for (const v of order) {
+        if (min === 0) tax[v] = 0;
+        else tax[v] = Math.round(((counts[v] - min) / min) * 1000) / 10;
+      }
+      return { baseline, tax };
+    }
+
+    // ===== corpus =====
+    const CATEGORIES = [
+      {
+        id: 'tech',
+        name: '科技詞彙',
+        rationale: 'BPE 對新造詞最敏感，三地詞彙分歧最大',
+        examples: [
+          { tw: '這個軟體最近更新了介面設計。', cn: '这个软件最近更新了界面设计。', hk: '這個軟件最近更新了介面設計。', gloss_en: 'This software recently updated its interface design.' },
+          { tw: '請上傳一段三十秒的影片。', cn: '请上传一段三十秒的视频。', hk: '請上載一段三十秒的影片。', gloss_en: 'Please upload a 30-second video.' },
+          { tw: '我需要把這份報告列印出來。', cn: '我需要把这份报告打印出来。', hk: '我需要把這份報告打印出來。', gloss_en: 'I need to print out this report.' },
+          { tw: '滑鼠右鍵點一下就會出現選單。', cn: '鼠标右键点一下就会出现菜单。', hk: '滑鼠右鍵點一下就會出現選單。', gloss_en: 'Right-click the mouse and a menu will appear.' },
+          { tw: '這個程式有一個小錯誤。', cn: '这个程序有一个小错误。', hk: '這個程式有一個小錯誤。', gloss_en: 'This program has a small bug.' },
+        ],
+      },
+      {
+        id: 'daily',
+        name: '交通／日常物件',
+        rationale: '三地分歧最大的具體名詞；HK 詞彙獨特性最明顯',
+        examples: [
+          { tw: '我要叫一輛計程車去機場。', cn: '我要叫一辆出租车去机场。', hk: '我要叫一輛的士去機場。', gloss_en: "I'm going to take a taxi to the airport." },
+          { tw: '夏天最喜歡吃鳳梨。', cn: '夏天最喜欢吃菠萝。', hk: '夏天最喜歡吃菠蘿。', gloss_en: 'My favorite summer fruit is pineapple.' },
+          { tw: '晚餐想煮馬鈴薯燉肉。', cn: '晚餐想煮土豆炖肉。', hk: '晚餐想煮薯仔燉肉。', gloss_en: 'For dinner I want to make potato stew.' },
+          { tw: '搭捷運大約二十分鐘可以到。', cn: '坐地铁大约二十分钟可以到。', hk: '搭港鐵大約二十分鐘可以到。', gloss_en: 'It takes about 20 minutes by subway/MTR.' },
+          { tw: '轉角的便利商店有賣。', cn: '拐角的便利店有卖。', hk: '轉角的便利店有賣。', gloss_en: 'The convenience store on the corner sells it.' },
+        ],
+      },
+      {
+        id: 'news',
+        name: '新聞／正式語體',
+        rationale: '對照組：三地差異最小，驗證即便句構相近 token 數是否仍有差異',
+        examples: [
+          { tw: '政府今日宣布新的環保政策。', cn: '政府今日宣布新的环保政策。', hk: '政府今日宣布新的環保政策。', gloss_en: 'The government today announced new environmental policies.' },
+          { tw: '教育部公布最新的入學率統計。', cn: '教育部公布最新的入学率统计。', hk: '教育局公布最新的入學率統計。', gloss_en: 'The education authority released the latest enrollment statistics.' },
+          { tw: '總統在記者會上發表重要談話。', cn: '主席在记者会上发表重要谈话。', hk: '特首在記者會上發表重要講話。', gloss_en: 'The head of state delivered an important speech at the press conference.' },
+          { tw: '新冠疫情期間口罩供應穩定。', cn: '新冠疫情期间口罩供应稳定。', hk: '新冠疫情期間口罩供應穩定。', gloss_en: 'Mask supply was stable during the COVID-19 pandemic.' },
+          { tw: '人工智慧的發展引發各界討論。', cn: '人工智能的发展引发各界讨论。', hk: '人工智能的發展引發各界討論。', gloss_en: 'The development of AI has sparked widespread discussion.' },
+        ],
+      },
+    ];
+    const VARIANTS = [
+      { id: 'tw', label: '台灣繁體', short: 'TW' },
+      { id: 'cn', label: '中國簡體', short: 'CN' },
+      { id: 'hk', label: '香港繁體', short: 'HK' },
+    ];
+
+    // ===== tokenizer (lazy-loads js-tiktoken from esm.sh) =====
+    const TIKTOKEN_URL = 'https://esm.sh/js-tiktoken@1.0.15';
+    let _modulePromise = null;
+    const _encoderCache = {};
+    async function loadModule() {
+      if (!_modulePromise) _modulePromise = import(TIKTOKEN_URL);
+      return _modulePromise;
+    }
+    async function getEncoder(encodingName) {
+      if (_encoderCache[encodingName]) return _encoderCache[encodingName];
+      const mod = await loadModule();
+      const enc = mod.getEncoding(encodingName);
+      _encoderCache[encodingName] = enc;
+      return enc;
+    }
+    async function tokenize(text, encodingName) {
+      const enc = await getEncoder(encodingName);
+      const tokens = enc.encode(text);
+      const pieces = tokens.map(t => enc.decode([t]));
+      return { tokens, pieces };
+    }
+    const ENCODINGS = [
+      { id: 'cl100k_base', label: 'cl100k_base', model: 'GPT-4 / GPT-3.5' },
+      { id: 'o200k_base', label: 'o200k_base', model: 'GPT-4o' },
+    ];
+
+    // ===== render =====
+    const COLORS = ['#FFD6A5','#FDFFB6','#CAFFBF','#9BF6FF','#A0C4FF','#BDB2FF','#FFC6FF','#FFADAD'];
+    function renderTokenChips(container, { tokens, pieces }) {
+      container.replaceChildren();
+      for (let i = 0; i < tokens.length; i++) {
+        const span = document.createElement('span');
+        span.className = 'tok';
+        span.style.backgroundColor = COLORS[i % COLORS.length];
+        span.dataset.tokenId = String(tokens[i]);
+        const piece = pieces[i];
+        if (piece === '') {
+          span.textContent = '∅';
+          span.classList.add('tok-empty');
+          span.title = `id: ${tokens[i]}`;
+        } else if (piece.includes('�')) {
+          // BPE split a multi-byte char into byte-level tokens. Show id instead.
+          span.textContent = `⟨${tokens[i]}⟩`;
+          span.classList.add('tok-bytes');
+          span.title = `id: ${tokens[i]} — byte fragment (multi-byte char split by BPE)`;
+        } else if (/^\s+$/.test(piece)) {
+          span.textContent = piece.replace(/ /g, '·').replace(/\n/g, '↵');
+          span.classList.add('tok-ws');
+          span.title = `id: ${tokens[i]}`;
+        } else {
+          span.textContent = piece;
+          span.title = `id: ${tokens[i]}`;
+        }
+        container.appendChild(span);
+      }
+    }
+
+    // ===== app (DOM wiring) =====
+    const $ = (sel, root = document) => root.querySelector(sel);
+
+    const categorySelect = $('#category-select');
+    const exampleSelect = $('#example-select');
+    const presetControls = $('#preset-controls');
+    const customControls = $('#custom-controls');
+    const modePresetBtn = $('#mode-preset');
+    const modeCustomBtn = $('#mode-custom');
+    const statusBar = $('#status-bar');
+    const summaryBody = $('#summary-body');
+
+    function showStatus(msg, isError = false) {
+      statusBar.textContent = msg;
+      statusBar.classList.add('visible');
+      statusBar.classList.toggle('error', isError);
+    }
+    function hideStatus() { statusBar.classList.remove('visible', 'error'); }
+
+    function populateCategorySelect() {
+      categorySelect.replaceChildren();
+      for (const c of CATEGORIES) {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = c.name;
+        categorySelect.appendChild(opt);
+      }
+    }
+    function populateExampleSelect(categoryId) {
+      const cat = CATEGORIES.find(c => c.id === categoryId);
+      exampleSelect.replaceChildren();
+      cat.examples.forEach((ex, i) => {
+        const opt = document.createElement('option');
+        opt.value = String(i);
+        const label = ex.tw.length > 18 ? ex.tw.slice(0, 16) + '…' : ex.tw;
+        opt.textContent = `${i + 1}. ${label}`;
+        exampleSelect.appendChild(opt);
+      });
+    }
+
+    async function processTexts(texts) {
+      const result = {};
+      for (const v of VARIANTS) {
+        const text = texts[v.id] || '';
+        result[v.id] = { chars: countCJK(text), cl100k_base: null, o200k_base: null };
+      }
+      const tasks = [];
+      for (const v of VARIANTS) {
+        for (const e of ENCODINGS) {
+          tasks.push(tokenize(texts[v.id] || '', e.id).then(r => { result[v.id][e.id] = r; }));
+        }
+      }
+      await Promise.all(tasks);
+      return result;
+    }
+
+    function renderResults(texts, results) {
+      const taxByEnc = {};
+      for (const e of ENCODINGS) {
+        const counts = {};
+        for (const v of VARIANTS) counts[v.id] = results[v.id][e.id]?.tokens.length ?? 0;
+        taxByEnc[e.id] = computeVariantTax(counts);
+      }
+      for (const v of VARIANTS) {
+        const card = $(`.ztk-card[data-variant="${v.id}"]`);
+        $('.ztk-source', card).textContent = texts[v.id] || '（未輸入）';
+        const chars = results[v.id].chars;
+        for (const e of ENCODINGS) {
+          const block = $(`.ztk-block[data-enc="${e.id}"]`, card);
+          const chipsEl = $('.ztk-chips', block);
+          const metricsEl = $('.ztk-metrics', block);
+          const tokRes = results[v.id][e.id];
+          if (tokRes) {
+            renderTokenChips(chipsEl, tokRes);
+            const nTok = tokRes.tokens.length;
+            const tpc = tokensPerChar(nTok, chars).toFixed(2);
+            const taxInfo = taxByEnc[e.id];
+            const isBaseline = taxInfo.baseline === v.id;
+            const tax = taxInfo.tax[v.id];
+            metricsEl.innerHTML = `
+              <span class="label">Tokens:</span> <strong>${nTok}</strong>
+              <span class="label">Tokens/字:</span> ${tpc}
+              ${isBaseline
+                ? '<span class="baseline">★ baseline</span>'
+                : `<span class="label">方言稅:</span> <span class="tax-positive">+${tax}%</span>`}
+            `;
+          } else {
+            chipsEl.replaceChildren();
+            metricsEl.textContent = '（無資料）';
+          }
+        }
+      }
+    }
+
+    async function renderCategorySummary(categoryId) {
+      summaryBody.textContent = '計算中…';
+      const cat = CATEGORIES.find(c => c.id === categoryId);
+      const accum = {};
+      for (const e of ENCODINGS) accum[e.id] = { tw: 0, cn: 0, hk: 0, n: 0 };
+      for (const ex of cat.examples) {
+        const res = await processTexts(ex);
+        for (const e of ENCODINGS) {
+          const counts = {};
+          for (const v of VARIANTS) counts[v.id] = res[v.id][e.id].tokens.length;
+          const { tax } = computeVariantTax(counts);
+          for (const v of VARIANTS) accum[e.id][v.id] += tax[v.id];
+          accum[e.id].n++;
+        }
+      }
+      const rows = ENCODINGS.map(e => {
+        const a = accum[e.id];
+        return `<tr>
+          <td>${e.label}</td>
+          <td>+${(a.tw / a.n).toFixed(1)}%</td>
+          <td>+${(a.cn / a.n).toFixed(1)}%</td>
+          <td>+${(a.hk / a.n).toFixed(1)}%</td>
+        </tr>`;
+      }).join('');
+      summaryBody.innerHTML = `
+        <p>本類別 ${cat.examples.length} 句的平均方言稅（相對於各句的 baseline）：</p>
+        <table class="ztk-summary-table">
+          <thead><tr><th>Tokenizer</th><th>TW</th><th>CN</th><th>HK</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+    }
+
+    async function handleExampleChange() {
+      const catId = categorySelect.value;
+      const idx = parseInt(exampleSelect.value, 10);
+      const cat = CATEGORIES.find(c => c.id === catId);
+      const ex = cat.examples[idx];
+      const texts = { tw: ex.tw, cn: ex.cn, hk: ex.hk };
+      showStatus('tokenizing…');
+      try {
+        const results = await processTexts(texts);
+        renderResults(texts, results);
+        hideStatus();
+      } catch (err) {
+        showStatus(`錯誤：${err.message}`, true);
+        console.error(err);
+      }
+    }
+    async function handleCategoryChange() {
+      populateExampleSelect(categorySelect.value);
+      await handleExampleChange();
+      renderCategorySummary(categorySelect.value);
+    }
+
+    function debounce(fn, ms) {
+      let timer = null;
+      return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), ms); };
+    }
+    async function handleCustomInput() {
+      const texts = {
+        tw: $('#custom-tw').value,
+        cn: $('#custom-cn').value,
+        hk: $('#custom-hk').value,
+      };
+      if (!texts.tw && !texts.cn && !texts.hk) {
+        for (const v of VARIANTS) {
+          const card = $(`.ztk-card[data-variant="${v.id}"]`);
+          $('.ztk-source', card).textContent = '（未輸入）';
+          for (const e of ENCODINGS) {
+            const block = $(`.ztk-block[data-enc="${e.id}"]`, card);
+            $('.ztk-chips', block).replaceChildren();
+            $('.ztk-metrics', block).textContent = '';
+          }
+        }
+        summaryBody.textContent = '（自訂模式下不適用）';
+        return;
+      }
+      showStatus('tokenizing…');
+      try {
+        const results = await processTexts(texts);
+        renderResults(texts, results);
+        hideStatus();
+      } catch (err) {
+        showStatus(`錯誤：${err.message}`, true);
+      }
+    }
+    const handleCustomInputDebounced = debounce(handleCustomInput, 250);
+
+    function switchMode(mode) {
+      modePresetBtn.classList.toggle('active', mode === 'preset');
+      modeCustomBtn.classList.toggle('active', mode === 'custom');
+      presetControls.classList.toggle('hidden', mode !== 'preset');
+      customControls.classList.toggle('hidden', mode !== 'custom');
+      if (mode === 'custom') {
+        handleCustomInput();
+      } else {
+        summaryBody.textContent = '';
+        handleExampleChange();
+        renderCategorySummary(categorySelect.value);
+      }
+    }
+
+    async function init() {
+      populateCategorySelect();
+      populateExampleSelect(CATEGORIES[0].id);
+      categorySelect.addEventListener('change', handleCategoryChange);
+      exampleSelect.addEventListener('change', handleExampleChange);
+      modePresetBtn.addEventListener('click', () => switchMode('preset'));
+      modeCustomBtn.addEventListener('click', () => switchMode('custom'));
+      for (const id of ['custom-tw', 'custom-cn', 'custom-hk']) {
+        $(`#${id}`).addEventListener('input', handleCustomInputDebounced);
+      }
+      showStatus('載入 tokenizer 中…');
+      await handleCategoryChange();
+    }
+    init().catch(err => {
+      showStatus(`初始化失敗：${err.message}`, true);
+      console.error(err);
+    });
+  </script>
+</body>
+</html>

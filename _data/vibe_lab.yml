@@ -110,3 +110,12 @@ sessions:
       - name: "金門大橋模型操控實驗遊戲"
         file: "golden-gate-steering-game.html"
         desc: "Steering Playground：親手調旋鈕，體驗模型「催眠」與可解釋性"
+
+  - id: session-9
+    title: "Session 9"
+    blurb: "中文 Tokenization 公平性：台陸港變體的「方言稅」探索"
+    subtitle: "BPE tokenizer 與語言變體差異互動"
+    items:
+      - name: "中文 Tokenization 公平性探索器"
+        file: "zh-tokenizer.html"
+        desc: "比較台灣繁體、中國簡體、香港繁體在同語義下的 token 切分與 API 隱性成本差異"
