@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>tokfair ｜ 分析程式碼與作業說明 · Session 9</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;700;900&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Source+Code+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#faf8f4;--paper:#fffefb;--ink:#1a1a1a;--ink2:#3a3a3a;--muted:#7a7a78;
+  --line:#d8d3c8;--accent:#9c3a2c;--accent2:#2c4a3e;--accent3:#b08a3e;--soft:#ede8de;
+  --script:#5a3a8a;--code-bg:#1f2622;--code-fg:#d8d0bd;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg);color:var(--ink);font-family:'Noto Serif TC',serif;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:28px 24px 80px}
+.banner{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:26px 30px;margin-bottom:22px;position:relative;overflow:hidden}
+.banner::before{content:'';position:absolute;top:0;left:0;width:100%;height:4px;background:linear-gradient(90deg,var(--accent),var(--accent3) 50%,var(--accent2))}
+.banner .course{font-family:'DM Sans',sans-serif;font-size:11px;letter-spacing:.25em;color:var(--muted);text-transform:uppercase;margin-bottom:9px}
+.banner h1{font-weight:900;font-size:28px;margin-bottom:5px}
+.banner .sub{font-family:'DM Sans',sans-serif;font-style:italic;font-size:14px;color:var(--accent);margin-bottom:12px}
+.back{font-family:'DM Sans',sans-serif;font-size:13px;color:var(--muted);text-decoration:none;display:inline-block;margin-bottom:14px}
+.back:hover{color:var(--script)}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:22px 26px;margin-bottom:18px;box-shadow:0 4px 14px rgba(60,40,20,.03)}
+.card h2{font-weight:900;font-size:19px;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--soft)}
+p{color:var(--ink2);margin-bottom:11px}
+a{color:var(--accent)}
+table{border-collapse:collapse;width:100%;font-family:'DM Sans',sans-serif;font-size:13.5px;margin-top:8px}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:700;color:var(--muted);font-size:12px}
+td code{font-family:'Source Code Pro',monospace;font-size:12.5px}
+pre{background:var(--code-bg);color:var(--code-fg);font-family:'Source Code Pro',monospace;font-size:12.5px;
+  padding:14px 16px;border-radius:5px;overflow-x:auto;line-height:1.6;margin:10px 0}
+.result{font-family:'Source Code Pro',monospace;font-size:12.5px;background:var(--soft);
+  padding:12px 14px;border-radius:5px;overflow-x:auto;white-space:pre;line-height:1.7;color:var(--ink2)}
+.warn{background:#f8e8e0;border-left:4px solid var(--accent);padding:12px 16px;border-radius:0 5px 5px 0;margin:12px 0;font-size:14px}
+ul{margin:0 0 11px 1.2rem;color:var(--ink2)}
+li{margin:.25rem 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../../../practice/lab/session-9/">← 返回 Session 9</a>
+
+  <div class="banner">
+    <div class="course">Lab Session 9 · Analysis</div>
+    <h1>tokfair</h1>
+    <div class="sub">中文 tokenization 公平性研究平台的分析層</div>
+    <p style="margin:0;font-size:15px">
+      <a href="../zh-tokenizer.html">研究平台 v2</a> ·
+      <a href="assignment1.html">延伸練習規格</a> ·
+      <a href="../zh-tokenizer-v1.html">v1 探索器</a>
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>這裡放什麼</h2>
+    <p>研究平台頁面上的每一個數字都由這裡的程式碼產生；頁面本身不做任何計算，
+       所以展示與分析不會漂移。要質疑任何一個數字，直接看對應的檔案就好。</p>
+    <table>
+      <tr><th>檔案</th><th>作用</th></tr>
+      <tr><td><code>minitok.py</code></td><td>離線的 tiktoken 相容編碼器。讀 js-tiktoken 的 rank 表，不需連網</td></tr>
+      <tr><td><code>stimuli.py</code></td><td>刺激庫與 2×3 完全交叉設計。詞彙欄人工撰寫，字形欄用 OpenCC 生成</td></tr>
+      <tr><td><code>metrics.py</code></td><td>fertility、parity、byte-fallback rate、boundary F1、Rényi efficiency、成本換算</td></tr>
+      <tr><td><code>stats.py</code></td><td>配對 bootstrap、Wilcoxon 符號秩、rank-biserial、因子分解</td></tr>
+      <tr><td><code>vocab_audit.py</code></td><td>詞表考古：字形覆蓋不對稱、多字 token 的分布與內容</td></tr>
+      <tr><td><code>run_study.py</code></td><td>端到端執行，輸出 <code>data/study.json</code></td></tr>
+      <tr><td><code>build_web.py</code></td><td>把 study.json 注入頁面樣板，產生單一檔案的靜態頁</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>為什麼要重做 v1</h2>
+    <p>v1 比較「台灣繁體／中國簡體／香港繁體」三欄，把 token 數差異報成「方言稅」。
+       那個數字不可解釋，因為三欄同時變動兩個因子：</p>
+    <ul>
+      <li><b>字形</b>（繁／簡）—— 由 Unicode 碼位決定，是詞表<b>覆蓋率</b>問題</li>
+      <li><b>詞彙</b>（軟體／软件／軟件）—— 由合併表決定，是字串<b>頻率</b>問題</li>
+    </ul>
+    <p>拆開之後（37 個項目，項目內對比，配對 bootstrap 95% CI）：</p>
+    <div class="result">cl100k_base   字形 繁−簡   +3.14 tok [+2.28, +4.17]  p &lt; .001
+              詞彙 台−中   +0.36 tok [−0.09, +0.86]  p = .166
+              v1「方言稅」  +29.1%    [+18.4, +43.3]
+
+o200k_base    字形 繁−簡   +1.60 tok [+1.22, +2.02]  p &lt; .001
+              詞彙 港−中   +0.49 tok [+0.18, +0.80]  p = .008</div>
+    <p style="margin-top:11px"><b>那不是方言稅，是字形稅。</b>
+       o200k 把字形效果壓到一半之後，詞彙效果反而變得可偵測——字形的雜訊小了，訊號才浮出來。</p>
+  </div>
+
+  <div class="card">
+    <h2>跑起來</h2>
+<pre>git clone https://github.com/lopentu/genai4humanities2026
+cd genai4humanities2026/lab/session-9/tokfair
+
+pip install regex opencc-python-reimplemented jieba numpy scipy
+bash vendor_ranks.sh                 # 取得離線 BPE rank 表（約 3.4 MB，不入版控）
+python run_study.py                  # → data/study.json，並印出摘要
+python build_web.py --out ../zh-tokenizer.html</pre>
+    <p>先把課堂上的數字跑出來，確認環境正確，再開始改。
+       <code>stimuli.py</code> 的 docstring 說明了設計為什麼長這樣，
+       <code>metrics.py</code> 的 docstring 列出每個指標的文獻出處。</p>
+  </div>
+
+  <div class="card">
+    <h2>已知限制</h2>
+    <ul>
+      <li>詞彙欄為作者自撰而非語料抽樣，不能推論到「一般文本」。要做那個推論，
+          請改用維基百科 zh-tw／zh-cn／zh-hk 的自動轉換版本，或 FLORES-200 的
+          zho_Hant／zho_Hans 平行句對。</li>
+      <li>香港欄效度最弱。標記 <code>hk_confidence="low"</code> 的項目混入了書面粵語，
+          那是語法差異而非詞彙差異，會污染詞彙效果的估計。</li>
+      <li>只測兩個 OpenAI tokenizer。「誰訓練詞表」本身就是可測的變項（見作業 A1）。</li>
+      <li>token 數差異與下游表現差異是兩件事。這裡只量前者。</li>
+      <li><code>metrics.py</code> 中的價格與 context 長度是佔位值，引用前請更新。</li>
+    </ul>
+    <div class="warn">
+      文獻引用是憑記憶寫的，<b>尚未逐條查核</b>。寫進報告或投影片前請自行確認年份、會議與作者。
+    </div>
+  </div>
+</div>
+</body>
+</html>

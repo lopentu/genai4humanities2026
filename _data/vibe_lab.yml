@@ -113,9 +113,15 @@ sessions:
 
   - id: session-9
     title: "Session 9"
-    blurb: "中文 Tokenization 公平性：台陸港變體的「方言稅」探索"
-    subtitle: "BPE tokenizer 與語言變體差異互動"
+    blurb: "中文 Tokenization 公平性：把「方言稅」拆成字形與詞彙"
+    subtitle: "BPE tokenizer、語言變體，與研究設計"
     items:
-      - name: "中文 Tokenization 公平性探索器"
+      - name: "中文 Tokenization 公平性研究平台"
         file: "zh-tokenizer.html"
-        desc: "比較台灣繁體、中國簡體、香港繁體在同語義下的 token 切分與 API 隱性成本差異"
+        desc: "2×3 交叉設計拆開字形與詞彙效果、byte-fallback 機制、詞表考古與構式完整性檢驗"
+      - name: "分析程式碼與作業說明"
+        file: "tokfair/"
+        desc: "重現研究平台每一個數字的 Python 程式碼、指標定義，以及延伸練習規格"
+      - name: "v1 探索器（設計對照）"
+        file: "zh-tokenizer-v1.html"
+        desc: "保留的初版三欄比較。看它為什麼會把字形差異誤報成詞彙差異"

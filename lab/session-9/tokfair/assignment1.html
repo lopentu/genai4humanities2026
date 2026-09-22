@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>延伸練習：Tokenization Unfairness ｜ Session 9</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;700;900&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Source+Code+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#faf8f4;--paper:#fffefb;--ink:#1a1a1a;--ink2:#3a3a3a;--muted:#7a7a78;
+  --line:#d8d3c8;--accent:#9c3a2c;--accent2:#2c4a3e;--accent3:#b08a3e;--soft:#ede8de;
+  --script:#5a3a8a;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg);color:var(--ink);font-family:'Noto Serif TC',serif;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:28px 24px 80px}
+.banner{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:26px 30px;margin-bottom:22px;position:relative;overflow:hidden}
+.banner::before{content:'';position:absolute;top:0;left:0;width:100%;height:4px;background:linear-gradient(90deg,var(--accent),var(--accent3) 50%,var(--accent2))}
+.banner .course{font-family:'DM Sans',sans-serif;font-size:11px;letter-spacing:.25em;color:var(--muted);text-transform:uppercase;margin-bottom:9px}
+.banner h1{font-weight:900;font-size:28px;margin-bottom:5px}
+.banner .sub{font-family:'DM Sans',sans-serif;font-style:italic;font-size:14px;color:var(--accent);margin-bottom:12px}
+.back{font-family:'DM Sans',sans-serif;font-size:13px;color:var(--muted);text-decoration:none;display:inline-block;margin-bottom:14px}
+.back:hover{color:var(--script)}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:22px 26px;margin-bottom:18px;box-shadow:0 4px 14px rgba(60,40,20,.03)}
+.card h2{font-weight:900;font-size:19px;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--soft)}
+h3{font-size:16px;margin:16px 0 8px}
+p{color:var(--ink2);margin-bottom:11px}
+a{color:var(--accent)}
+table{border-collapse:collapse;width:100%;font-family:'DM Sans',sans-serif;font-size:13.5px;margin:8px 0 12px}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:700;color:var(--muted);font-size:12px}
+td code,p code,li code{font-family:'Source Code Pro',monospace;font-size:12.5px}
+pre{background:#1f2622;color:#d8d0bd;font-family:'Source Code Pro',monospace;font-size:12.5px;
+  padding:14px 16px;border-radius:5px;overflow-x:auto;line-height:1.6;margin:10px 0}
+.warn{background:#f8e8e0;border-left:4px solid var(--accent);padding:12px 16px;border-radius:0 5px 5px 0;margin:12px 0;font-size:14px}
+.note{background:var(--soft);border-left:4px solid var(--accent3);padding:12px 16px;border-radius:0 5px 5px 0;margin:12px 0;font-size:14px}
+ul,ol{margin:0 0 11px 1.2rem;color:var(--ink2)}
+li{margin:.25rem 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../../../practice/lab/session-9/">← 返回 Session 9</a>
+  <a class="back" href="index.html" style="margin-left:1rem">tokfair 說明</a>
+
+  <div class="banner">
+    <div class="course">Lab Session 9 · Extension</div>
+    <h1>Tokenization Unfairness</h1>
+    <div class="sub">延伸練習：把觀察做成可以爭論的主張</div>
+    <p style="margin:0;font-size:15px">生成式 AI 的人文導論 · 個人或兩人一組（兩人組請在報告首頁載明工作分配）。成績與繳交方式以 <a href="https://cool.ntu.edu.tw">NTU COOL</a> 公布為準。</p>
+  </div>
+
+  <div class="card">
+    <h2>這份練習要練的事</h2>
+    <p>一句「繁體中文比簡體中文多花 29% 的 token」是<strong>觀察</strong>，不是<strong>發現</strong>。把它變成發現，需要四件在這門課裡會反覆出現的東西：</p>
+    <ol>
+      <li><strong>把混淆的因子拆開。</strong> 29% 裡有多少來自字形、多少來自詞彙？兩者的成因與解法完全不同。</li>
+      <li><strong>指標要有分母、有基準線、有區間。</strong> 沒有區間的百分比無法判斷是否值得在意。</li>
+      <li><strong>抽樣框要能撐得起結論。</strong> 手寫十五句能支持什麼樣的推論？</li>
+      <li><strong>語言學論證要做事。</strong> 效果的<strong>方向</strong>通常可以從語言學預測；預測錯了，比預測對了更有資訊。</li>
+    </ol>
+    <p>研究平台（<a href="../zh-tokenizer.html">zh-tokenizer.html</a>）與分析程式碼（<a href="index.html">tokfair/</a>）是起點，不是終點。</p>
+  </div>
+
+  <div class="card">
+    <h2>兩條路徑，擇一</h2>
+
+    <h3>路徑 A ｜ 系統擴充</h3>
+    <p>提出一個新的想法，用程式把它實作進這個專案。<strong>評分看的不是程式量，而是你加的那個變項讓原本看不見的什麼東西變得可見。</strong></p>
+    <table>
+      <tr><th>#</th><th>題目</th><th>要回答的問題</th></tr>
+      <tr><td>A1</td><td>加入其他 tokenizer 家族：Llama-3、Qwen、Gemma、DeepSeek、XLM-R、bert-base-chinese</td><td>字形效果的大小是否隨「誰訓練詞表」而變？中文團隊訓練的詞表是否對繁體較友善？</td></tr>
+      <tr><td>A2</td><td>換掉抽樣框：維基百科 zh-tw／zh-cn／zh-hk，或 FLORES-200 的 zho_Hant／zho_Hans，n ≥ 500</td><td>手寫語料得到的效果量，在真實文本分布上還成立嗎？</td></tr>
+      <tr><td>A3</td><td>實作 CKIP 斷詞版的 fertility 與 boundary F1</td><td>tokenizer 與人類斷詞標準的一致率有多高？繁簡之間是否不同？</td></tr>
+      <tr><td>A4</td><td>詞表標註：抽樣 200 個多字漢字 token，兩位標註者分類並報 Cohen's κ</td><td>一個 BPE 詞表在語言學上是什麼樣的清單？</td></tr>
+      <tr><td>A5</td><td>加入台語漢字、客語漢字、族語羅馬字、注音、全形／半形等條件</td><td>「公平性」的邊界在哪裡？誰的書寫系統從來沒被計入？</td></tr>
+      <tr><td>A6</td><td>實作熵切分（BLT 式 dynamic patching）的小型復刻</td><td>動態切分是否比 BPE 更接近人類詞界？</td></tr>
+      <tr><td>A7</td><td>偵測訓練不足的 token（undertrained / glitch tokens）</td><td>詞表的哪一部分是被浪費掉的？</td></tr>
+    </table>
+    <p><strong>繳交物</strong>：pull request 或 repo fork（含可執行的 <code>run_study.py</code> 路徑）＋ 3–5 頁說明文件。須包含：動機、實作的變項、結果，以及<strong>你的擴充推翻或修正了原本的哪一個說法</strong>。</p>
+
+    <h3>路徑 B ｜ 評量報告</h3>
+    <p>使用現有系統（可小幅修改輸入），設計並執行一項評量。<strong>評分看的不是效果有多大，而是你的效果不能是設計的副產品。</strong></p>
+    <table>
+      <tr><th>#</th><th>題目</th><th>假設範例</th></tr>
+      <tr><td>B1</td><td>罕見句式／語體：文言文、法律、學術中文、注音文、火星文</td><td>語體愈偏離網路白話，tokens/字 愈高；繁簡差距在文言文中縮小</td></tr>
+      <tr><td>B2</td><td>外來詞：音譯 vs 意譯（雷射／激光、維他命／维生素）</td><td>意譯詞由常用語素組成，應比音譯詞省 token</td></tr>
+      <tr><td>B3</td><td>專名與譯名：川普／特朗普、雪梨／悉尼、梵谷／梵高</td><td>譯名的 token 成本反映該譯名在訓練語料中的頻率</td></tr>
+      <tr><td>B4</td><td>領域混排：中英夾雜、程式碼與中文註解</td><td>語言切換點會產生額外的 token 邊界成本</td></tr>
+      <tr><td>B5</td><td>標點與排版：全形／半形、直書引號、數字書寫</td><td>排版慣例的地域差異本身就是一種稅</td></tr>
+      <tr><td>B6</td><td>歷時比較：《紅樓夢》vs 現代白話 vs 2020s 網路中文</td><td>詞表是近年網路語料的快照，愈接近該分布愈省</td></tr>
+      <tr><td>B7</td><td>構式完整性：成語、越 X 越 Y、離合詞、重疊式</td><td>BPE 對固化程度不敏感，只對字串頻率敏感</td></tr>
+    </table>
+    <p><strong>繳交物</strong>：4–6 頁報告 ＋ 可重現的 notebook 或 script。</p>
+  </div>
+
+  <div class="card">
+    <h2>兩條路徑共同的最低要求</h2>
+    <ol>
+      <li><strong>研究問題與假設</strong>：至少一個具方向性的假設，以及它為什麼是語言學上合理的預測。</li>
+      <li><strong>設計</strong>：說明你控制了什麼、沒控制什麼。若比較同時變動兩個因子，請說明為什麼可以接受。</li>
+      <li><strong>抽樣框與 datasheet</strong>：語料從哪裡來、怎麼選的、n 是多少、有什麼已知偏誤。</li>
+      <li><strong>指標定義</strong>：每個指標寫出公式或程式碼，並說明分母是什麼。</li>
+      <li><strong>不確定性</strong>：所有效果須附 95% 區間。<strong>只報百分比而無區間者不予計分。</strong></li>
+      <li><strong>至少一個 null 結果或反例</strong>：你預測會有效果但沒有的地方，或與假設相反的個案。</li>
+      <li><strong>限制</strong>：你的結論<strong>不能</strong>推論到什麼。</li>
+      <li><strong>LLM 使用聲明</strong>：你用了哪些模型做了什麼。使用不扣分，不聲明扣分。</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>評分標準（100 分）</h2>
+    <table>
+      <tr><th>面向</th><th>配分</th><th>好的樣子</th></tr>
+      <tr><td>問題與假設</td><td>20</td><td>假設有方向、可被推翻，且理由來自語言學而非直覺</td></tr>
+      <tr><td>設計與控制</td><td>25</td><td>因子分離乾淨；控制條件說得出理由；知道設計會產生什麼假效果</td></tr>
+      <tr><td>測量與統計</td><td>25</td><td>指標定義清楚；分析單位正確（項目內對比）；區間與效果量齊備</td></tr>
+      <tr><td>詮釋與語言學論證</td><td>20</td><td>從數字回到語言學問題；能說明機制而不只是相關</td></tr>
+      <tr><td>可重現性</td><td>10</td><td>別人跑得起來；隨機種子、版本、資料來源齊備</td></tr>
+    </table>
+    <p><strong>加分（最多 +5）</strong>：發現並記錄研究平台本身的錯誤、或提出一個我們沒想到但可測的反例。</p>
+  </div>
+
+  <div class="card">
+    <h2>常見的失分方式</h2>
+    <ul>
+      <li>只把 token 數畫成長條圖，沒有基準線與區間。</li>
+      <li>用 OpenCC 的 <code>s2twp</code> 做字形轉換——那個設定會<strong>同時</strong>轉換詞彙，等於把想分離的兩個因子又黏回去。請用 <code>s2t</code> / <code>t2s</code>。</li>
+      <li>拿不平行的語料比較「語義等價」的句子。翻譯品質的差異會被誤讀成 tokenizer 的差異。</li>
+      <li>把「token 數較多」直接說成「表現較差」。那是兩個不同的主張，後者需要下游實驗。</li>
+      <li>香港欄混入書面粵語。那是語法差異，不是詞彙差異，會污染詞彙效果的估計。</li>
+    </ul>
+    <div class="warn">
+      研究平台裡標記 <code>hk_confidence="low"</code> 的構式題目前混了書面粵語（我哋／冇／畀）。
+      那是已知限制，不是範本。作業若沿用香港欄，請先改成香港書面中文，或把它當成單獨的語法條件並說清楚。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>起步</h2>
+<pre>git clone https://github.com/lopentu/genai4humanities2026
+cd genai4humanities2026/lab/session-9/tokfair
+pip install regex opencc-python-reimplemented jieba numpy scipy
+bash vendor_ranks.sh
+python run_study.py
+python build_web.py --out ../zh-tokenizer.html</pre>
+    <p>先把課堂數字跑出來，確認環境正確，再開始改。
+       <code>stimuli.py</code> 的 docstring 說明了設計為什麼長這樣；
+       <code>metrics.py</code> 的 docstring 列出每個指標的文獻出處（請自行查核，那些引用是憑記憶寫的）。</p>
+    <div class="note">原始 Markdown 規格也留在同目錄的 <a href="assignment1-tokenization-unfairness.md">assignment1-tokenization-unfairness.md</a>。</div>
+  </div>
+</div>
+</body>
+</html>
