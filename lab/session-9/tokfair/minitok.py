@@ -7,7 +7,8 @@ use.  In a locked-down classroom / CI environment that call fails.  The npm
 package `js-tiktoken` ships the *same* rank tables as plain files, so we parse
 those instead and re-implement the (very short) encoding algorithm.
 
-Anything produced here is byte-identical to `tiktoken.get_encoding(name)`.
+Ordinary text is checked against official tiktoken in validate.py. Special-token
+strings are handled as ordinary text here; this is not the full tiktoken API.
 
 Usage
 -----
@@ -110,7 +111,7 @@ class MiniTok:
         if piece in self.ranks:
             out = (self.ranks[piece],)
         else:
-            out = tuple(self.ranks[p] for p in self._merge(piece) if p in self.ranks)
+            out = tuple(self.ranks[p] for p in self._merge(piece))
         self._cache[piece] = out
         return out
 
@@ -135,11 +136,9 @@ class MiniTok:
         """One surface string per token (invalid UTF-8 shown with U+FFFD)."""
         return [self._inv[i].decode("utf-8", errors="replace") for i in self.encode(text)]
 
-    def is_byte_fallback(self, tid: int) -> bool:
-        """True if this token id is not a valid standalone UTF-8 string.
-
-        A CJK character that the vocabulary does not cover is emitted as 2-3
-        raw UTF-8 byte tokens; each of those is a byte-fallback token.
+    def is_utf8_fragment(self, tid: int) -> bool:
+        """Token bytes do not form a valid standalone UTF-8 string.
+        This observation does not prove absence of a character vocabulary entry.
         """
         try:
             self._inv[tid].decode("utf-8")

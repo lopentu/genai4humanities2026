@@ -1,0 +1,8 @@
+# Validated with Python 3.11.9; use Python >=3.11.
+regex==2026.9.29
+opencc-python-reimplemented==0.1.7
+jieba==0.42.1
+numpy==2.4.6
+scipy==1.17.1
+tiktoken==0.14.0
+Markdown==3.11

@@ -1,0 +1,23 @@
+{
+  "url": "local HTTP preview",
+  "checks": [
+    {
+      "scope_encoder_category_combinations": 60
+    },
+    "negative interval endpoints retain signed coordinates",
+    "control scope and hypothetical cost edge cases",
+    "CSV 116 selected cells and complete JSON downloads",
+    {
+      "browser_vs_python_token_evidence_cells": 444
+    },
+    "live Unicode, literal replacement/special strings, HTML text and empty inputs",
+    "embedded analyses remain interactive without network",
+    "390px and 768px viewport; 2x2 and 2x3 no page overflow",
+    "lazy tokenizer failure leaves analyses available and offers retry"
+  ],
+  "browser_errors": [],
+  "status": "passed",
+  "tested_page_sha256": "077881ec93fcf20a96bf161480550d5a6042b8e752278b41435ecc019f44d939",
+  "tested_on": "2026-10-07",
+  "status_scope": "local browser; public deployment checked after publishing"
+}

@@ -1,646 +1,73 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>中文 Tokenization 公平性研究平台 | GenAI for Humanities · Session 9</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;700;900&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Source+Code+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>中文 Tokenization 實驗工作台 v3</title>
 <style>
-:root{
-  /* shared with the other lab pages in this repo */
-  --paper:#faf8f4; --panel:#fffefb; --ink:#1a1a1a; --ink-2:#3a3a3a; --ink-3:#7a7a78;
-  --rule:#d8d3c8; --soft:#ede8de; --code-bg:#1f2622; --code-fg:#d8d0bd;
-  /* colours here encode variables, not decoration */
-  --script:#5a3a8a;      /* 字形效果 */
-  --lexicon:#b08a3e;     /* 詞彙效果 */
-  --fallback:#9c3a2c;    /* byte fallback */
-  --ok:#2c4a3e;
-  --sans:'DM Sans','Noto Sans TC',system-ui,sans-serif;
-  --serif:'Noto Serif TC',Georgia,serif;
-  --mono:'Source Code Pro',ui-monospace,monospace;
-  box-sizing:border-box;
-  padding-top:env(safe-area-inset-top,0px);
-  padding-bottom:env(safe-area-inset-bottom,0px);
-}
-*,*::before,*::after{box-sizing:inherit}
-html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 3.5rem)}
-body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--serif);
-     font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
-.wrap{max-width:74rem;margin:0 auto;padding:0 1.5rem}
-h1,h2,h3{font-family:var(--serif);font-weight:900;letter-spacing:.01em}
-h2{font-size:1.45rem;margin:0 0 .35rem}
-h3{font-size:1.05rem;margin:1.5rem 0 .5rem}
-p{max-width:52rem}
-a{color:var(--script)}
-code,.mono{font-family:var(--mono)}
-.sub{color:var(--ink-3);font-size:.85rem}
-.lede{font-size:1.05rem;color:var(--ink-2);max-width:46rem}
-.howto{margin:1.75rem 0 0;padding:1rem 1.2rem;background:var(--soft);border-radius:5px;
-  max-width:46rem;font-size:.9rem;color:var(--ink-2)}
-.howto b{color:var(--ink)}
-.howto ol{margin:.5rem 0 0;padding-left:1.2rem}
-.howto li{margin:.3rem 0}
-
-/* ---------- hero ---------- */
-.hero{position:relative;border-bottom:1px solid var(--rule);padding:2.5rem 0 2rem;background:var(--panel);overflow:hidden}
-.hero::before{content:'';position:absolute;top:0;left:0;width:100%;height:4px;
-  background:linear-gradient(90deg,var(--fallback),var(--lexicon) 50%,var(--ok))}
-.backlink{font-family:var(--sans);font-size:.82rem;color:var(--ink-3);text-decoration:none;display:inline-block;margin-bottom:1rem}
-.backlink:hover{color:var(--script)}
-.hero h1{font-size:clamp(1.7rem,4vw,2.5rem);margin:0 0 .2rem;line-height:1.25}
-.hero .kicker{font-family:var(--sans);font-size:.7rem;letter-spacing:.25em;text-transform:uppercase;
-  color:var(--ink-3);margin:0 0 .6rem}
-.claim{font-family:var(--serif);font-size:clamp(1.15rem,2.4vw,1.5rem);line-height:1.55;
-       margin:2rem 0 .5rem;max-width:44rem}
-.claim .s{color:var(--script)} .claim .l{color:var(--lexicon)}
-.effectbars{margin:1.4rem 0 .3rem;max-width:46rem}
-.ebar{display:grid;grid-template-columns:7.5rem 1fr 9.5rem;gap:.75rem;align-items:center;
-      margin:.45rem 0;font-size:.9rem;font-family:var(--sans)}
-.ebar .name{text-align:right;color:var(--ink-2)}
-.ebar .track{position:relative;height:1.35rem;background:var(--soft);border-radius:2px}
-.ebar .fill{position:absolute;top:0;bottom:0;border-radius:2px}
-.ebar .ci{position:absolute;top:50%;height:1px;background:rgba(0,0,0,.55)}
-.ebar .ci::before,.ebar .ci::after{content:'';position:absolute;top:-4px;width:1px;height:9px;background:rgba(0,0,0,.55)}
-.ebar .ci::before{left:0} .ebar .ci::after{right:0}
-.ebar .val{font-family:var(--mono);font-size:.78rem;color:var(--ink-2)}
-
-/* ---------- nav ---------- */
-nav.toc{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:rgba(250,248,244,.94);font-family:var(--sans);
-        backdrop-filter:blur(6px);border-bottom:1px solid var(--rule);font-size:.82rem}
-nav.toc ul{display:flex;gap:1.1rem;list-style:none;margin:0;padding:.6rem 0;overflow-x:auto}
-nav.toc a{color:var(--ink-2);text-decoration:none;white-space:nowrap}
-nav.toc a:hover{color:var(--script);text-decoration:underline}
-
-section{padding:2.75rem 0;border-bottom:1px solid var(--rule)}
-.secnum{font-family:var(--sans);font-size:.7rem;letter-spacing:.2em;color:var(--ink-3);display:block;margin-bottom:.3rem}
-
-/* ---------- controls ---------- */
-.controls{display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-end;margin:1.25rem 0}
-.controls label{display:flex;flex-direction:column;gap:.25rem;font-size:.82rem;color:var(--ink-2);font-family:var(--sans)}
-select,textarea,input{font-family:inherit;font-size:.95rem;padding:.4rem .55rem;
-  border:1px solid var(--rule);border-radius:3px;background:var(--panel);color:var(--ink);max-width:100%}
-select{min-width:11rem}
-button{font-family:inherit;font-size:.85rem;padding:.4rem .8rem;border:1px solid var(--rule);
-  background:var(--panel);border-radius:3px;cursor:pointer;color:var(--ink)}
-button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
-
-/* ---------- 2x3 factorial grid ---------- */
-.cellgrid{display:grid;grid-template-columns:5.5rem repeat(3,1fr) 6.5rem;gap:.5rem;margin-top:1rem}
-.cellgrid .hd{font-size:.8rem;color:var(--ink-3);align-self:end;padding-bottom:.3rem}
-.cellgrid .rl{font-size:.8rem;color:var(--ink-3);align-self:center;text-align:right}
-.cell{background:var(--panel);border:1px solid var(--rule);border-radius:4px;padding:.6rem .7rem;
-      display:flex;flex-direction:column;gap:.35rem;min-height:5.5rem}
-.cell.unattested{background:repeating-linear-gradient(135deg,#fffefb,#fffefb 7px,#f3f0e9 7px,#f3f0e9 14px)}
-.cell .txt{font-family:var(--serif);font-size:.95rem;line-height:1.5}
-.cell .n{font-family:var(--mono);font-size:.82rem;color:var(--ink-2)}
-.cell .n b{font-size:1.05rem;color:var(--ink)}
-.cell .fb{color:var(--fallback)}
-.marg{font-family:var(--mono);font-size:.8rem;color:var(--script);align-self:center}
-.margfoot{font-family:var(--mono);font-size:.8rem;color:var(--lexicon)}
-
-/* ---------- token chips ---------- */
-.chips{font-family:var(--mono);line-height:2.2;font-size:.95rem;background:var(--panel);
-       border:1px solid var(--rule);border-radius:4px;padding:.7rem .8rem;margin:.4rem 0 0}
-.tok{display:inline-block;padding:.08em .32em;margin:0 1px;border-radius:2px;background:var(--soft)}
-.tok.fb{background:#f8e8e0;color:var(--fallback);font-weight:500}
-.tok.multi{background:#e9e2f2;color:var(--script)}
-.tok.ws{color:var(--ink-3)}
-.legend{font-size:.78rem;color:var(--ink-3);margin-top:.5rem}
-.legend span{display:inline-block;margin-right:1rem}
-.swatch{display:inline-block;width:.7rem;height:.7rem;border-radius:2px;vertical-align:-1px;margin-right:.3rem}
-
-/* ---------- tables ---------- */
-table{border-collapse:collapse;width:100%;font-size:.85rem;margin-top:.75rem;font-family:var(--sans)}
-th,td{text-align:left;padding:.45rem .6rem;border-bottom:1px solid var(--rule);vertical-align:top}
-th{font-weight:600;color:var(--ink-2);font-size:.78rem}
-td.num,th.num{font-family:var(--mono);text-align:right;white-space:nowrap}
-tbody tr:hover{background:#f3f0e9}
-.sig{color:var(--ok)} .ns{color:var(--ink-3)}
-.scroll{overflow-x:auto}
-
-.note{font-size:.85rem;color:var(--ink-2);background:var(--soft);border-left:3px solid var(--lexicon);
-      padding:.7rem .9rem;border-radius:0 3px 3px 0;margin:1rem 0;max-width:52rem}
-.warn{border-left-color:var(--fallback)}
-.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(20rem,1fr));gap:1.5rem}
-.vocablist{font-family:var(--serif);font-size:.95rem;line-height:1.9}
-.vocablist span{display:inline-block;background:var(--panel);border:1px solid var(--rule);
-  border-radius:3px;padding:.1em .4em;margin:0 .25em .35em 0}
-.bigstat{font-family:var(--mono);font-size:2.1rem;color:var(--script);line-height:1.1}
-.bigstat small{display:block;font-family:var(--sans);font-size:.8rem;color:var(--ink-3);margin-top:.25rem}
-footer{padding:2rem 0 3rem;font-size:.8rem;color:var(--ink-3)}
-@media (max-width:760px){
-  .cellgrid{grid-template-columns:1fr;gap:.4rem}
-  .cellgrid .hd,.cellgrid .rl{display:none}
-  .cell::before{content:attr(data-label);font-family:var(--mono);font-size:.72rem;color:var(--ink-3)}
-  .ebar{grid-template-columns:5.5rem 1fr;}
-  .ebar .val{grid-column:2;font-size:.72rem}
-}
-@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+:root{--ink:#183044;--muted:#526779;--paper:#fff;--bg:#edf3f8;--line:#c9d8e4;--script:#146c80;--lex:#886224;--fragment:#9b3e48;--soft:#e4f0f3;--mono:ui-monospace,SFMono-Regular,Consolas,monospace}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:4rem}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.8 system-ui,-apple-system,"PingFang TC",sans-serif}h1,h2{line-height:1.35;font-family:"Songti TC","Noto Serif TC",serif}h1{font-size:clamp(2rem,5vw,3.7rem);font-weight:700;max-width:18ch;margin:.4rem 0 1rem}h2{font-size:1.65rem;margin:0 0 1rem}h3{font-size:1.05rem}a{color:#12627b;text-underline-offset:.2em}a:hover{color:#913f42}button,input,textarea,select{font:inherit}button,select,input,textarea{border:1px solid #94afbf;border-radius:5px;background:white;color:var(--ink);padding:.45rem .65rem;max-width:100%}button{cursor:pointer;background:var(--ink);color:white}button.secondary{color:var(--ink);background:white}button:disabled{opacity:.6;cursor:wait}:focus-visible{outline:3px solid #b57814;outline-offset:3px}.wrap{max-width:1120px;margin:auto;padding:0 24px}.hero{padding:44px 0 24px;background:var(--paper);border-bottom:1px solid var(--line)}.hero-layout{display:grid;grid-template-columns:1.2fr 1fr;gap:40px;align-items:center}.kicker{font:12px var(--mono);letter-spacing:.12em;color:var(--script)}.lede{max-width:45rem;font-size:1.1rem}.question{padding:20px;border-left:5px solid var(--script);background:var(--soft)}.question p{margin:.3rem 0}.small,.note{font-size:.87rem;color:var(--muted)}.note{border-left:3px solid var(--line);padding-left:14px}.warn{background:#fff3e1;color:#6f4b1d;padding:12px 16px;border-left:3px solid var(--lex)}nav{background:#183044;color:white}nav .wrap{display:flex;gap:24px;overflow:auto;padding-top:12px;padding-bottom:12px;white-space:nowrap}nav a{color:white;font-size:.9rem}main{padding:24px 0 60px}section{margin-bottom:24px;background:var(--paper);padding:28px;border:1px solid var(--line);border-radius:8px;min-width:0}section:target{border-color:var(--script)}.controls{display:flex;gap:18px;flex-wrap:wrap;align-items:end;margin:18px 0}.controls label{display:flex;flex-direction:column;gap:4px;font-size:.86rem}.controls label.wide{flex:1;min-width:220px}.controls select{width:100%}.matrix{display:grid;grid-template-columns:75px repeat(3,minmax(0,1fr));gap:8px}.matrix.two{grid-template-columns:75px repeat(2,minmax(0,1fr))}.cell{border:1px solid var(--line);border-radius:5px;padding:14px;background:#f5f9fc;min-width:0;overflow-wrap:anywhere}.cell.generated{background:repeating-linear-gradient(135deg,#fff,#fff 8px,#f0f5f8 8px,#f0f5f8 10px)}.cell .count{font:1.75rem var(--mono);color:var(--script)}.matrix-head{font-size:.86rem;font-weight:600;align-self:center}.badges{display:flex;gap:8px;flex-wrap:wrap}.badge{background:var(--soft);padding:2px 8px;font-size:.78rem;border-radius:3px}.scroll{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:.87rem}th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}th{background:#eef4f8;white-space:nowrap}.num{font-family:var(--mono);white-space:nowrap}caption{text-align:left;color:var(--muted);padding:8px 0}.effect-row{display:grid;grid-template-columns:170px 1fr;gap:10px;align-items:center}.effect-row svg{width:100%;height:60px;overflow:visible}.effect-row .effect-label{font-size:.85rem}.stat{font:12px var(--mono)}.chips{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0 18px}.chip{border:1px solid var(--line);border-radius:3px;display:inline-flex;flex-direction:column;padding:4px 7px;min-width:38px;background:#f3f8fb;font:12px/1.6 var(--mono);white-space:pre-wrap}.chip.fragment{border-color:#ce9da2;background:#fbebed;color:var(--fragment)}.chip .surface{font:16px/1.7 system-ui}.chip small{font-size:10px}.split-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}.bytes{font-family:var(--mono);overflow-wrap:anywhere}.counterfactual{border-top:1px solid var(--line);margin-top:20px;padding-top:16px}.summary{font-size:1.05rem;padding:12px 16px;background:var(--soft)}details{margin:16px 0}summary{cursor:pointer;color:var(--script);font-weight:600}pre{background:#183044;color:#e5f1f7;padding:18px;border-radius:4px;overflow:auto;font:13px/1.7 var(--mono)}code{font-family:var(--mono);font-size:.88em}footer{padding:24px;background:var(--ink);color:#e5f1f7;font-size:.85rem}footer a{color:#b9e5ee}.skip{position:absolute;left:-9999px}.skip:focus{left:12px;top:12px;z-index:2;background:white;padding:8px}textarea{width:100%;resize:vertical}ul,ol{padding-left:1.5rem}li{margin:.4rem 0}.download{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0}.provenance{overflow-wrap:anywhere}.axis-note{text-align:center;font:12px var(--mono);color:var(--muted)}
+@media(max-width:700px){.wrap{padding:0 14px}.hero-layout,.split-grid{grid-template-columns:1fr;gap:16px}.hero{padding-top:28px}section{padding:20px 14px}.matrix,.matrix.two{grid-template-columns:45px repeat(2,minmax(0,1fr))}.matrix.three{grid-template-columns:45px repeat(3,minmax(0,1fr))}.cell{padding:8px;font-size:.83rem}.cell .count{font-size:1.4rem}.effect-row{grid-template-columns:1fr;gap:0}.effect-row svg{height:64px}nav .wrap{gap:18px;padding-top:10px;padding-bottom:10px}.controls{gap:12px}.controls label{flex:1;min-width:140px}h2{font-size:1.4rem}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
-
-<header class="hero">
-  <div class="wrap">
-    <a class="backlink" href="../../practice/lab/session-9/">← 返回 Session 9</a>
-    <p class="kicker">Lab Session 9 · Tokenization</p>
-    <h1>中文 Tokenization 公平性研究平台</h1>
-    <p class="lede">同一句話寫成不同字形與不同地區用詞，送進同一個 BPE tokenizer，會得到不同長度的 token 序列。
-      這個差異常被含糊地稱為「方言稅」。本頁把它拆開來問：那到底是<b>字形</b>的代價，還是<b>詞彙</b>的代價？</p>
-
-    <p class="claim" id="headline"></p>
-    <div class="effectbars" id="effectbars"></div>
-    <p class="sub" id="headline-note"></p>
-
-    <div class="howto">
-      <b>怎麼讀這一頁</b>
-      <ol>
-        <li>先看上面那兩排橫條：紫色是<b>字形</b>造成的差距，金色是<b>詞彙</b>造成的差距。橫條上的細線是 95% 信賴區間，穿過 0 就代表證據不足。</li>
-        <li>第 1 節可以換句子，看六個版本各要花幾個 token。</li>
-        <li>第 2 節把 token 攤開來看，<span style="color:var(--fallback)">紅色方塊</span>是被拆成位元組碎片的漢字——差距主要就是它造成的。</li>
-        <li>第 4 節是詞表本身的內容。那一節不需要統計就看得懂，但可能是整頁最值得討論的部分。</li>
-      </ol>
-      <p class="sub" style="margin:.5rem 0 0">
-        想看舊版的三欄比較（以及它為什麼會誤導），見
-        <a href="zh-tokenizer-v1.html">v1 探索器</a>。
-      </p>
-    </div>
-  </div>
-</header>
-
-<nav class="toc"><div class="wrap"><ul>
-  <li><a href="#design">研究設計</a></li>
-  <li><a href="#mechanism">切分機制</a></li>
-  <li><a href="#effects">效果分解</a></li>
-  <li><a href="#vocab">詞表考古</a></li>
-  <li><a href="#cxg">構式完整性</a></li>
-  <li><a href="#cost">代價換算</a></li>
-  <li><a href="#custom">自己試</a></li>
-  <li><a href="#method">方法與限制</a></li>
-</ul></div></nav>
-
-<main>
-
-<section id="design"><div class="wrap">
-  <span class="secnum">01</span>
-  <h2>研究設計：把混淆的兩個因子拆開</h2>
-  <p>舊版比較「台灣繁體／中國簡體／香港繁體」三欄。問題在於這三欄同時變動了兩件事：
-     <b style="color:var(--script)">字形</b>（繁／簡）與 <b style="color:var(--lexicon)">詞彙</b>（軟體／软件／軟件）。
-     兩者的成因與解法完全不同，混在一起量，得到的數字無法解釋。
-     這裡改成完全交叉的 2×3 設計：詞彙欄由人工撰寫，字形欄用 OpenCC 逐字轉換機械生成。
-     斜線底紋的四格在社會語言學上並不自然（沒有人用簡體字寫台灣用語），它們是<b>控制條件</b>，
-     功能與心理語言學實驗中的假詞相同：用來分離 tokenizer 反應的是什麼，而不是讀者會寫什麼。</p>
-
-  <div class="controls">
-    <label>Tokenizer
-      <select id="sel-enc"></select></label>
-    <label>類別
-      <select id="sel-cat"></select></label>
-    <label>例句
-      <select id="sel-item"></select></label>
-  </div>
-  <p class="sub" id="item-meta"></p>
-
-  <div class="cellgrid" id="cellgrid"></div>
-  <p class="sub" style="margin-top:.8rem">右欄與底列為邊際平均（該列／該行的平均 token 數）。
-     紅色數字是 byte-fallback token 數：字元在詞表裡沒有自己的位置，只能被拆成 UTF-8 原始位元組。</p>
-</div></section>
-
-<section id="mechanism"><div class="wrap">
-  <span class="secnum">02</span>
-  <h2>切分機制：差異從哪裡來</h2>
-  <p>把同一句話的六個版本並排看 token 串，差異的來源會直接顯示在表面上。
-     繁體版本裡大量出現的紅色方塊，是被拆成位元組碎片的漢字——它在詞表中沒有對應項目，
-     於是每出現一次就付 2 到 3 個 token。這不是統計上的頻率問題，而是覆蓋率問題。</p>
-  <div id="mechanism-panels"></div>
-  <p class="legend">
-    <span><i class="swatch" style="background:#e9e2f2"></i>多字 token（詞表中的整塊）</span>
-    <span><i class="swatch" style="background:#ede8de"></i>單字 token</span>
-    <span><i class="swatch" style="background:#f8e8e0"></i>byte fallback（字元碎片）</span>
-  </p>
-</div></section>
-
-<section id="effects"><div class="wrap">
-  <span class="secnum">03</span>
-  <h2>效果分解</h2>
-  <p>每個項目都出現在全部六格，因此分析單位是<b>項目內對比</b>。
-     點估計為各項目差值的平均，區間為 10,000 次配對 bootstrap 的 95% CI，
-     檢定為 Wilcoxon 符號秩檢定，效果量為 rank-biserial 相關。</p>
-  <div class="scroll"><table id="tbl-effects"></table></div>
-  <p class="note" id="effects-note"></p>
-</div></section>
-
-<section id="vocab"><div class="wrap">
-  <span class="secnum">04</span>
-  <h2>詞表考古：這份詞表是誰的詞典？</h2>
-  <p>tokenizer 的詞表可以當成一份詞典來讀。它是某個語料庫裡「夠常見」的形式單位清單，
-     在某個時間點凍結，然後隨模型出貨給所有使用者。用讀詞典的方式問兩個問題：
-     裡面收了誰的字？那些多字條目又是什麼性質的單位？</p>
-
-  <div class="grid2" id="vocab-coverage"></div>
-
-  <h3>詞表中最長的純漢字 token</h3>
-  <p class="sub">依 token 字串長度排序。這份清單是訓練語料的化石紀錄。</p>
-  <div id="vocab-longest"></div>
-</div></section>
-
-<section id="cxg"><div class="wrap">
-  <span class="secnum">05</span>
-  <h2>構式完整性：BPE 能學到什麼樣的單位</h2>
-  <p>從構式語法的角度看，BPE 的詞表是一份<b>構式庫（constructicon）</b>，但只能容納其中一類：
-     實體的、連續的、高頻的形式。凡是帶開放槽位（越 X 越 Y）、或可被插入成分打斷（洗澡 → 洗了個澡）的構式，
-     原則上無法成為一個 token。下表逐一檢查。</p>
-  <div class="scroll"><table id="tbl-cxg"></table></div>
-  <p class="note">判讀方式：若「典型形式」需要多個 token，表示該構式在詞表中根本不存在為單位；
-     若典型形式是單一 token 而「變體形式」被拆開，則顯示該單位的辨識依賴表層連續性，
-     而非構式身分。兩種結果都對「tokenizer 隱含的詞彙理論」有話可說。</p>
-</div></section>
-
-<section id="cost"><div class="wrap">
-  <span class="secnum">06</span>
-  <h2>代價換算</h2>
-  <p>token 數本身不是使用者的經驗。使用者經驗到的是兩件事：同樣的錢買到多少內容，
-     以及同樣的 context window 裝得下多少字。下表把 tokens/字換算成這兩個量。</p>
-  <div class="scroll"><table id="tbl-cost"></table></div>
-  <p class="note warn">價格與 context 長度是<b>佔位值</b>，寫在 <code>metrics.py</code> 的
-     <code>PRICE_USD_PER_MTOK</code> 與 <code>CONTEXT_TOKENS</code>。引用前請自行更新並註明查詢日期。</p>
-</div></section>
-
-<section id="custom"><div class="wrap">
-  <span class="secnum">07</span>
-  <h2>自己試</h2>
-  <p>輸入任意文字，即時切分並計算同一組指標。字形欄由 OpenCC 產生的部分在此不可用，
-     請自行輸入要比較的兩段文字。</p>
-  <div class="controls">
-    <label style="flex:1;min-width:16rem">文字 A
-      <textarea id="ta-a" rows="3" placeholder="這個軟體最近更新了介面設計。"></textarea></label>
-    <label style="flex:1;min-width:16rem">文字 B（對照）
-      <textarea id="ta-b" rows="3" placeholder="这个软件最近更新了界面设计。"></textarea></label>
-  </div>
-  <div id="custom-out"></div>
-  <p class="sub" id="custom-status">載入 tokenizer…</p>
-</div></section>
-
-<section id="method"><div class="wrap">
-  <span class="secnum">08</span>
-  <h2>方法、限制與重現</h2>
-  <h3>語料說明（datasheet）</h3>
-  <ul id="datasheet"></ul>
-  <h3>已知限制</h3>
-  <ul>
-    <li>詞彙欄為作者自撰而非語料抽樣，因此不能推論到「一般文本」。要做那個推論，
-        需要以維基百科的 zh-tw／zh-cn／zh-hk 自動轉換版本，或 FLORES-200 的
-        zho_Hant／zho_Hans 平行句對作為抽樣框，見 <code>run_study.py</code> 的說明。</li>
-    <li>香港欄的效度最弱。標記為 <code>hk_confidence="low"</code> 的項目混入了書面粵語，
-        那是語法差異而非詞彙差異，會污染詞彙效果的估計。這些項目應由香港母語者校訂後才可引用。</li>
-    <li>只測了兩個 OpenAI tokenizer。Llama、Qwen、Gemma、DeepSeek、XLM-R 的詞表由不同語料訓練，
-        方向未必相同；「誰訓練詞表」本身就是可測的變項。</li>
-    <li>token 數差異與下游表現差異是兩件事。本頁只量前者。</li>
-  </ul>
-  <h3>重現</h3>
-  <pre class="mono" style="background:var(--panel);border:1px solid var(--rule);padding:.8rem;border-radius:4px;overflow-x:auto;font-size:.8rem">cd lab/session-9/tokfair
-python run_study.py --ranks ranks --out data/study.json
-python build_web.py --study data/study.json --out ../zh-tokenizer.html</pre>
-  <p class="sub" id="provenance"></p>
-</div></section>
-
-</main>
-
-<footer><div class="wrap">
-  <p>生成式 AI 的人文導論 · Lab Session 9。研究平台與分析程式碼為課程教材，歡迎修改。
-     指標定義見 <a href="tokfair/">tokfair</a>；
-     延伸練習見 <a href="tokfair/assignment1.html">作業規格</a>；
-     舊版三欄比較見 <a href="zh-tokenizer-v1.html">v1 探索器</a>。</p>
-</div></footer>
-
-<script type="application/json" id="study-data">__STUDY_DATA__</script>
+<a class="skip" href="#design">跳到實驗材料</a>
+<header class="hero"><div class="wrap hero-layout"><div><p class="kicker">TOKENIZATION LAB / v3 · 2026-10-07</p><h1>同一句意思，<br>怎麼切成不同成本？</h1><p class="lede">中文 Tokenization 實驗工作台<br>控制字形與用詞，檢查 token、位元組與比較的邊界。</p><p class="small">自撰材料的探索實驗 · 兩個 tokenizer · 尚未母語者校訂</p></div><div class="question"><p><b>先問一個可檢查的問題</b></p><p>把「軟體」改成「软件」，差異來自繁簡轉換、用詞，還是兩者的交互作用？</p><p>從下方 2×2 格子開始。切換分析範圍，再看你的結論是否仍成立。</p><p class="small">切分差異 → 使用成本情境 → 公平性論證<br>每一步都需要自己的證據。</p></div></div></header>
+<nav aria-label="頁面導覽"><div class="wrap"><a href="#design">材料與控制</a><a href="#effects">效果與敏感度</a><a href="#mechanism">位元組證據</a><a href="#vocab">詞表檢查</a><a href="#cxg">構式邊界</a><a href="#cost">成本情境</a><a href="#custom">自己試</a><a href="#method">重現與限制</a></div></nav>
+<main class="wrap">
+<noscript><p class="warn">請啟用 JavaScript 以探索資料；完整測量仍可由下方 JSON / CSV 下載。</p></noscript>
+<section id="design"><h2>先決定哪些材料能放在一起</h2><p>字形用 OpenCC <code>t2s / s2t</code> 生成；用詞由作者撰寫。預設台中 2×2 比較排除 8 個額外措辭或指涉差異項目。香港版本另列為探索條件，部分涉及粵語語法。</p><div class="controls"><label class="wide">分析範圍<select id="sel-scope"></select></label><label>Tokenizer<select id="sel-enc"></select></label><label>類別<select id="sel-cat"></select></label><label class="wide">例句<select id="sel-item"></select></label></div><p id="scope-note" class="warn"></p><p id="item-meta" class="small"></p><div id="cellgrid" class="matrix two"></div><p class="note">底紋表示由作者原始版本轉換而來的控制字串；沒有底紋也只表示原始自撰版本，並非語料實證。「模板篩選」是作者檢查，不等於母語者驗證。字形轉換可能含一對多或上下文選擇，仍須人工核對。</p><details><summary>哪些項目被排除？為什麼？</summary><div class="scroll"><table id="tbl-exclusions"></table></div></details></section>
+<section id="effects"><h2>估計效果，也看結論對材料有多敏感</h2><p id="headline" class="summary" aria-live="polite"></p><div id="effectbars"></div><p class="axis-note">← 負值　｜　0　｜　正值 →　單位：tokens；橫線為平均差的 95% bootstrap 區間</p><div class="scroll"><table id="tbl-effects"></table></div><p class="note">主要估計量為項目內差值的平均。CI 是 10,000 次項目 bootstrap 的百分位區間；Wilcoxon 是補充性的符號秩檢定，與平均差 CI 的虛無假設不同。p 值未作多重比較校正；子類別分析屬探索，n 很小時區間不穩定。不顯著不等於無效果，區間跨零也不代表兩條件等價。</p><details><summary>精確的基準路徑：直接差異如何相加？</summary><p>台繁 − 中簡 =（台簡 − 中簡）＋（台繁 − 台簡）。這是同一批項目的算術恆等式；三地平均字形效果與台中平均詞彙效果不能直接當成這條路徑的兩個貢獻。</p><p id="path-result" class="bytes"></p></details><h3>切換篩選方式，結果改變多少？</h3><div class="scroll"><table id="tbl-sensitivity"></table></div><p class="note">這張表使用各範圍的全部類別。不同範圍改變了材料與條件數，差異不是篩選的因果效果。逐字相同控制只用字串完全一致的項目；詞彙差異應精確為零。</p><div class="download"><button id="export-csv" class="secondary">下載目前範圍 CSV</button><button id="export-json" class="secondary">下載完整實驗 JSON</button></div></section>
+<section id="mechanism"><h2>讓每一個 token 的 bytes 都可檢查</h2><p>紅框表示該 token 的 bytes <b>無法單獨解碼為完整 UTF-8 字串</b>。它可能包含多個位元組，也可能跨過字元邊界；這個觀察本身不能證明某個漢字缺少專屬 token。</p><div id="mechanism-panels"></div><details><summary>字元位置與 token 邊界如何對齊？</summary><p>兩者使用同一組 UTF-8 byte 座標。token 區間是左閉右開 [start, end)；將所有 token bytes 串起來，必須完全還原輸入。</p><div class="scroll"><table id="tbl-charbytes"></table></div></details><p class="note">覆蓋率、合併順位、前置切分與上下文都可能影響結果。「單字未收錄」與「這次被切開」要分開查驗；單字未收錄也可能被包含在多字 token 中。</p></section>
+<section id="vocab"><h2>查的是詞表形式，推論要留在證據範圍內</h2><div id="vocab-coverage" class="split-grid"></div><p class="note">比例的分母是「已在詞表中、且 OpenCC 會轉成不同繁／簡對應形式的單漢字」。不是所有繁體字的缺漏率。只計完全匹配的漢字 bytes，沒有把含前後空白的 token 當成單字。OpenCC 對應不是唯一的語言學字形標準。</p><details><summary>檢視最長的純漢字條目（可能含廣告及成人內容）</summary><div id="vocab-longest"></div></details><p>條目可作為資料來源的線索，但不能只靠長度或排名推回訓練語料的比例、日期或實際頻率。提出來源假設後，還需要獨立資料驗證。</p></section>
+<section id="cxg"><h2>token 邊界與構式邊界，是兩個問題</h2><p>下表量的是具體字串是否成為一個 token，及表面變體的切分。相同字串的兩欄是重複參照；其他配對也不全是語義最小對比。BPE 詞表並非形式—意義配對的構式庫。</p><div class="scroll"><table id="tbl-cxg"></table></div><div class="counterfactual"><b>「洗澡」是兩個 token，模型還能理解它嗎？</b><p>這裡的資料無法回答。可另做釋義判斷、插入成分的泛化及語義最小對比測試，並記錄模型版本、提示、重複次數與人工評分。將「邊界一致」與「掌握構式」分別提出假設。</p></div></section>
+<section id="cost"><h2>把觀察換成明確的使用情境</h2><p>價格與 context 屬於具體模型與服務方案，不屬於 tokenizer。本表使用你設定的<b>假設情境</b>；預設值不是任何供應商的現行報價。費用只計輸入，context 扣除你預留的提示與輸出額度。</p><div class="controls"><label>計價單位<select id="denom"><option value="n_codepoints">Unicode 碼位（含標點、空白）</option><option value="n_han">漢字數</option></select></label><label>輸入 USD / 百萬 tokens<input id="price" type="number" min="0" step="0.01" value="1"></label><label>context tokens<input id="context" type="number" min="1" step="1" value="128000"></label><label>提示＋輸出預留 tokens<input id="reserved" type="number" min="0" step="1" value="8192"></label></div><p id="cost-status" class="small" aria-live="polite"></p><div class="scroll"><table id="tbl-cost"></table></div><p class="note">換算率 = Σ tokens / Σ 所選字數，並非句子比率的平均。連接文本會改變切分邊界，因此 context 容量只是以本材料校準的近似值。混排文本若選漢字分母，非漢字的 tokens 也在分子，不能解讀為單一漢字的切分成本。</p></section>
+<section id="custom"><h2>提出你自己的反例</h2><p>輸入兩段文字，先說明你控制了什麼。結果只量字串；系統不判定語義等價。所有輸入在瀏覽器本地計算。</p><button id="load-tokenizer">啟用即時切分</button><p id="custom-status" class="small" role="status">尚未載入。啟用後下載網站內的固定版本 tokenizer（約 3.4 MB）。</p><div class="split-grid"><label>文字 A<textarea id="ta-a" rows="3" maxlength="2000">這個軟體最近更新了介面設計。</textarea></label><label>文字 B（對照）<textarea id="ta-b" rows="3" maxlength="2000">这个软件最近更新了界面设计。</textarea></label></div><div id="custom-out" aria-live="polite"></div><p class="note">每欄最多 2,000 個 UTF-16 code units。單一反例不需要假造信賴區間；若要推論到一批文本，需建立抽樣框並以獨立項目或文件為重抽樣單位。</p></section>
+<section id="method"><h2>重現、證據與仍待完成的事</h2><p id="provenance" class="provenance small"></p><div class="download"><a href="tokfair/data/study.json">完整 JSON</a><a href="tokfair/data/measurements.csv">全部測量 CSV</a><a href="tokfair/data/validation.json">計算驗證紀錄</a><a href="tokfair/">程式與 v3 修訂說明</a><a href="tokfair/assignment1.html">延伸練習</a><a href="https://lopentu.github.io/courses/cllt2026/a1/">LING5006 A1</a></div><pre>cd lab/session-9/tokfair
+python -m pip install -r requirements.txt
+bash vendor_ranks.sh
+python run_study.py
+python validate.py
+python build_web.py --out ../zh-tokenizer.html</pre><ul><li>37 個原始自撰項目，篩選規則公開；沒有真實語料抽樣或母語者校訂。不能推論到所有中文、地區或語體。</li><li>只測 cl100k_base、o200k_base；不把不同詞表大小或訓練團隊的差異當成已識別的原因。</li><li>token count 是確定性測量；bootstrap 區間描述重抽這組項目的平均差變動，不補足材料代表性。</li><li>fertility 的參照來自 Jieba，並含它產出的標點等單位；boundary F1 在共同 byte 座標上比較實際 token 邊界。這些不是人類標註準確率。</li><li>成本差異、公平性與下游表現分別需要明確使用情境、規範基準與模型實驗；本平台只提供前端切分證據。</li></ul><details><summary>v2 → v3 更正紀錄</summary><ul><li>移除普遍性的「字形稅」結論，保留可重算的條件差異。</li><li>預設台中 2×2；另列原始、香港與逐字控制範圍。</li><li>UTF-8 有效性直接查 bytes，顯示 token ID 與區間；不再用替代字元猜碎片。</li><li>修正漢字單 token 指標與 boundary F1 座標，將詞表覆蓋與實際切分分開。</li><li>保留負值 CI 與零基準；區分平均差區間、Wilcoxon 與探索比較。</li><li>成本由可調情境計算，構式部分只談表面邊界。</li><li>提供資料、程式與 rank hash；官方 tiktoken 一致性及瀏覽器測試分別記錄。</li></ul><a href="zh-tokenizer-v2.html">查看 v2 歷史快照（含已更正的解釋）</a></details><p class="small">技術參照：<a href="https://github.com/openai/tiktoken">官方 tiktoken</a> · <a href="https://github.com/dqbd/tiktoken">js-tiktoken</a> · <a href="https://github.com/BYVoid/OpenCC">OpenCC</a> · <a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.wilcoxon.html">Wilcoxon 定義</a></p></section>
+</main><footer><div class="wrap">GenAI for Humanities · Session 9 / 中文 Tokenization 實驗工作台 v3<br><a href="../../practice/lab/session-9/">返回 Session 9</a> · <a href="zh-tokenizer-v1.html">v1 歷史版</a></div></footer>
+<script id="study-data" type="application/json">__STUDY_DATA__</script>
 <script>
-(function(){
-"use strict";
-const DATA = JSON.parse(document.getElementById('study-data').textContent);
-const $ = (s,r=document)=>r.querySelector(s);
-const el = (tag,cls,txt)=>{const n=document.createElement(tag); if(cls)n.className=cls; if(txt!=null)n.textContent=txt; return n;};
-const ENCS = DATA.meta.encodings;
-const LEX = [['tw','台灣用詞'],['cn','中國用詞'],['hk','香港用詞']];
-const SCR = [['trad','繁體'],['simp','簡體']];
-const CAT_NAME = {tech:'科技',daily:'日常',news:'新聞（對照）',loan:'外來詞',cxg:'構式',name:'專名'};
-
-let state = {enc: ENCS[0], cat: 'tech', item: null};
-
-/* ---------- indexes ---------- */
-const designIdx = {};                       // item|script|lexicon -> text
-DATA.design.forEach(d=>{designIdx[`${d.item_id}|${d.script}|${d.lexicon}`]=d;});
-const rowIdx = {};                          // enc -> item|script|lexicon -> row
-ENCS.forEach(e=>{rowIdx[e]={}; DATA.rows[e].forEach(r=>{rowIdx[e][`${r.item_id}|${r.script}|${r.lexicon}`]=r;});});
-const itemById = {}; DATA.items.forEach(i=>itemById[i.id]=i);
-
-const fmtP = p => (p==null||isNaN(p)) ? '—' : (p<0.001 ? 'p<.001' : 'p='+p.toFixed(3));
-const sigCls = p => (p!=null && p<0.05) ? 'sig' : 'ns';
-
-/* ---------- hero ---------- */
-function renderHero(){
-  const a = DATA.analysis[ENCS[0]].overall;
-  const s = a.script_trad_minus_simp, l = a.lexicon_tw_minus_cn;
-  const naive = a.naive_v1_tw_over_cn_relative;
-  $('#headline').innerHTML =
-    `在 <code>${ENCS[0]}</code> 上，台灣繁體相對中國簡體多付 <b>${(naive.mean*100).toFixed(0)}%</b> 的 token。` +
-    ` 拆開來看，其中 <span class="s">字形</span>貢獻 <b>${s.mean.toFixed(2)}</b> 個 token，` +
-    ` <span class="l">詞彙</span>只貢獻 <b>${l.mean.toFixed(2)}</b> 個。` +
-    ` 這不是方言稅，是<span class="s">字形稅</span>。`;
-  const bars = [];
-  ENCS.forEach(enc=>{
-    const o = DATA.analysis[enc].overall;
-    bars.push({enc, name:'字形（繁−簡）', d:o.script_trad_minus_simp, color:'var(--script)'});
-    bars.push({enc, name:'詞彙（台−中）', d:o.lexicon_tw_minus_cn, color:'var(--lexicon)'});
-    bars.push({enc, name:'詞彙（港−中）', d:o.lexicon_hk_minus_cn, color:'var(--lexicon)'});
-  });
-  const max = Math.max(...bars.map(b=>Math.max(b.d.hi, b.d.mean)), 1);
-  const box = $('#effectbars'); box.replaceChildren();
-  let lastEnc = null;
-  bars.forEach(b=>{
-    if(b.enc!==lastEnc){
-      const h = el('div','sub',b.enc); h.style.margin='.9rem 0 .25rem'; h.style.fontFamily='var(--mono)';
-      box.appendChild(h); lastEnc=b.enc;
-    }
-    const row = el('div','ebar');
-    row.appendChild(el('div','name',b.name));
-    const track = el('div','track');
-    const fill = el('div','fill');
-    fill.style.left='0'; fill.style.width=Math.max(0,(b.d.mean/max*100))+'%'; fill.style.background=b.color;
-    fill.style.opacity='.75';
-    const ci = el('div','ci');
-    ci.style.left=(Math.max(0,b.d.lo)/max*100)+'%';
-    ci.style.width=((b.d.hi-Math.max(0,b.d.lo))/max*100)+'%';
-    track.appendChild(fill); track.appendChild(ci);
-    row.appendChild(track);
-    row.appendChild(el('div','val',`${b.d.mean>=0?'+':''}${b.d.mean.toFixed(2)} [${b.d.lo.toFixed(2)}, ${b.d.hi.toFixed(2)}] ${fmtP(b.d.p)}`));
-    box.appendChild(row);
-  });
-  $('#headline-note').textContent =
-    `每個效果為 ${DATA.meta.n_items} 個項目的項目內差值平均，誤差線為配對 bootstrap 95% CI。單位：token。`;
-}
-
-/* ---------- controls ---------- */
-function fillSelects(){
-  const se = $('#sel-enc'); ENCS.forEach(e=>se.appendChild(new Option(e,e)));
-  const sc = $('#sel-cat');
-  [...new Set(DATA.items.map(i=>i.category))].forEach(c=>sc.appendChild(new Option(CAT_NAME[c]||c,c)));
-  se.value = state.enc; sc.value = state.cat;
-  se.addEventListener('change',()=>{state.enc=se.value; renderAll();});
-  sc.addEventListener('change',()=>{state.cat=sc.value; fillItems(); renderAll();});
-  $('#sel-item').addEventListener('change',()=>{state.item=$('#sel-item').value; renderItem();});
-  fillItems();
-}
-function fillItems(){
-  const si = $('#sel-item'); si.replaceChildren();
-  DATA.items.filter(i=>i.category===state.cat).forEach(i=>{
-    si.appendChild(new Option(i.tw.length>16?i.tw.slice(0,15)+'…':i.tw, i.id));
-  });
-  state.item = si.value;
-}
-
-/* ---------- factorial grid ---------- */
-function renderItem(){
-  const enc = state.enc, id = state.item, it = itemById[id];
-  const g = $('#cellgrid'); g.replaceChildren();
-  g.appendChild(el('div','hd',''));
-  LEX.forEach(([k,n])=>g.appendChild(el('div','hd',n)));
-  g.appendChild(el('div','hd','列平均'));
-
-  const colSum = {tw:0,cn:0,hk:0};
-  SCR.forEach(([sk,sn])=>{
-    g.appendChild(el('div','rl',sn));
-    let rowSum=0;
-    LEX.forEach(([lk,ln])=>{
-      const key=`${id}|${sk}|${lk}`, d=designIdx[key], r=rowIdx[enc][key];
-      const c = el('div','cell'+(d && d.attested?'':' unattested'));
-      c.dataset.label = `${sn}・${ln}`;
-      c.appendChild(el('div','txt', d?d.text:'—'));
-      const n = el('div','n');
-      n.innerHTML = `<b>${r.n_tokens}</b> tok` +
-        (r.n_byte_fallback>0?` · <span class="fb">${r.n_byte_fallback} fb</span>`:'') +
-        ` · ${r.tokens_per_char.toFixed(2)} tok/字`;
-      c.appendChild(n);
-      g.appendChild(c);
-      rowSum += r.n_tokens; colSum[lk]+=r.n_tokens;
-    });
-    g.appendChild(el('div','marg',(rowSum/3).toFixed(1)));
-  });
-  g.appendChild(el('div','rl','行平均'));
-  LEX.forEach(([lk])=>g.appendChild(el('div','margfoot',(colSum[lk]/2).toFixed(1))));
-  g.appendChild(el('div',''));
-
-  $('#item-meta').innerHTML =
-    `<b>${it.gloss}</b> ｜ 探測點：${it.probe||'—'} ｜ 香港欄可信度：<code>${it.hk_confidence}</code>`;
-  renderMechanism();
-}
-
-/* ---------- token chips ---------- */
-function chipRow(label, text, enc, precomputed){
-  const wrap = el('div');
-  wrap.appendChild(el('div','sub',label));
-  const box = el('div','chips');
-  const pieces = precomputed
-    ? precomputed.map((s,i)=>({id:i, s: s==null?'':s, fb: s==null}))
-    : (TOK.ready ? TOK.pieces(text, enc) : null);
-  if(!pieces){ box.appendChild(el('span','sub','（需要載入 tokenizer）')); }
-  else pieces.forEach(p=>{
-    const s = el('span','tok');
-    if(p.fb){ s.classList.add('fb'); s.textContent='\u25FC'; s.title='byte fallback'; }
-    else { if([...p.s].length>1) s.classList.add('multi');
-           s.textContent = /^\s+$/.test(p.s) ? '·' : p.s; }
-    if(!precomputed) s.title = (s.title?s.title+' ':'')+'id '+p.id;
-    box.appendChild(s);
-  });
-  wrap.appendChild(box);
-  return wrap;
-}
-function renderMechanism(){
-  const host = $('#mechanism-panels'); host.replaceChildren();
-  const id = state.item;
-  SCR.forEach(([sk,sn])=>LEX.forEach(([lk,ln])=>{
-    const d = designIdx[`${id}|${sk}|${lk}`];
-    if(!d) return;
-    const r = rowIdx[state.enc][`${id}|${sk}|${lk}`];
-    host.appendChild(chipRow(`${sn}・${ln}${d.attested?'':'（控制條件）'}`, d.text, state.enc, r && r.pieces));
-  }));
-}
-
-/* ---------- effects table ---------- */
-function renderEffects(){
-  const a = DATA.analysis[state.enc];
-  const t = $('#tbl-effects'); t.replaceChildren();
-  const head = el('thead'); head.innerHTML =
-    `<tr><th>子集</th><th>n</th><th class="num">字形效果 繁−簡</th><th class="num">詞彙 台−中</th>
-     <th class="num">詞彙 港−中</th><th class="num">交互作用（台）</th><th class="num">舊版「方言稅」</th></tr>`;
-  t.appendChild(head);
-  const body = el('tbody');
-  const rows = [['全部', a.overall]].concat(
-    Object.keys(a.by_category).sort().map(c=>[CAT_NAME[c]||c, a.by_category[c]]));
-  rows.forEach(([name,d])=>{
-    const cell = s => `<td class="num"><span class="${sigCls(s.p)}">${s.mean>=0?'+':''}${s.mean.toFixed(2)}</span>`+
-                      `<br><span class="sub">[${s.lo.toFixed(2)}, ${s.hi.toFixed(2)}] ${fmtP(s.p)}</span></td>`;
-    const nv = d.naive_v1_tw_over_cn_relative;
-    const tr = el('tr');
-    tr.innerHTML = `<td>${name}</td><td class="num">${d.script_trad_minus_simp.n}</td>` +
-      cell(d.script_trad_minus_simp) + cell(d.lexicon_tw_minus_cn) +
-      cell(d.lexicon_hk_minus_cn) + cell(d.interaction_tw) +
-      `<td class="num">+${(nv.mean*100).toFixed(1)}%<br><span class="sub">[${(nv.lo*100).toFixed(1)}, ${(nv.hi*100).toFixed(1)}]</span></td>`;
-    body.appendChild(tr);
-  });
-  t.appendChild(body);
-  const o = a.overall;
-  $('#effects-note').innerHTML =
-    `「新聞（對照）」類的詞彙效果應接近 0，因為三地用詞在正式語體上高度重疊；若它不為 0，` +
-    `代表殘差來自字形而非詞彙，可用來檢核設計。` +
-    ` 這個 tokenizer 的 Rényi efficiency（α=2.5）為 <code>${a.renyi_efficiency.toFixed(4)}</code>；` +
-    ` byte-fallback 的字形效果為 <b>${o.script_trad_minus_simp ? DATA.analysis[state.enc].overall_fallback.script_trad_minus_simp.mean.toFixed(2) : '—'}</b> 個 token，` +
-    ` 這個數字通常大於淨 token 差，因為繁體同時還失去了多字合併的機會。`;
-}
-
-/* ---------- vocabulary audit ---------- */
-function renderVocab(){
-  const host = $('#vocab-coverage'); host.replaceChildren();
-  ENCS.forEach(enc=>{
-    const c = DATA.vocab_audit[enc].coverage, p = DATA.vocab_audit[enc].profile;
-    const box = el('div');
-    box.appendChild(el('h3',null,enc));
-    const b = el('div','bigstat', c.pct_trad_counterpart_missing.toFixed(0)+'%');
-    b.appendChild(el('small',null,'簡體字有自己的 token、但其繁體對應字沒有的比例'));
-    box.appendChild(b);
-    const b2 = el('div','bigstat', c.pct_simp_counterpart_missing.toFixed(0)+'%');
-    b2.style.color='var(--ok)';
-    b2.appendChild(el('small',null,'反方向（繁有、簡無）的比例'));
-    box.appendChild(b2);
-    box.appendChild(el('p','sub',
-      `詞表 ${p.vocab_size.toLocaleString()} 個 token，其中純漢字 ${p.n_han_tokens.toLocaleString()} 個（${p.pct_of_vocab.toFixed(1)}%）。`));
-    const ex = el('p','sub');
-    ex.innerHTML = `沒有專屬 token 的繁體字（節錄）：<span class="mono">${c.example_missing_trad.slice(0,40)}</span>`;
-    box.appendChild(ex);
-    host.appendChild(box);
-  });
-
-  const lhost = $('#vocab-longest'); lhost.replaceChildren();
-  ENCS.forEach(enc=>{
-    const p = DATA.vocab_audit[enc].profile;
-    lhost.appendChild(el('div','sub',enc));
-    const list = el('div','vocablist');
-    p.longest.forEach(t=>list.appendChild(el('span',null,t)));
-    lhost.appendChild(list);
-  });
-}
-
-/* ---------- constructions ---------- */
-function renderCxg(){
-  const t = $('#tbl-cxg'); t.replaceChildren();
-  const head = el('thead'); head.innerHTML =
-    `<tr><th>構式</th><th>圖式</th><th>典型形式</th><th class="num">tok</th><th>切分</th>
-     <th>變體形式</th><th class="num">tok</th><th>切分</th></tr>`;
-  t.appendChild(head);
-  const body = el('tbody');
-  DATA.constructions.forEach(c=>{
-    const d = c[state.enc];
-    const tr = el('tr');
-    const seg = arr => arr.map(x=> x==null
-      ? '<span class="tok fb">\u25FC</span>'
-      : `<span class="tok${[...x].length>1?' multi':''}">${x}</span>`).join('');
-    tr.innerHTML = `<td>${c.cx}</td><td class="mono sub">${c.schema}</td>` +
-      `<td>${c.canonical}</td><td class="num">${d.canonical_n}</td><td class="mono">${seg(d.canonical)}</td>` +
-      `<td>${c.variant}</td><td class="num">${d.variant_n}</td><td class="mono">${seg(d.variant)}</td>`;
-    body.appendChild(tr);
-  });
-  t.appendChild(body);
-}
-
-/* ---------- cost ---------- */
-const PRICE = {cl100k_base:2.50, o200k_base:2.50};
-const CTX   = {cl100k_base:128000, o200k_base:128000};
-function renderCost(){
-  const t = $('#tbl-cost'); t.replaceChildren();
-  const head = el('thead'); head.innerHTML =
-    `<tr><th>Tokenizer</th><th>條件</th><th class="num">tokens/字</th>
-     <th class="num">每百萬字成本 (USD)</th><th class="num">context 裝得下的字數</th></tr>`;
-  t.appendChild(head);
-  const body = el('tbody');
-  ENCS.forEach(enc=>{
-    [['trad','tw','繁體・台灣用詞'],['simp','cn','簡體・中國用詞'],['trad','hk','繁體・香港用詞']].forEach(([s,l,label])=>{
-      const rs = DATA.rows[enc].filter(r=>r.script===s && r.lexicon===l);
-      const tpc = rs.reduce((a,r)=>a+r.tokens_per_char,0)/rs.length;
-      const tr = el('tr');
-      tr.innerHTML = `<td class="mono">${enc}</td><td>${label}</td><td class="num">${tpc.toFixed(3)}</td>` +
-        `<td class="num">${(PRICE[enc]*tpc).toFixed(2)}</td>` +
-        `<td class="num">${Math.round(CTX[enc]/tpc).toLocaleString()}</td>`;
-      body.appendChild(tr);
-    });
-  });
-  t.appendChild(body);
-}
-
-/* ---------- datasheet ---------- */
-function renderDatasheet(){
-  const ul = $('#datasheet'); ul.replaceChildren();
-  const lines = [
-    `項目數 ${DATA.meta.n_items}，展開後 ${DATA.meta.n_cells} 個條件格（${DATA.meta.n_items} × 2 字形 × 3 詞彙）。`,
-    `詞彙欄由作者撰寫；字形欄以 OpenCC <code>t2s</code>／<code>s2t</code> 逐字轉換生成，未使用 <code>s2twp</code>（該設定會同時轉換詞彙，重新引入混淆）。`,
-    `類別假設：` + Object.entries(DATA.hypotheses).map(([k,v])=>`<br>　<b>${CAT_NAME[k]||k}</b>：${v}`).join(''),
-  ];
-  lines.forEach(t=>{const li=el('li'); li.innerHTML=t; ul.appendChild(li);});
-  $('#provenance').textContent =
-    `資料生成於 ${DATA.meta.generated}（${DATA.meta.git}，Python ${DATA.meta.python}）。`;
-}
-
-/* ---------- live tokenizer (lazy, optional) ---------- */
-const TOK = {ready:false, enc:{}, mod:null,
-  pieces(text, name){
-    const e = this.enc[name]; if(!e) return null;
-    const ids = e.encode(text);
-    return ids.map(id=>{
-      const s = e.decode([id]);
-      return {id, s, fb: s.includes('\uFFFD')};
-    });
-  }};
-async function loadTokenizer(){
-  const st = $('#custom-status');
-  try{
-    const mod = await import('https://cdn.jsdelivr.net/npm/js-tiktoken@1.0.15/+esm');
-    ENCS.forEach(n=>{TOK.enc[n]=mod.getEncoding(n);});
-    TOK.ready = true;
-    st.textContent = 'tokenizer 已載入。';
-    renderMechanism(); renderCustom();
-  }catch(err){
-    st.textContent = 'tokenizer 載入失敗（離線或 CDN 被擋）。頁面上所有預先計算的分析仍然有效，只有即時切分不可用。';
-    console.warn(err);
-  }
-}
-function renderCustom(){
-  const out = $('#custom-out'); out.replaceChildren();
-  if(!TOK.ready) return;
-  const a = $('#ta-a').value, b = $('#ta-b').value;
-  if(!a && !b){ out.appendChild(el('p','sub','輸入文字後即時計算。')); return; }
-  [['A',a],['B',b]].forEach(([lab,txt])=>{
-    if(!txt) return;
-    out.appendChild(chipRow(`${lab}・${state.enc}`, txt, state.enc));
-    const ids = TOK.enc[state.enc].encode(txt);
-    const fb = TOK.pieces(txt,state.enc).filter(p=>p.fb).length;
-    const han = (txt.match(/\p{Script=Han}/gu)||[]).length;
-    out.appendChild(el('p','sub',
-      `${ids.length} tokens ｜ ${fb} byte-fallback ｜ ${han} 漢字 ｜ ${han?(ids.length/han).toFixed(3):'—'} tok/字`));
-  });
-  if(a && b){
-    const na = TOK.enc[state.enc].encode(a).length, nb = TOK.enc[state.enc].encode(b).length;
-    const p = el('p'); p.innerHTML = `<b>parity(A,B) = ${(na/nb).toFixed(3)}</b>，即 A 相對 B 的 premium 為 ${((na/nb-1)*100).toFixed(1)}%。`;
-    out.appendChild(p);
-  }
-}
-
-/* ---------- boot ---------- */
-function renderAll(){ renderItem(); renderEffects(); renderCxg(); renderCost(); }
-renderHero(); fillSelects(); renderVocab(); renderDatasheet(); renderAll();
-let t=null;
-['ta-a','ta-b'].forEach(id=>$('#'+id).addEventListener('input',()=>{clearTimeout(t);t=setTimeout(renderCustom,250);}));
-loadTokenizer();
+(()=>{'use strict';
+const DATA=JSON.parse(document.getElementById('study-data').textContent),$=s=>document.querySelector(s);
+const node=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!=null)n.textContent=text;return n;};
+const catNames={tech:'科技',daily:'日常',news:'新聞（探索）',loan:'外來詞',cxg:'構式例句',name:'專名'},lexNames={tw:'台灣用詞',cn:'中國用詞',hk:'香港用詞'};
+const state={scope:'twcn_screened',enc:DATA.meta.encodings[0],cat:'all',item:'tech01'};
+const index={};for(const enc of DATA.meta.encodings){index[enc]={};for(const r of DATA.rows[enc])index[enc][`${r.item_id}|${r.script}|${r.lexicon}`]=r;}
+const spec=()=>DATA.scopes[state.scope],item=()=>DATA.items.find(i=>i.id===state.item);
+const rows=(enc=state.enc)=>DATA.rows[enc].filter(r=>spec().items.includes(r.item_id)&&spec().lexicons.includes(r.lexicon)&&(state.cat==='all'||r.category===state.cat));
+const analysis=()=>state.cat==='all'?DATA.analysis[state.enc][state.scope].effects:DATA.analysis[state.enc][state.scope].by_category[state.cat];
+const num=(v,n=2)=>Number.isFinite(v)?v.toFixed(n):'—',sgn=v=>Number.isFinite(v)?(v>=0?'+':'')+num(v):'—';
+const stat=d=>`${sgn(d.mean)} [${num(d.lo)}, ${num(d.hi)}]`;
+const ptext=p=>p==null?'—':p<.001?'< .001':num(p,3);
+function makeTable(target,heads,rs,caption){const t=$(target);t.replaceChildren();if(caption)t.append(node('caption',null,caption));const thead=node('thead'),tr=node('tr');for(const h of heads)tr.append(node('th',null,h));thead.append(tr);t.append(thead);const body=node('tbody');for(const row of rs){const rr=node('tr');row.forEach((v,i)=>rr.append(node('td',i?'num':'',v)));body.append(rr);}t.append(body);}
+function fillItems(){const select=$('#sel-item');select.replaceChildren();const its=DATA.items.filter(i=>spec().items.includes(i.id)&&(state.cat==='all'||i.category===state.cat));for(const i of its)select.add(new Option(`${i.id} · ${i.probe}`,i.id));if(!its.some(i=>i.id===state.item))state.item=its[0].id;select.value=state.item;}
+function fillCats(){const select=$('#sel-cat');select.replaceChildren();select.add(new Option('全部類別','all'));const cats=[...new Set(DATA.items.filter(i=>spec().items.includes(i.id)).map(i=>i.category))];for(const c of cats)select.add(new Option(catNames[c],c));if(!cats.includes(state.cat))state.cat='all';select.value=state.cat;fillItems();}
+function renderItem(){const it=item(),lex=spec().lexicons,g=$('#cellgrid');g.className='matrix '+(lex.length===2?'two':'three');g.replaceChildren();g.append(node('div'));for(const l of lex)g.append(node('div','matrix-head',lexNames[l]));for(const [s,label] of [['trad','繁體'],['simp','簡體']]){g.append(node('div','matrix-head',label));for(const l of lex){const r=index[state.enc][`${it.id}|${s}|${l}`],c=node('div','cell'+(r.original_surface?'':' generated'));c.append(node('div','count',`${r.n_tokens} tok`),node('p',null,r.text),node('div','small',`${r.n_han} 漢字 / ${r.n_codepoints} 碼位 · ${r.n_utf8_fragments} UTF-8 碎片 tokens`));g.append(c);}}$('#scope-note').textContent=`${spec().label}：${spec().note}`;$('#item-meta').textContent=`${it.id} · ${catNames[it.category]} · 香港信心 ${it.hk_confidence}（作者標記） · ${it.exact_control?'逐字相同控制':'自撰探索項目'} · ${it.exclusion_reason||'台中模板篩選保留，語義等價仍待驗證'}`;}
+function svgNode(tag,attrs){const n=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const [k,v] of Object.entries(attrs))n.setAttribute(k,v);return n;}
+function renderEffects(){const a=analysis(),keys=[['字形：繁 − 簡','script_trad_minus_simp']];for(const l of spec().lexicons)if(l!=='cn')keys.push([`用詞：${l==='tw'?'台':'港'} − 中`,`lexicon_${l}_minus_cn`],[`交互作用：${l==='tw'?'台中':'港中'}`,`interaction_${l}`]);$('#headline').textContent=`在目前 ${a.script_trad_minus_simp.n} 個項目與 ${state.enc} 下，平均字形差為 ${sgn(a.script_trad_minus_simp.mean)} tokens；台中用詞差為 ${sgn(a.lexicon_tw_minus_cn.mean)} tokens。這是所選材料的結果。`;
+const host=$('#effectbars');host.replaceChildren();const extent=Math.max(1,...keys.flatMap(([,k])=>[Math.abs(a[k].lo||0),Math.abs(a[k].hi||0)]))*1.12,x=v=>250+v/extent*220;
+for(const [label,k] of keys){const d=a[k],r=node('div','effect-row');r.append(node('div','effect-label',label));const svg=svgNode('svg',{viewBox:'0 0 500 60',role:'img','aria-label':`${label} ${stat(d)}`});svg.append(svgNode('line',{x1:250,x2:250,y1:1,y2:40,stroke:'#94afbf','stroke-dasharray':'3 3'}));const color=k.startsWith('script')?'#146c80':'#886224';svg.append(svgNode('line',{x1:x(d.lo),x2:x(d.hi),y1:20,y2:20,stroke:color,'stroke-width':3}),svgNode('line',{x1:x(d.lo),x2:x(d.lo),y1:13,y2:27,stroke:color}),svgNode('line',{x1:x(d.hi),x2:x(d.hi),y1:13,y2:27,stroke:color}),svgNode('circle',{cx:x(d.mean),cy:20,r:5,fill:color}));const txt=svgNode('text',{x:250,y:53,'text-anchor':'middle',fill:'#183044',class:'stat'});txt.textContent=stat(d);svg.append(txt);r.append(svg);host.append(r);}
+makeTable('#tbl-effects',['對比','平均差 [95% CI]','n 項目','非零 n','Wilcoxon p','rank-biserial'],keys.map(([label,k])=>[label,stat(a[k]),a[k].n,a[k].n_nonzero,ptext(a[k].p),num(a[k].rank_biserial,3)]),'目前範圍與類別；單位 tokens。字形與用詞為邊際平均對比，交互作用為差中之差。');$('#path-result').textContent=`${sgn(a.diagonal_tw.mean)} = ${sgn(a.lexicon_tw_at_simp.mean)} + ${sgn(a.script_at_tw.mean)} tokens（平均值，非百分比）`;
+makeTable('#tbl-sensitivity',['材料範圍','n','字形差 [95% CI]','台中用詞差 [95% CI]','港中用詞差 [95% CI]'],Object.entries(DATA.scopes).map(([k,s])=>{const e=DATA.analysis[state.enc][k].effects;return [s.label,e.script_trad_minus_simp.n,stat(e.script_trad_minus_simp),stat(e.lexicon_tw_minus_cn),e.lexicon_hk_minus_cn?stat(e.lexicon_hk_minus_cn):'不納入香港'];}),`固定 ${state.enc}；各範圍全部類別。`);}
+function chipRow(label,text,pieces){const wrap=node('div');wrap.append(node('h3',null,label),node('p',null,text));const chips=node('div','chips');for(const p of pieces){const c=node('span','chip'+(p.valid_utf8?'':' fragment'));c.append(node('span','surface',p.valid_utf8?(p.surface.trim()?p.surface:'␠'):'UTF-8 碎片'),node('small',null,`id ${p.id} · [${p.byte_start},${p.byte_end})`),node('small',null,p.hex));c.title=`token ${p.id}\nUTF-8 bytes ${p.hex}\n[${p.byte_start}, ${p.byte_end})`;chips.append(c);}wrap.append(chips);return wrap;}
+function renderMechanism(){const host=$('#mechanism-panels');host.replaceChildren();for(const s of ['trad','simp'])for(const l of spec().lexicons){const r=index[state.enc][`${state.item}|${s}|${l}`];host.append(chipRow(`${s==='trad'?'繁':'簡'} · ${lexNames[l]}`,r.text,r.token_details));}const text=index[state.enc][`${state.item}|trad|tw`].text;let pos=0;const rs=[...text].map(c=>{const b=new TextEncoder().encode(c),a=pos;pos+=b.length;return[c,`[${a},${pos})`,[...b].map(v=>v.toString(16).padStart(2,'0')).join(' ')];});makeTable('#tbl-charbytes',['台灣繁體版本的字元','byte 區間','UTF-8 hex'],rs);}
+function renderVocab(){const host=$('#vocab-coverage');host.replaceChildren();const lists=$('#vocab-longest');lists.replaceChildren();for(const enc of DATA.meta.encodings){const c=DATA.vocab_audit[enc].coverage,p=DATA.vocab_audit[enc].profile,box=node('div');box.append(node('h3',null,enc),node('p',null,`已收錄且有不同繁體對應的 ${c.n_simp_with_distinct_trad} 個單漢字條目中，${c.n_trad_counterpart_missing} 個繁體對應未以單字收錄（${num(c.pct_trad_counterpart_missing,1)}%）。`),node('p',null,`反方向：${c.n_simp_counterpart_missing} / ${c.n_trad_with_distinct_simp}（${num(c.pct_simp_counterpart_missing,1)}%）。`),node('p','small',`純漢字條目 ${p.n_han_tokens} / 詞表 ${p.vocab_size}；${num(p.pct_of_vocab,2)}%。`));host.append(box);const list=node('div');list.append(node('h3',null,enc),node('p','bytes',p.longest.join(' · ')));lists.append(list);}}
+function renderCxg(){makeTable('#tbl-cxg',['構式例子','具體形式','tokens','變體形式','tokens','比較性質'],DATA.constructions.map(c=>[c.cx,c.canonical,c[state.enc].canonical.length,c.variant,c[state.enc].variant.length,c.canonical===c.variant?'相同字串重複參照':'表面變體，未必語義最小對比']),`${state.enc}。一個 token 只表示具體表面字串的編碼結果。`);}
+function renderCost(){const price=Number($('#price').value),ctx=Number($('#context').value),reserve=Number($('#reserved').value),denom=$('#denom').value;const valid=[$('#price'),$('#context'),$('#reserved')].every(e=>e.value!==''&&e.validity.valid)&&Number.isFinite(price)&&Number.isInteger(ctx)&&Number.isInteger(reserve)&&reserve<ctx;$('#cost-status').textContent=valid?`假設輸入價格 ${price} USD / 百萬 tokens；文字可用 ${ctx-reserve} tokens。`:'請輸入有效數值；預留額度須小於 context。';const t=$('#tbl-cost');if(!valid){t.replaceChildren();return;}const unit=denom==='n_han'?'漢字':'Unicode 碼位',rs=[];for(const enc of DATA.meta.encodings)for(const s of ['trad','simp'])for(const l of spec().lexicons){const rr=rows(enc).filter(r=>r.script===s&&r.lexicon===l),nt=rr.reduce((a,r)=>a+r.n_tokens,0),nc=rr.reduce((a,r)=>a+r[denom],0),rate=nc?nt/nc:0;rs.push([enc,`${s==='trad'?'繁':'簡'} · ${lexNames[l]}`,num(rate,3),num(price*rate),rate?Math.floor((ctx-reserve)/rate).toLocaleString():'—']);}makeTable('#tbl-cost',['Tokenizer','條件',`tokens / ${unit}`,`每百萬${unit}輸入 USD`,`可容納${unit}（近似）`],rs,'目前範圍與類別；比率以總數相除。');}
+let live=null,loading=false;
+async function loadTokenizer(){if(loading)return;loading=true;const b=$('#load-tokenizer');b.disabled=true;$('#custom-status').textContent='載入網站內的 tokenizer…';try{const m=await import('./tokfair/assets/tokenizer/tokenizer.mjs');live=m;$('#custom-status').textContent='已載入 js-tiktoken 1.0.15；輸入在本機計算，不送出文字。';b.hidden=true;renderCustom();}catch(e){$('#custom-status').textContent='載入失敗。請確認網路後重試；預先計算的分析仍可使用。';b.textContent='重試載入';b.disabled=false;}finally{loading=false;}}
+function renderCustom(){if(!live)return;const host=$('#custom-out');host.replaceChildren();const texts=[$('#ta-a').value,$('#ta-b').value],counts=[];try{for(const [i,text]of texts.entries()){if(!text){counts[i]=0;continue;}const pieces=live.measure(text,state.enc);counts[i]=pieces.length;const han=[...text].filter(c=>/\p{Script=Han}/u.test(c)).length,cp=[...text].length,nf=pieces.filter(p=>!p.valid_utf8).length;host.append(chipRow(i?'B':'A',text,pieces),node('p','small',`${pieces.length} tokens · ${nf} UTF-8 碎片 tokens · ${han} 漢字 / ${cp} 碼位 · tokens/漢字 ${han?num(pieces.length/han,3):'無漢字，未定義'} · tokens/碼位 ${num(pieces.length/cp,3)}`));}if(counts[0]&&counts[1])host.append(node('p','summary',`A/B token 比率 ${num(counts[0]/counts[1],3)}；相對差 ${num((counts[0]/counts[1]-1)*100,1)}%。語義等價須自行檢查。`));else host.append(node('p','small','請在兩欄都輸入文字以計算比率。'));}catch(e){host.append(node('p','warn','這段文字無法切分；請縮短輸入後重試。'));}}
+function renderAll(){renderItem();renderEffects();renderMechanism();renderCxg();renderCost();renderCustom();}
+function download(name,type,text){const url=URL.createObjectURL(new Blob([text],{type})),a=node('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+for(const [k,s]of Object.entries(DATA.scopes))$('#sel-scope').add(new Option(`${s.label} · n=${s.items.length}`,k));for(const e of DATA.meta.encodings)$('#sel-enc').add(new Option(e,e));fillCats();renderVocab();makeTable('#tbl-exclusions',['項目','理由'],DATA.items.filter(i=>i.exclusion_reason).map(i=>[i.id,i.exclusion_reason]));$('#provenance').textContent=`資料生成 ${DATA.meta.generated} · ${DATA.meta.n_items} 項目 × 6 格 × 2 tokenizer · Python ${DATA.meta.python} · bootstrap seed ${DATA.meta.bootstrap_seed} · 原始 commit ${DATA.meta.source_base_commit.slice(0,8)}。完整 source / rank SHA-256 與套件版本見 JSON。`;
+$('#sel-scope').addEventListener('change',e=>{state.scope=e.target.value;fillCats();renderAll();});$('#sel-enc').addEventListener('change',e=>{state.enc=e.target.value;renderAll();});$('#sel-cat').addEventListener('change',e=>{state.cat=e.target.value;fillItems();renderAll();});$('#sel-item').addEventListener('change',e=>{state.item=e.target.value;renderItem();renderMechanism();});$('#load-tokenizer').addEventListener('click',loadTokenizer);for(const id of ['price','context','reserved','denom'])$('#'+id).addEventListener('input',renderCost);let timer;for(const id of ['ta-a','ta-b'])$('#'+id).addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(renderCustom,250);});$('#export-json').addEventListener('click',()=>download('tokfair-v3-study.json','application/json',JSON.stringify(DATA,null,2)));$('#export-csv').addEventListener('click',()=>{const fields=['item_id','category','script','lexicon','text','n_tokens','n_han','n_codepoints','n_utf8_fragments','tokens_per_han','tokens_per_codepoint','fertility','boundary_f1'];const q=v=>'"'+String(v??'').replaceAll('"','""')+'"';download(`tokfair-v3-${state.enc}-${state.scope}-${state.cat}.csv`,'text/csv;charset=utf-8','\uFEFF'+[fields.map(q).join(','),...rows().map(r=>fields.map(k=>q(r[k])).join(','))].join('\r\n'));});renderAll();
+// Read-only hook for browser equivalence checks; no user input is stored.
+window.tokfair={state,DATA,get live(){return live;}};
 })();
 </script>
 </body>

@@ -1,44 +1,8 @@
-"""stimuli.py — the stimulus bank for the Chinese tokenization-fairness study.
-
-Design rationale
-----------------
-v1 of the explorer compared three hand-written variants (TW / CN / HK) and
-reported the extra tokens as a single "dialect tax".  That number is not
-interpretable, because the three variants differ on **two** factors at once:
-
-    Factor A  SCRIPT   字形   {traditional, simplified}
-    Factor B  LEXICON  詞彙   {tw, cn, hk}
-
-`軟體 / 软件 / 軟件` differs in *both*.  Any "tax" estimated from that
-comparison silently pools an orthographic effect (which token vocabularies
-encode directly, one Unicode codepoint at a time) with a lexical effect (which
-depends on whether a multi-character chunk made it into the merge table).
-These have completely different causes and completely different remedies, so
-they must be estimated separately.
-
-We therefore write only the LEXICON factor by hand, and *generate* the SCRIPT
-factor mechanically with OpenCC character-level conversion (`t2s` / `s2t`,
-never `s2twp`, which would also convert vocabulary and re-introduce the
-confound).  Every item yields a fully crossed 2 x 3 = 6-cell set:
-
-    trad-tw  trad-cn  trad-hk
-    simp-tw  simp-cn  simp-hk
-
-Four of the six cells are orthographically well-formed but sociolinguistically
-unattested (nobody writes Taiwanese vocabulary in simplified characters in a
-Taiwanese newspaper).  That is fine and in fact necessary: they are *control*
-conditions, in the same sense that a psycholinguist uses pseudowords.  They
-isolate what the tokenizer responds to, not what a reader would produce.
-
-Provenance note (a datasheet obligation, cf. Jurafsky & Martin ch.2 §Corpora):
-the HK column is the weakest link.  It was written to represent *Hong Kong
-written Chinese* (traditional script + HK lexical choices such as 的士 / 薯仔),
-deliberately excluding written Cantonese (我哋 / 冇 / 畀), so that the contrast
-stays lexical rather than becoming a different grammar.  Items marked
-`hk_confidence="low"` need validation by a Hong Kong informant before any
-result based on them is reported.
+"""Self-authored exploratory material. v3 preserves historical surfaces and
+records exclusions; original_surface denotes the author's source version, not
+corpus attestation. OpenCC s2t/t2s is dictionary-based and can be context-sensitive;
+conversion is an operational intervention, not a linguistic equivalence proof.
 """
-
 from __future__ import annotations
 
 from dataclasses import dataclass, asdict, field
@@ -85,9 +49,9 @@ class Item:
 # still informative.
 # --------------------------------------------------------------------------
 CATEGORY_HYPOTHESES = {
-    "tech": "科技詞為晚近借入，三地各自造詞，且訓練語料以簡體技術文件為主：預測詞彙效果最大。",
+    "tech": "探索假設：科技用詞差異可能改變切分；效果方向須由測量決定。",
     "daily": "日常具體名詞分歧久遠且無統一標準，HK 詞彙獨特性最高。",
-    "news": "對照組。正式語體三地用詞高度重疊，殘餘差異應幾乎全部來自字形。",
+    "news": "新聞語體探索組；只將逐字轉換後完全一致的項目另列為控制。",
     "loan": "音譯 vs 意譯的分歧（雷射／激光）：檢驗 BPE 是否偏好某一種造詞策略。",
     "cxg": "構式探針。檢驗 tokenizer 是否把半基模構式、離合詞、重疊式當作單位。",
     "name": "專名。字形受控下最純粹的詞彙效果（川普／特朗普）。",
@@ -227,12 +191,12 @@ ITEMS: list[Item] = [
 def expand(items: list[Item] | None = None) -> list[dict]:
     """Flatten the item bank into one row per (item, script, lexicon) cell."""
     rows = []
-    for it in (items or ITEMS):
+    for it in (ITEMS if items is None else items):
         for (script, lex), text in it.cells().items():
             rows.append(
                 dict(item_id=it.id, category=it.category, script=script,
                      lexicon=lex, text=text, gloss=it.gloss, probe=it.probe,
-                     hk_confidence=it.hk_confidence, attested=(
+                     hk_confidence=it.hk_confidence, original_surface=(
                          (script == "trad" and lex in ("tw", "hk"))
                          or (script == "simp" and lex == "cn")))
             )
@@ -265,3 +229,31 @@ CONSTRUCTION_PROBES = [
     dict(cx="把字句", schema="把 NP V", canonical="把書放好", variant="把那本書放好"),
     dict(cx="連…都…", schema="連 NP 都 V", canonical="連我都知道", variant="連他自己都不知道"),
 ]
+
+# Manual source-template screening, before the v3 analysis. Not native-speaker validation.
+EXCLUSIONS={
+ 'daily04':'交通系統與動詞同時改變；捷運／地鐵／港鐵的指涉需另核對',
+ 'daily05':'除目標詞外也改變轉角／拐角與句末措辭',
+ 'news03':'總統／主席／特首指涉不同職位，不是純詞彙對照',
+ 'loan03':'同時改變目標詞、資訊／信息與句法長度',
+ 'loan04':'香港版本改變語法與語體；不作跨地區模板對照',
+ 'name02':'下週／下周／下星期等時間措辭亦改變',
+ 'name03':'專名與成長／增長兩處同時改變',
+ 'name05':'專名、美術館／博物館與地名拼寫同時改變',
+}
+
+def item_metadata(it):
+    cells=it.cells()
+    control=all(cells[s,'tw']==cells[s,'cn']==cells[s,'hk'] for s in ('trad','simp'))
+    return dict(**vars(it),template_screened=it.id not in EXCLUSIONS,
+      exclusion_reason=EXCLUSIONS.get(it.id,''),exact_control=control,
+      validation_status='author-template-screened; not native-speaker-validated')
+
+def scope_specs():
+    return {
+      'twcn_screened':dict(label='台中・模板篩選',lexicons=['tw','cn'],items=[i.id for i in ITEMS if i.id not in EXCLUSIONS],note='排除 8 個額外措辭或指涉差異項目；其餘仍是自撰材料，尚未母語者校訂。'),
+      'twcn_all':dict(label='台中・全部材料',lexicons=['tw','cn'],items=[i.id for i in ITEMS],note='保留 37 個原始項目，作為模板篩選的敏感度比較。'),
+      'hk_nonlow':dict(label='三地・排除香港低信心',lexicons=['tw','cn','hk'],items=[i.id for i in ITEMS if i.hk_confidence!='low'],note='排除 9 個香港低信心項目；信心由作者標記，不等於已驗證。'),
+      'hk_all':dict(label='三地・全部材料（探索）',lexicons=['tw','cn','hk'],items=[i.id for i in ITEMS],note='包含書面粵語及指涉差異；結果不能當成純詞彙效果。'),
+      'controls':dict(label='三地・逐字相同控制',lexicons=['tw','cn','hk'],items=[i.id for i in ITEMS if item_metadata(i)['exact_control']],note='各字形下三欄字串完全相同；詞彙對比應精確為零，這是程式與設計檢查。'),
+    }

@@ -1,0 +1,28 @@
+{
+  "status": "passed",
+  "official_tiktoken": "0.14.0",
+  "encoder_cases": 874,
+  "scopes": {
+    "twcn_screened": 29,
+    "twcn_all": 37,
+    "hk_nonlow": 28,
+    "hk_all": 37,
+    "controls": 3
+  },
+  "study_sha256": "9589f5332e29e3475616917ad9be724d56cb5f79e66abd9737b1c60e842343c6",
+  "checks": [
+    "official rank and token-ID equivalence (ordinary text)",
+    "all measured rows recomputed",
+    "UTF-8 byte reconstruction",
+    "literal replacement character is not a fragment",
+    "complete-item scope counts",
+    "exact-control lexical differences zero",
+    "baseline decomposition identity",
+    "stable bootstrap seed"
+  ],
+  "limits": [
+    "No native-speaker validation",
+    "No downstream model evaluation",
+    "Browser/live deployment tested separately"
+  ]
+}
