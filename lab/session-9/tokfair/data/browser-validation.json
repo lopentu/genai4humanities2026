@@ -17,7 +17,9 @@
   ],
   "browser_errors": [],
   "status": "passed",
-  "tested_page_sha256": "077881ec93fcf20a96bf161480550d5a6042b8e752278b41435ecc019f44d939",
   "tested_on": "2026-10-07",
-  "status_scope": "local browser; public deployment checked after publishing"
+  "status_scope": "local browser; public deployment checked after publishing",
+  "interaction_tested_page_sha256": "077881ec93fcf20a96bf161480550d5a6042b8e752278b41435ecc019f44d939",
+  "final_layout_page_sha256": "f3eb55f24c5e62b6bcc44ab216236f1db76d2a6d9e2aa1cce370a3fe114282d9",
+  "final_layout_check": "headline typography refined; desktop and mobile viewport checked"
 }
