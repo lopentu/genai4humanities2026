@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>用 Markdown 寫 Skill：把標註規範交給模型｜Session 10</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f4f6f3; --card:#ffffff; --ink:#1b211e; --muted:#56605b; --hint:#87918b;
+  --rule:#d8ddd8; --code:#eceff0;
+  --syn:#2b58a6; --syn-t:#e8eef9; --sem:#27704d; --sem-t:#e6f2ea; --prag:#b0352c; --prag-t:#f8e9e6;
+  --serif:"Noto Serif TC","Songti TC","PMingLiU",serif;
+  --sans:-apple-system,"PingFang TC","Microsoft JhengHei","Noto Sans TC",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#121614; --card:#1a1f1c; --ink:#e3e8e4; --muted:#a2aba6; --hint:#77817b;
+    --rule:#2b322e; --code:#1f2623;
+    --syn:#93b3ee; --syn-t:#1c2638; --sem:#80c8a1; --sem-t:#17291f; --prag:#ef958a; --prag-t:#33201d;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#121614; --card:#1a1f1c; --ink:#e3e8e4; --muted:#a2aba6; --hint:#77817b;
+  --rule:#2b322e; --code:#1f2623;
+  --syn:#93b3ee; --syn-t:#1c2638; --sem:#80c8a1; --sem-t:#17291f; --prag:#ef958a; --prag-t:#33201d;
+  color-scheme:dark;
+}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 16px);-webkit-text-size-adjust:100%}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--serif);font-size:16.5px;line-height:1.9}
+a{color:var(--syn)}
+code,kbd,pre{font-family:var(--mono)}
+:focus-visible{outline:2px solid var(--syn);outline-offset:2px}
+
+/* shell */
+.shell{max-width:1120px;margin:0 auto;padding:0 1.4rem 6rem;display:grid;grid-template-columns:1fr;gap:3rem}
+@media (min-width:1080px){.shell{grid-template-columns:200px minmax(0,1fr)}}
+.toc{display:none}
+@media (min-width:1080px){
+  .toc{display:block;position:sticky;top:calc(env(safe-area-inset-top,0px) + 28px);align-self:start;padding-top:3.4rem;font-family:var(--sans);font-size:13px;line-height:1.6}
+  .toc ol{list-style:none;margin:0;padding:0;border-left:1px solid var(--rule)}
+  .toc a{display:block;padding:5px 0 5px 14px;margin-left:-1px;border-left:2px solid transparent;color:var(--muted);text-decoration:none}
+  .toc a.on{color:var(--ink);border-left-color:var(--prag);font-weight:600}
+  .toc .toc-head{color:var(--hint);margin-bottom:10px}
+}
+main{min-width:0;max-width:760px}
+
+/* hero */
+.hero{padding:3.2rem 0 2.4rem;border-bottom:1px solid var(--rule)}
+.crumb{font-family:var(--sans);font-size:13px;color:var(--hint);margin:0 0 1.2rem}
+.hero h1{font-size:clamp(30px,5vw,44px);line-height:1.25;font-weight:900;letter-spacing:.01em;margin:0 0 .6rem}
+.hero .lead{font-size:18px;color:var(--muted);margin:0 0 1.6rem;max-width:34em}
+.facts{display:flex;flex-wrap:wrap;gap:.4rem 1.6rem;font-family:var(--sans);font-size:13.5px;color:var(--muted);margin:0 0 2rem}
+.facts b{color:var(--ink);font-weight:600;margin-right:.4em}
+
+.judou{background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:1.4rem 1.4rem 1.1rem}
+.judou-grid{display:grid;gap:1.2rem}
+@media (min-width:700px){.judou-grid{grid-template-columns:1fr 1.25fr}}
+.judou-cap{font-family:var(--sans);font-size:12.5px;color:var(--hint);margin-bottom:.35rem}
+.classic{font-size:clamp(18px,4.8vw,23px);letter-spacing:.1em;line-height:1.8;font-weight:600;white-space:nowrap}
+.mk{color:var(--prag);display:inline-block;width:0;opacity:0;overflow:hidden;vertical-align:bottom;transition:width .35s ease,opacity .35s ease}
+.on-judou .mk{width:1em;opacity:1}
+.mk-l{color:var(--prag);opacity:0;transition:opacity .35s ease}
+.on-judou .mk-l{opacity:1}
+.raw-skill{font-family:var(--mono);font-size:13px;line-height:1.75;background:var(--code);border-radius:4px;padding:.8rem .9rem;margin:0;white-space:pre-wrap;word-break:break-all;min-height:9.5em}
+.raw-skill .flat{display:block}
+.raw-skill .struct{display:none}
+.on-judou .raw-skill .flat{display:none}
+.on-judou .raw-skill .struct{display:block}
+.judou-foot{display:flex;flex-wrap:wrap;align-items:center;gap:.8rem 1.2rem;margin-top:1rem}
+.judou-foot p{margin:0;font-size:14.5px;color:var(--muted);flex:1 1 20em}
+
+/* buttons */
+.btn{font-family:var(--sans);font-size:14px;border:1px solid var(--ink);background:var(--ink);color:var(--paper);border-radius:4px;padding:.45rem 1rem;cursor:pointer;line-height:1.4}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--rule)}
+.btn.ghost:hover{border-color:var(--ink)}
+.btn[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.btnrow{display:flex;flex-wrap:wrap;gap:.5rem}
+
+/* timeline */
+.plan{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin:2.2rem 0 0;border-top:1px solid var(--rule)}
+@media (min-width:700px){.plan{grid-template-columns:repeat(6,1fr)}}
+.plan div{padding:.7rem .8rem .2rem 0;font-family:var(--sans);font-size:13px;line-height:1.5}
+.plan .t{color:var(--hint);font-family:var(--mono);font-size:11.5px}
+.plan .n{font-weight:600;color:var(--ink)}
+
+/* sections */
+section{padding:3.4rem 0 0}
+h2{font-size:27px;line-height:1.35;font-weight:700;margin:0 0 1.1rem}
+h2 .num{color:var(--prag);margin-right:.35em}
+h3{font-size:19px;font-weight:700;margin:2.2rem 0 .6rem}
+p{margin:0 0 1em}
+.note{font-family:var(--sans);font-size:13px;color:var(--hint)}
+.legend{display:flex;flex-wrap:wrap;gap:.3rem 1.2rem;font-family:var(--sans);font-size:13px;color:var(--muted);margin:.4rem 0 1.2rem}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.lg-syn::before{background:var(--syn)}.lg-sem::before{background:var(--sem)}.lg-prag::before{background:var(--prag)}
+.c-syn{color:var(--syn)}.c-sem{color:var(--sem)}.c-prag{color:var(--prag)}
+
+table.plain{border-collapse:collapse;width:100%;font-size:14.5px;line-height:1.65;margin:1rem 0 1.4rem}
+table.plain th,table.plain td{text-align:left;vertical-align:top;padding:.55rem .7rem .55rem 0;border-bottom:1px solid var(--rule)}
+table.plain th{font-family:var(--sans);font-size:12.5px;color:var(--hint);font-weight:500;border-bottom-color:var(--ink)}
+table.plain code{font-size:12.5px;background:var(--code);padding:1px 5px;border-radius:3px;white-space:nowrap}
+.tablewrap{overflow-x:auto}
+
+/* 語言學視角 */
+.lens{border-left:3px solid var(--sem);padding:.2rem 0 .2rem 1.1rem;margin:1.8rem 0}
+.lens .lens-h{font-family:var(--sans);font-size:13px;font-weight:600;color:var(--sem);margin-bottom:.25rem}
+.lens p{font-size:15.5px;margin:0 0 .6em}
+.lens p:last-child{margin:0}
+
+/* view toggle */
+.seg{display:inline-flex;border:1px solid var(--rule);border-radius:4px;overflow:hidden;font-family:var(--sans);font-size:13px}
+.seg button{border:0;background:transparent;color:var(--muted);padding:.35rem .85rem;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.viewbox{background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:1rem 1.1rem;margin-top:.6rem}
+.viewbox pre.rawview{margin:0;font-size:13px;line-height:1.7;white-space:pre-wrap;word-break:break-word}
+
+/* rendered markdown */
+.md{font-size:15px;line-height:1.8}
+.md .md-h{font-family:var(--serif);line-height:1.4;margin:1.1em 0 .4em}
+.md h1.md-h{font-size:22px}.md h2.md-h{font-size:18.5px}.md h3.md-h{font-size:16.5px}.md h4.md-h,.md h5.md-h,.md h6.md-h{font-size:15px}
+.md > :first-child{margin-top:0}
+.md p{margin:0 0 .7em}
+.md ul,.md ol{margin:0 0 .8em;padding-left:1.6em}
+.md code{font-size:12.5px;background:var(--code);padding:1px 5px;border-radius:3px}
+.md pre.md-code{background:var(--code);border-radius:4px;padding:.7rem .8rem;overflow-x:auto;font-size:12.5px;line-height:1.6;position:relative;margin:0 0 .9em}
+.md pre.md-code code{background:none;padding:0}
+.md pre.unclosed{outline:2px dashed var(--prag)}
+.md .md-lang{position:absolute;right:.6rem;top:.3rem;font-size:11px;color:var(--hint)}
+.md .md-fm{border:1px solid var(--rule);border-left:3px solid var(--syn);border-radius:4px;padding:.5rem .8rem;margin:0 0 1rem;background:var(--syn-t)}
+.md .md-fm pre{margin:0;font-size:12.5px;white-space:pre-wrap;word-break:break-word}
+.md .md-fm-tag{font-family:var(--sans);font-size:11.5px;color:var(--syn);margin-bottom:.2rem}
+.md .md-comment{font-family:var(--sans);font-size:12.5px;color:var(--hint);border:1px dashed var(--rule);padding:.2rem .5rem;margin:0 0 .6em}
+.md .md-empty{color:var(--prag);font-family:var(--sans);font-size:12.5px}
+.md blockquote{margin:0 0 .8em;padding-left:1em;border-left:3px solid var(--rule);color:var(--muted)}
+.md-tablewrap{overflow-x:auto;margin:0 0 .9em}
+.md table{border-collapse:collapse;font-size:13.5px}
+.md th,.md td{border:1px solid var(--rule);padding:.3rem .55rem;text-align:left;vertical-align:top}
+.md th{background:var(--code)}
+
+/* editor */
+.editor{display:grid;gap:.8rem;margin-top:1rem}
+@media (min-width:900px){.editor{grid-template-columns:1fr 1fr}}
+.pane{background:var(--card);border:1px solid var(--rule);border-radius:6px;display:flex;flex-direction:column;min-width:0}
+.pane-h{font-family:var(--sans);font-size:12.5px;color:var(--hint);padding:.5rem .8rem;border-bottom:1px solid var(--rule);display:flex;justify-content:space-between;align-items:center;gap:.5rem}
+textarea.src{font-family:var(--mono);font-size:13px;line-height:1.7;border:0;background:transparent;color:var(--ink);padding:.8rem;min-height:360px;resize:vertical;width:100%;tab-size:2}
+textarea.src:focus{outline:none}
+.pane .md{padding:.8rem 1rem;overflow:auto;max-height:520px}
+.tasks{counter-reset:t;list-style:none;padding:0;margin:1rem 0 0;font-size:15px}
+.tasks li{counter-increment:t;padding:.35rem 0 .35rem 2.2rem;position:relative;border-bottom:1px solid var(--rule)}
+.tasks li::before{content:counter(t);position:absolute;left:0;top:.35rem;width:1.5rem;height:1.5rem;border:1px solid var(--rule);border-radius:50%;font-family:var(--sans);font-size:12px;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.tasks li.done{color:var(--hint)}
+.tasks li.done::before{content:"✓";background:var(--sem);border-color:var(--sem);color:var(--paper)}
+
+/* lint panel */
+.lint{font-family:var(--sans);font-size:13px;line-height:1.55;padding:.7rem .9rem}
+.lint .lg{margin:0 0 .55rem}
+.lint .lg:last-child{margin:0}
+.lint .lh{font-weight:600;margin-bottom:.15rem}
+.lint ul{list-style:none;margin:0;padding:0}
+.lint li{padding:.12rem 0 .12rem 1.3rem;position:relative;color:var(--muted)}
+.lint li::before{position:absolute;left:0}
+.lint li.error{color:var(--prag)}.lint li.error::before{content:"✗"}
+.lint li.warn::before{content:"△";color:var(--hint)}
+.lint li.ok::before{content:"✓";color:var(--sem)}
+.outline{font-family:var(--sans);font-size:13px;padding:.6rem .9rem;border-top:1px solid var(--rule)}
+.outline .ol-h{color:var(--hint);margin-bottom:.2rem}
+.outline div.it{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.outline .skip{color:var(--prag)}
+
+/* anatomy (評點) */
+.filters{display:flex;flex-wrap:wrap;gap:.4rem;margin:.6rem 0 1rem}
+.anat{display:flex;flex-direction:column;gap:0;border:1px solid var(--rule);border-radius:6px;background:var(--card);overflow:hidden}
+.blk{display:grid;grid-template-columns:1fr;border-top:1px solid var(--rule);transition:opacity .2s}
+.blk:first-child{border-top:0}
+@media (min-width:860px){.blk{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr)}}
+.blk pre{margin:0;padding:.75rem .9rem .75rem 1rem;font-size:12.5px;line-height:1.7;white-space:pre-wrap;word-break:break-word;border-left:4px solid var(--c);background:var(--code)}
+.blk .pi{padding:.7rem 1rem .8rem;font-size:14.5px;line-height:1.75;border-left:1px solid var(--rule)}
+.blk .pi .tag{font-family:var(--sans);font-size:12px;font-weight:600;color:var(--c);margin-bottom:.15rem}
+.blk.dim{opacity:.28}
+.blk[data-c="syn"]{--c:var(--syn)}.blk[data-c="sem"]{--c:var(--sem)}.blk[data-c="prag"]{--c:var(--prag)}
+
+/* disclosure */
+.shelf{display:grid;gap:.6rem;margin:1rem 0}
+.lvl{border:1px solid var(--rule);border-radius:6px;background:var(--card);padding:.75rem 1rem;display:grid;grid-template-columns:3.2rem 1fr;gap:.2rem .8rem;align-items:start;transition:background .25s,border-color .25s,opacity .25s;opacity:.45}
+.lvl.in{opacity:1;border-color:var(--ink)}
+.lvl .ln{font-family:var(--serif);font-size:24px;font-weight:700;line-height:1.2;color:var(--hint)}
+.lvl.in .ln{color:var(--prag)}
+.lvl .lt{font-weight:600}
+.lvl .ld{grid-column:2;font-size:14px;color:var(--muted);line-height:1.65}
+.lvl .lf{grid-column:2;font-family:var(--mono);font-size:12px;color:var(--hint)}
+.req{display:grid;gap:.4rem;margin:.6rem 0}
+.req button{text-align:left;font-family:var(--serif);font-size:15px;background:var(--card);border:1px solid var(--rule);border-radius:4px;padding:.5rem .8rem;cursor:pointer;color:var(--ink)}
+.req button[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 3px 0 0 var(--prag)}
+.why{font-size:15px;color:var(--muted);min-height:3em}
+
+/* quiz */
+.quiz{display:grid;gap:.55rem;margin:1rem 0}
+.q{background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:.7rem .9rem}
+.q .qt{font-size:15.5px;margin-bottom:.45rem}
+.q .qb{display:flex;gap:.4rem;flex-wrap:wrap}
+.q .qb button{font-family:var(--sans);font-size:13px;border:1px solid var(--rule);background:transparent;color:var(--ink);border-radius:4px;padding:.25rem .7rem;cursor:pointer}
+.q .qb button:disabled{cursor:default}
+.q .qb button.pick-right{background:var(--sem-t);border-color:var(--sem);color:var(--sem)}
+.q .qb button.pick-wrong{background:var(--prag-t);border-color:var(--prag);color:var(--prag)}
+.q .qr{font-size:14px;color:var(--muted);margin-top:.45rem;display:none;line-height:1.7}
+.q.answered .qr{display:block}
+.score{font-family:var(--sans);font-size:13.5px;color:var(--muted)}
+
+.formula{background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:1rem 1.1rem;margin:1rem 0}
+.formula ol{margin:0;padding-left:1.4em}
+.formula li{margin:.2rem 0}
+
+/* builder */
+.builder{display:grid;gap:1rem;margin-top:1rem}
+@media (min-width:980px){.builder{grid-template-columns:minmax(0,1fr) minmax(0,1.05fr)}}
+.form{display:grid;gap:.8rem}
+.fld label{display:block;font-family:var(--sans);font-size:13px;font-weight:600;margin-bottom:.2rem}
+.fld .sub{font-weight:400;color:var(--hint);margin-left:.4em}
+.fld input,.fld textarea{width:100%;font-family:var(--serif);font-size:15px;line-height:1.6;border:1px solid var(--rule);border-radius:4px;background:var(--card);color:var(--ink);padding:.45rem .6rem}
+.fld textarea{min-height:4.8em;resize:vertical}
+.fld input.mono,.fld textarea.mono{font-family:var(--mono);font-size:13px}
+.fld input:focus,.fld textarea:focus{outline:2px solid var(--syn);outline-offset:0;border-color:transparent}
+.group{border:1px solid var(--rule);border-radius:6px;padding:.8rem .9rem;display:grid;gap:.7rem}
+.group > .gh{font-family:var(--sans);font-size:12.5px;font-weight:600}
+.labels{display:grid;gap:.4rem}
+.lrow{display:grid;grid-template-columns:1fr 2rem;gap:.3rem;padding:.45rem;border:1px solid var(--rule);border-radius:4px}
+.lrow input:nth-child(2),.lrow input:nth-child(3){grid-column:1 / -1}
+.lrow button{grid-row:1;grid-column:2}
+.lrow input{font-size:14px;padding:.35rem .45rem;border:1px solid var(--rule);border-radius:4px;background:var(--card);color:var(--ink);font-family:var(--serif);min-width:0}
+.lrow input.mono{font-family:var(--mono);font-size:12.5px}
+.lrow button{border:1px solid var(--rule);background:transparent;border-radius:4px;color:var(--muted);cursor:pointer}
+.outbox{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);align-self:start;display:grid;gap:.8rem}
+.outbox pre.gen{margin:0;padding:.8rem .9rem;font-size:12.5px;line-height:1.65;white-space:pre-wrap;word-break:break-word;max-height:440px;overflow:auto}
+.outbox .md{padding:.8rem 1rem;max-height:440px;overflow:auto}
+.status{font-family:var(--sans);font-size:12.5px;color:var(--sem);min-height:1.2em}
+
+/* pitfalls */
+details.pit{border-top:1px solid var(--rule);padding:.2rem 0}
+details.pit:last-of-type{border-bottom:1px solid var(--rule)}
+details.pit summary{cursor:pointer;padding:.6rem 0;font-weight:600;list-style:none;display:flex;gap:.6rem}
+details.pit summary::-webkit-details-marker{display:none}
+details.pit summary::before{content:"＋";color:var(--prag);font-weight:400}
+details.pit[open] summary::before{content:"－"}
+.pair{display:grid;gap:.6rem;margin:.2rem 0 .8rem}
+@media (min-width:760px){.pair{grid-template-columns:1fr 1fr}}
+.pair .side{background:var(--card);border:1px solid var(--rule);border-radius:4px;min-width:0}
+.pair .sh{font-family:var(--sans);font-size:12px;padding:.35rem .7rem;border-bottom:1px solid var(--rule)}
+.pair .bad .sh{color:var(--prag)}.pair .good .sh{color:var(--sem)}
+.pair pre{margin:0;padding:.6rem .7rem;font-size:12.5px;line-height:1.65;white-space:pre-wrap;word-break:break-word}
+.pit .exp{font-size:15px;color:var(--muted);margin:0 0 .8rem}
+
+/* code listing */
+pre.listing{background:var(--code);border-radius:6px;padding:.9rem 1rem;font-size:12.5px;line-height:1.7;overflow-x:auto;margin:.6rem 0 1.2rem}
+pre.listing .cm{color:var(--hint)}
+pre.listing .ok{color:var(--sem)}
+pre.listing .bad{color:var(--prag)}
+
+/* checklist */
+.check{list-style:none;padding:0;margin:1rem 0}
+.check li{border-bottom:1px solid var(--rule)}
+.check label{display:flex;gap:.7rem;padding:.55rem 0;cursor:pointer;font-size:15.5px}
+.check input{margin-top:.45rem;accent-color:var(--sem);flex:none}
+.discuss{padding-left:1.4em}
+.discuss li{margin:.5rem 0}
+.refs{font-size:14px;line-height:1.75;padding-left:1.4em;text-indent:-1.4em;list-style:none;margin:0}
+.refs li{margin:.35rem 0}
+
+footer{margin-top:4rem;padding-top:1.2rem;border-top:1px solid var(--rule);font-family:var(--sans);font-size:12.5px;color:var(--hint)}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="shell">
+<nav class="toc" aria-label="本頁章節">
+  <div class="toc-head">Session 10</div>
+  <ol>
+    <li><a href="#why">一、為什麼是 Markdown</a></li>
+    <li><a href="#marks">二、九個符號</a></li>
+    <li><a href="#anatomy">三、評點一份 SKILL.md</a></li>
+    <li><a href="#disclose">四、三層載入</a></li>
+    <li><a href="#pragmatics">五、description 是語用</a></li>
+    <li><a href="#build">六、動手寫</a></li>
+    <li><a href="#pitfalls">七、七種常見失誤</a></li>
+    <li><a href="#verify">八、用 Python 驗證</a></li>
+    <li><a href="#submit">九、繳交與討論</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="hero">
+  <p class="crumb">Lab／Session 10</p>
+  <h1>用 Markdown 寫 Skill</h1>
+  <p class="lead">把一份標註規範，寫成模型讀得懂、也找得到的文件。</p>
+  <div class="facts">
+    <span><b>時長</b>約 100 分鐘</span>
+    <span><b>先備</b>無；會用文字編輯器即可</span>
+    <span><b>產出</b>一份可載入的標註技能與觸發測試集</span>
+  </div>
+
+  <div class="judou" id="judou">
+    <div class="judou-grid">
+      <div>
+        <div class="judou-cap">《論語．學而》</div>
+        <div class="classic" aria-label="學而時習之，不亦說乎？有朋自遠方來，不亦樂乎？">學而時習之<span class="mk">，</span>不亦說乎<span class="mk">？</span><br>有朋自遠方來<span class="mk">，</span>不亦樂乎<span class="mk">？</span></div>
+      </div>
+      <div>
+        <div class="judou-cap">一段寫給模型的指示</div>
+<pre class="raw-skill"><span class="flat">幫我標隱喻先通讀全文再切詞每個詞查基本義如果語境義和基本義不同就標MRW像如好比這些詞標MFlag最後輸出表格</span><span class="struct"><span class="mk-l">## </span>標註程序
+<span class="mk-l">1. </span>通讀全文
+<span class="mk-l">2. </span>切分詞彙單位
+<span class="mk-l">3. </span>查基本義，與語境義比較
+<span class="mk-l">4. </span>兩者有別即標 <span class="mk-l">`</span>MRW<span class="mk-l">`</span>
+<span class="mk-l">5. </span>「像、如、好比」標 <span class="mk-l">`</span>MFlag<span class="mk-l">`</span></span></pre>
+      </div>
+    </div>
+    <div class="judou-foot">
+      <button class="btn" id="judou-btn" aria-pressed="false">加上句讀</button>
+      <p>《禮記．學記》說入學一年要考「離經辨志」，離經就是斷句。字沒有變，結構一旦標出來，讀的人就知道哪裡停、哪裡接、哪些話是同一件事。Markdown 對一份技能文件做的，正是這件事。</p>
+    </div>
+  </div>
+
+  <div class="plan" aria-label="課堂時程">
+    <div><div class="t">0:00</div><div class="n">為什麼是 Markdown</div></div>
+    <div><div class="t">0:10</div><div class="n">九個符號</div></div>
+    <div><div class="t">0:30</div><div class="n">技能的解剖</div></div>
+    <div><div class="t">0:50</div><div class="n">description</div></div>
+    <div><div class="t">1:05</div><div class="n">動手寫</div></div>
+    <div><div class="t">1:35</div><div class="n">驗證與互評</div></div>
+  </div>
+</header>
+
+<!-- 一 -->
+<section id="why">
+  <h2><span class="num">一、</span>為什麼是 Markdown</h2>
+  <p>一個代理系統裡流動的語言，大致分成三層：自然語言負責意義與協商，JSON 一類的結構化資料負責狀態與工具呼叫，Markdown 則是人和模型共用的工作空間，計畫、報告、記憶與技能檔都寫在這一層（Hsieh 2026，表 1）。一份 SKILL.md 剛好跨了三層：開頭是 YAML，主體是 Markdown，Markdown 裡裝的是自然語言。</p>
+  <div class="tablewrap">
+  <table class="plain">
+    <thead><tr><th>層</th><th>在 SKILL.md 裡</th><th>擅長</th><th>主要風險</th></tr></thead>
+    <tbody>
+      <tr><td>結構化資料</td><td>frontmatter：<code>name</code>、<code>description</code></td><td>機器可驗證</td><td>格式一錯，整份技能載入失敗</td></tr>
+      <tr><td>半結構文本</td><td>標題、清單、表格、程式碼區塊</td><td>人可讀，模型可定位</td><td>過時或互相衝突的指示</td></tr>
+      <tr><td>自然語言</td><td>每一條規則的內容</td><td>表達理由與例外</td><td>歧義、說得不夠</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>有一點常被忽略：模型從來沒有「看到」排版後的 Markdown。<code>##</code> 和 <code>|</code> 對它而言只是詞元，和其他文字一起進入同一條序列。這些符號之所以有用，是因為預訓練語料裡滿是 README、技術文件與筆記，模型早已學會「<code>##</code> 之後是新話題」「<code>1.</code> 之後的東西有順序」這些文類慣例。切換下面的檢視，比較兩種讀者看到的東西。</p>
+  <div class="seg" role="group" aria-label="檢視方式">
+    <button aria-pressed="true" data-view="human">人看到的</button>
+    <button aria-pressed="false" data-view="model">模型讀到的</button>
+  </div>
+  <div class="viewbox"><div id="viewbox" class="md"></div></div>
+  <div class="lens">
+    <div class="lens-h">語言學視角：標記即後設語篇</div>
+    <p>Hyland（2005）把「首先、總之、如下表所示」這類組織篇章、引導讀者的語言稱為後設語篇（metadiscourse）。Markdown 標記是後設語篇的符號化版本：<code>##</code> 宣告話題轉換，<code>1.</code> 宣告程序，表格宣告「以下各項可以逐欄比較」。對人類讀者，它們在版面上顯現；對模型，它們以詞元的身分參與預測。</p>
+  </div>
+</section>
+
+<!-- 二 -->
+<section id="marks">
+  <h2><span class="num">二、</span>九個符號</h2>
+  <p>寫技能只需要九種標記，外加檔頭的 YAML。右欄是每一種在技能裡的典型用途；用錯地方的代價，第七節會再談。</p>
+  <div class="tablewrap">
+  <table class="plain">
+    <thead><tr><th>標記</th><th>寫法</th><th>在技能裡用來</th></tr></thead>
+    <tbody>
+      <tr><td>標題</td><td><code># 標題</code> <code>## 小節</code></td><td>切出話題。一份技能只有一個 <code>#</code>，其下用 <code>##</code>，不跳級</td></tr>
+      <tr><td>編號清單</td><td><code>1. 第一步</code></td><td>有先後順序的程序</td></tr>
+      <tr><td>項目清單</td><td><code>- 一項</code></td><td>沒有順序的並列條件、例子</td></tr>
+      <tr><td>粗體</td><td><code>**重點**</code></td><td>一段裡最不能漏看的詞，少用</td></tr>
+      <tr><td>行內程式碼</td><td><code>`MRW`</code></td><td>標籤名、檔名、必須逐字照寫的字串</td></tr>
+      <tr><td>程式碼區塊</td><td><code>```markdown</code> … <code>```</code></td><td>輸出樣板。區塊裡的東西照抄，不詮釋</td></tr>
+      <tr><td>表格</td><td><code>| 標籤 | 定義 |</code></td><td>標籤集：每個標籤的名稱、定義、例子並排比較</td></tr>
+      <tr><td>連結</td><td><code>[說明](references/a.md)</code></td><td>指向參考檔；技能裡也常直接寫路徑</td></tr>
+      <tr><td>引用</td><td><code>&gt; 原文</code></td><td>引述語料或使用者原話，與指示分開</td></tr>
+      <tr><td>frontmatter</td><td><code>---</code> 包住的 YAML</td><td>放 <code>name</code> 與 <code>description</code>，只能出現在檔案最開頭</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>即時編輯器</h3>
+  <p>下面是一份寫壞了的言語行為標註技能。左邊改原始碼，右邊同步顯示排版結果、文件大綱與三層檢查。完成下列五項，任務清單會自動打勾。</p>
+  <ol class="tasks" id="tasks">
+    <li data-k="skip">修正標題跳級：「步驟」不該是四級標題。</li>
+    <li data-k="ol">把步驟那一段改寫成編號清單。</li>
+    <li data-k="table">把用粗體排出來的兩個標籤，改成一張「標籤、定義、例子」表格。</li>
+    <li data-k="fence">把輸出格式的表格圍進 <code>```markdown</code> 程式碼區塊。</li>
+    <li data-k="desc">補完 description：做什麼、何時用、何時不用。</li>
+  </ol>
+  <div class="editor">
+    <div class="pane">
+      <div class="pane-h"><span>SKILL.md 原始碼</span><button class="btn ghost" id="ed-reset" style="font-size:12px;padding:.15rem .6rem">還原</button></div>
+      <textarea class="src" id="ed-src" spellcheck="false" aria-label="SKILL.md 原始碼"></textarea>
+    </div>
+    <div class="pane">
+      <div class="pane-h"><span>排版結果</span><span class="seg" role="group" aria-label="右欄內容"><button aria-pressed="true" data-ed="render">預覽</button><button aria-pressed="false" data-ed="lint">檢查</button></span></div>
+      <div id="ed-render" class="md"></div>
+      <div id="ed-lint" class="lint" hidden></div>
+      <div class="outline" id="ed-outline"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 三 -->
+<section id="anatomy">
+  <h2><span class="num">三、</span>評點一份 SKILL.md</h2>
+  <p>明清評點家在書頁旁以朱筆批註，指出某句為何要緊、某處如何呼應。下面用同樣的方式讀起手包裡的範例技能 <code>mipvu-zh</code>（簡化版 MIPVU 隱喻標註）。每段批註依它處理的層次著色，可以只看其中一層。</p>
+  <div class="legend"><span class="lg-syn">句法：格式與規格</span><span class="lg-sem">語意：程序與定義</span><span class="lg-prag">語用：何時用、何時讀</span></div>
+  <div class="filters" role="group" aria-label="篩選批註">
+    <button class="btn ghost" aria-pressed="true" data-f="all">全部</button>
+    <button class="btn ghost" aria-pressed="false" data-f="syn">句法</button>
+    <button class="btn ghost" aria-pressed="false" data-f="sem">語意</button>
+    <button class="btn ghost" aria-pressed="false" data-f="prag">語用</button>
+  </div>
+  <div class="anat" id="anat"></div>
+  <p class="note" style="margin-top:.6rem">完整檔案在起手包的 <code>mipvu-zh/SKILL.md</code>，參考檔在同資料夾的 <code>references/</code>。</p>
+  <div class="lens">
+    <div class="lens-h">語言學視角：工具與技能的三層</div>
+    <p>Hsieh（2026）把工具呼叫拆成三層：綱要是句法，說明是語意，何時呼叫是語用。技能沿用同一個切分。frontmatter 的格式是句法；程序與標籤定義是語意；description 與「什麼時候去讀哪個參考檔」則是語用，因為它們規定的是一段文字在什麼情境下生效。</p>
+  </div>
+</section>
+
+<!-- 四 -->
+<section id="disclose">
+  <h2><span class="num">四、</span>三層載入</h2>
+  <p>想像一面書架。找資料時你先掃書背，只抽出看起來相關的那本；翻開後讀目錄與序，需要細節時才翻到附錄。技能的載入方式相同，稱為漸進揭露（progressive disclosure）：所有技能的 name 與 description 一開始就在模型的脈絡裡，內文在觸發後才讀，參考檔則等內文指引時才讀。</p>
+  <p>點選下面三則使用者請求，看每一則會讓哪幾層進入脈絡。</p>
+  <div class="req" role="group" aria-label="使用者請求">
+    <button data-r="0" aria-pressed="false">「隱喻和轉喻有什麼不同？」</button>
+    <button data-r="1" aria-pressed="false">「幫我把這段新聞裡的隱喻標出來。」</button>
+    <button data-r="2" aria-pressed="false">「『送你一片心意』的『片』算不算隱喻？」</button>
+  </div>
+  <div class="shelf">
+    <div class="lvl" id="L1"><div class="ln">一</div><div class="lt">書背：name 與 description</div><div class="ld">每個技能約百來個詞元，所有技能同時在場。模型只憑這一層決定要不要抽出某本書。</div><div class="lf">frontmatter</div></div>
+    <div class="lvl" id="L2"><div class="ln">二</div><div class="lt">目錄與序：SKILL.md 內文</div><div class="ld">觸發後才讀入。規格建議控制在 500 行以內，長篇細則往下一層放。</div><div class="lf">SKILL.md 的 frontmatter 之後</div></div>
+    <div class="lvl" id="L3"><div class="ln">三</div><div class="lt">附錄：references/、scripts/</div><div class="ld">內文寫明「遇到某情況讀某檔」，模型才會去讀。沒有被指向的檔案，等於不存在。</div><div class="lf">references/guideline.md、references/examples.md</div></div>
+  </div>
+  <p class="why" id="why-load">先點選一則請求。</p>
+</section>
+
+<!-- 五 -->
+<section id="pragmatics">
+  <h2><span class="num">五、</span>description 是語用</h2>
+  <p>description 的語力是一個條件式指令：「當情境符合 X，就讀我」。它是否生效，取決於模型能不能從使用者的話認出 X。這和 Searle 所說的預備條件同構：請求要成立，聽者得有能力、情境得合適；技能要觸發，使用者的請求得落在 description 描述的情境裡，而且模型得認得出來。</p>
+  <p>觸發失敗有兩種方向，正好對應 Grice 的量的準則。說得太少，技能在該出場時沒出場（觸發不足）；說得太多或太寬，鄰近任務也把它叫出來（誤觸發）。現行模型比較常犯前者，所以 description 寧可主動一點，寫出使用者實際會用的說法。</p>
+  <div class="formula">
+    <div style="font-family:var(--sans);font-size:13px;font-weight:600;margin-bottom:.4rem">三句式</div>
+    <ol>
+      <li><span class="c-sem">做什麼</span>：一句話說清楚任務與產出。</li>
+      <li><span class="c-prag">何時用</span>：列出使用者會怎麼說，並加上「即使對方沒有提到某某術語」。</li>
+      <li><span class="c-prag">何時不用</span>：點名最容易混淆的鄰近任務。</li>
+    </ol>
+  </div>
+  <h3>練習：它會不會觸發？</h3>
+  <p>以下是 <code>mipvu-zh</code> 的 description。讀完後判斷每一則請求是否應該讓它觸發。</p>
+  <div class="viewbox" style="font-size:15px;line-height:1.85" id="desc-show"></div>
+  <div class="quiz" id="quiz"></div>
+  <p class="score" id="score"></p>
+</section>
+
+<!-- 六 -->
+<section id="build">
+  <h2><span class="num">六、</span>動手寫</h2>
+  <p>W06 的課堂問題是：寫 prompt 比較像下指令、寫規格，還是教一個新來的助理？寫一份標註技能，三者都有。請以你熟悉的一種語言學標註為題，例如言語行為、量詞、詞義、語碼轉換、評價語言，寫出一份技能。左邊填表，右邊即時產生 SKILL.md 並做三層檢查。表單已預先填入一份言語行為標註的範例，可以直接改寫，也可以清空重來。</p>
+  <div class="btnrow" style="margin:.8rem 0 0">
+    <button class="btn ghost" id="b-example">載入範例：言語行為</button>
+    <button class="btn ghost" id="b-clear">清空</button>
+  </div>
+  <div class="builder">
+    <div class="form" id="form">
+      <div class="group">
+        <div class="gh c-syn">frontmatter</div>
+        <div class="fld"><label for="f-name">name<span class="sub">小寫英文、數字、連字號；也是資料夾名稱</span></label><input id="f-name" class="mono" autocomplete="off"></div>
+        <div class="fld"><label for="f-what">做什麼<span class="sub">description 第一句</span></label><textarea id="f-what"></textarea></div>
+        <div class="fld"><label for="f-when">何時用<span class="sub">第二句，寫使用者會怎麼說</span></label><textarea id="f-when"></textarea></div>
+        <div class="fld"><label for="f-not">何時不用<span class="sub">第三句，點名鄰近任務</span></label><textarea id="f-not"></textarea></div>
+      </div>
+      <div class="group">
+        <div class="gh c-sem">內文</div>
+        <div class="fld"><label for="f-title">標題</label><input id="f-title"></div>
+        <div class="fld"><label for="f-why">為什麼要照這套程序做<span class="sub">一兩句</span></label><textarea id="f-why"></textarea></div>
+        <div class="fld"><label for="f-uses">何時使用<span class="sub">每行一項</span></label><textarea id="f-uses"></textarea></div>
+        <div class="fld">
+          <label>標籤集<span class="sub">名稱、定義、例子</span></label>
+          <div class="labels" id="f-labels"></div>
+          <button class="btn ghost" id="add-label" style="margin-top:.4rem;font-size:13px;padding:.25rem .7rem">新增標籤</button>
+        </div>
+        <div class="fld"><label for="f-steps">標註程序<span class="sub">每行一步，會自動編號</span></label><textarea id="f-steps" style="min-height:7em"></textarea></div>
+        <div class="fld"><label for="f-format">輸出格式樣板<span class="sub">會自動圍進程式碼區塊</span></label><textarea id="f-format" class="mono"></textarea></div>
+        <div class="fld"><label for="f-edge">邊界案例<span class="sub">每行一項</span></label><textarea id="f-edge"></textarea></div>
+      </div>
+    </div>
+    <div class="outbox">
+      <div class="pane">
+        <div class="pane-h"><span>產生的 SKILL.md</span><span class="seg" role="group" aria-label="輸出檢視"><button aria-pressed="true" data-o="src">原始碼</button><button aria-pressed="false" data-o="render">預覽</button></span></div>
+        <pre class="gen" id="gen"></pre>
+        <div class="md" id="gen-render" hidden></div>
+      </div>
+      <div class="pane"><div class="pane-h"><span>三層檢查</span></div><div class="lint" id="gen-lint"></div></div>
+      <div class="btnrow">
+        <button class="btn" id="b-copy">複製 SKILL.md</button>
+        <button class="btn ghost" id="b-dl">下載 SKILL.md</button>
+      </div>
+      <div class="status" id="status" role="status"></div>
+    </div>
+  </div>
+  <p class="note" style="margin-top:1rem">產生器只能寫出單一檔案。需要參考檔時，下載後在資料夾裡另建 <code>references/</code>，並在內文寫明何時去讀。</p>
+</section>
+
+<!-- 七 -->
+<section id="pitfalls">
+  <h2><span class="num">七、</span>七種常見失誤</h2>
+  <p>以下每一項都來自真實的技能草稿。點開比較改寫前後。</p>
+  <div id="pits"></div>
+</section>
+
+<!-- 八 -->
+<section id="verify">
+  <h2><span class="num">八、</span>用 Python 驗證</h2>
+  <p>起手包附兩支程式。<code>skill_lint.py</code> 做的檢查和本頁相同，適合寫完後在本機跑一次；<code>trigger_eval.py</code> 才是真正的試金石：它把你的技能和幾個鄰居技能並列，對每一則測試請求問模型要讀哪一個，重複數次後計算觸發率。</p>
+<pre class="listing"><span class="cm"># 1. 格式與結構</span>
+$ python tools/skill_lint.py mipvu-zh
+
+【句法】
+  <span class="ok">✓</span> frontmatter 符合規格
+【語意】
+  <span class="ok">✓</span> 內文結構完整：標題、程序、標籤表、輸出樣板都在
+【語用】
+  <span class="ok">✓</span> description 同時說明了做什麼、何時用、何時不用
+
+<span class="cm"># 2. 觸發測試（先用 --dry-run 檢查提示，不需金鑰）</span>
+$ python tools/trigger_eval.py tools/evals/mipvu-zh.triggers.json --runs 3</pre>
+  <p>觸發測試的結果用精確率與召回率解讀，兩者剛好對應上一節的兩種失敗：</p>
+  <div class="tablewrap">
+  <table class="plain">
+    <thead><tr><th>指標</th><th>問的是</th><th>偏低代表</th><th>改寫方向</th></tr></thead>
+    <tbody>
+      <tr><td>召回率</td><td>該觸發的請求，有幾成真的觸發</td><td>觸發不足</td><td>在「何時用」補上使用者的實際說法</td></tr>
+      <tr><td>精確率</td><td>觸發的請求，有幾成是該觸發的</td><td>誤觸發</td><td>在「何時不用」點名被誤叫出來的鄰近任務</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>測試集的設計比程式本身重要。最有診斷力的負例不是「今天天氣如何」，而是和你的任務共享詞彙的鄰近任務：同樣談「比喻」的文案寫作、同樣處理中文的斷詞、同樣做標註的情感分析。起手包的 <code>mipvu-zh.triggers.json</code> 示範了這種設計。</p>
+  <div class="lens">
+    <div class="lens-h">語言學視角：description 是一條釋義</div>
+    <p>寫 description 很像編詞典。釋義太窄，合法的用例被排除；太寬，不相干的用例被收進來。召回率與精確率，正是詞典學家檢驗釋義時心裡那兩把尺。差別在於，詞典的讀者是人，會用常識補足釋義的缺口；description 的讀者是模型，它補缺口的方式由訓練資料決定，所以必須實際測試，不能只靠自己讀起來覺得清楚。</p>
+  </div>
+  <p class="note">程式說明見起手包的 <code>README.md</code>。測試結果是近似值：真實環境裡模型在更完整的脈絡下決定是否讀取技能。</p>
+</section>
+
+<!-- 九 -->
+<section id="submit">
+  <h2><span class="num">九、</span>繳交與討論</h2>
+  <h3>繳交內容</h3>
+  <ul class="check" id="check">
+    <li><label><input type="checkbox" data-c="1"><span>一個以 <code>name</code> 命名的資料夾，內含 <code>SKILL.md</code>；有參考檔就放進 <code>references/</code>。</span></label></li>
+    <li><label><input type="checkbox" data-c="2"><span><code>skill_lint.py</code> 的輸出：句法層沒有 ✗。</span></label></li>
+    <li><label><input type="checkbox" data-c="3"><span>一份觸發測試集，至少 10 則請求，其中至少 4 則是不應觸發的鄰近任務。</span></label></li>
+    <li><label><input type="checkbox" data-c="4"><span>至少一輪 <code>trigger_eval.py</code> 的結果，以及你根據結果改寫 description 前後的對照。</span></label></li>
+    <li><label><input type="checkbox" data-c="5"><span>一段約 200 字的反思：寫給模型的規範，哪些地方必須比寫給人類標註員的更明確？</span></label></li>
+  </ul>
+  <h3>課堂互評（最後 15 分鐘）</h3>
+  <p>兩人一組交換技能，只讀對方的 description，不看內文，寫下你猜這份技能會做什麼、產出長什麼樣子。再打開內文核對。猜錯的地方，就是 description 沒有說到的地方。</p>
+  <h3>討論</h3>
+  <ol class="discuss">
+    <li>標註規範原本寫給人類標註員。改寫給模型時，你補上了哪些原本隱含的知識？這說明人類標註一致性的來源有哪些不在規範裡？</li>
+    <li>Markdown 標記對模型而言只是詞元。它的作用比較像句讀、像文類慣例，還是像程式語法？三種說法各自預測什麼現象？</li>
+    <li>一份技能是不是言語行為？如果是，它的語力在何時生效：寫下時、載入時，還是被觸發時？</li>
+    <li>description 和詞典釋義都在劃定使用範圍。原型理論對詞義的批評，是否也適用於 description？</li>
+  </ol>
+  <h3>延伸閱讀</h3>
+  <ul class="refs">
+    <li>Hsieh, Shu-Kai. 2026. Language as action and coordination: A linguistic framework for agentic AI. <i>Linguistic Research</i>.</li>
+    <li>Agent Skills specification. https://agentskills.io/specification</li>
+    <li>Hyland, Ken. 2005. <i>Metadiscourse: Exploring Interaction in Writing</i>. London: Continuum.</li>
+    <li>Searle, John R. 1976. A classification of illocutionary acts. <i>Language in Society</i> 5(1): 1–23.</li>
+    <li>Pragglejaz Group. 2007. MIP: A method for identifying metaphorically used words in discourse. <i>Metaphor and Symbol</i> 22(1): 1–39.</li>
+    <li>Steen, Gerard J., et al. 2010. <i>A Method for Linguistic Metaphor Identification: From MIP to MIPVU</i>. Amsterdam: John Benjamins.</li>
+  </ul>
+  <footer>LING5006 大型語言模型的語言學基礎．Session 10 Lab。起手包：skill-starter.zip</footer>
+</section>
+</main>
+</div>
+
+<!-- ===== 文字資料（純文字，不經 HTML 解析） ===== -->
+<script type="text/plain" id="src-view">---
+name: mipvu-zh
+description: 依簡化版 MIPVU 程序為中文文本做隱喻標註……
+---
+
+# 中文隱喻標註（簡化 MIPVU）
+
+## 標籤集
+
+| 標籤 | 意思 |
+|---|---|
+| `MRW-indirect` | 語境義與基本義形成對比 |
+| `MFlag` | 標示比較的詞語 |
+
+## 標註程序
+
+1. 通讀全文，掌握整體語意。
+2. 切分詞彙單位。
+3. 查**基本義**，與語境義比較。
+</script>
+
+<script type="text/plain" id="src-editor">---
+name: speech-act-zh
+description: 標註言語行為。
+---
+
+# 中文言語行為標註
+
+本技能依 Searle 的分類為中文對話逐句標註語力。
+
+## 標籤
+
+**斷言類**：說話者承諾某命題為真，例如「明天會下雨」。
+
+**指令類**：要求聽者做某事，例如「可以把窗戶關上嗎」。
+
+#### 步驟
+
+先把對話切成話輪，然後判斷字面語氣是直述、疑問還是祈使，再判斷實際語力，兩者不同時標為間接言語行為，最後寫出理由。
+
+## 輸出格式
+
+| # | 原句 | 語力 | 間接 | 理由 |
+|---|---|---|---|---|
+</script>
+
+<script type="text/plain" id="src-anat">@@syn
+---
+name: mipvu-zh
+@@prag
+description: 依簡化版 MIPVU 程序為中文文本做隱喻標註，逐詞判定是否為隱喻相關詞（MRW），並為每個判定寫出基本義與語境義的對比。凡使用者要求找出、標記或統計中文文本裡的隱喻，或詢問某個詞在句中是否為隱喻用法、比喻用法，都應使用本技能，即使對方沒有提到 MIPVU。不用於隱喻理論的概念講解、修辭文案的寫作，或英文文本的標註。
+@@syn
+license: CC-BY-4.0
+metadata:
+  course: LING5006 Session 10
+  version: "1.0"
+---
+@@sem
+# 中文隱喻標註（簡化 MIPVU）
+
+本技能讓標註結果可以被第二位標註者複核。每一個判定都要留下理由，因為隱喻判定的分歧多半來自「基本義」的選擇，而不是語感本身。
+@@prag
+## 何時使用
+
+- 使用者要求標出、找出或計算一段中文文本中的隱喻。
+- 使用者詢問某個詞在特定句子裡是不是隱喻、比喻或轉義用法。
+- 使用者提供既有標註，請你複核或解釋分歧。
+
+只回答隱喻理論、或要求「寫一段有隱喻的文字」時，不要套用本技能的程序。
+@@sem
+## 標籤集
+
+| 標籤 | 意思 | 例子（粗體為受標詞） |
+|---|---|---|
+| `MRW-indirect` | 語境義與更基本的意義形成對比，且可透過比較理解 | 經濟**起飛** |
+| `MRW-direct` | 字面上直接進行比較，跨域對應寫在表面 | 他像**一陣風** |
+| `MFlag` | 標示比較的詞語 | 他**像**一陣風 |
+| `WIDLII` | 有理由懷疑是隱喻，但證據不足，先保留 | 這個想法很**深** |
+| `none` | 非隱喻相關詞 | **他**、**經濟** |
+@@sem
+## 標註程序
+
+1. 通讀全文，掌握整體語意，再開始逐詞判定。
+2. 切分詞彙單位。一般依中研院斷詞標準；四字格成語、固定搭配視為一個單位，細則見 `references/guideline.md` 第 1 節。
+3. 為每個單位寫出它在此語境中的意義。
+4. 查《重編國語辭典修訂本》，判斷是否存在更基本的意義：更具體、與身體動作相關、或更精確。不以「歷史上較早」作為基本的理由。
+5. 若語境義與基本義有別，且前者可以透過與後者比較而理解，標為 `MRW-indirect`。
+6. 處理「像、如、好比、彷彿」等比較結構：比較詞標 `MFlag`，被拿來比較的詞語標 `MRW-direct`。
+7. 無法決定時標 `WIDLII`，並寫下需要哪些額外資訊。
+@@prag
+量詞、方位詞「上、下、裡」與趨向補語最容易出錯，動手前先讀 `references/guideline.md` 第 2 至 4 節。
+@@syn
+## 輸出格式
+
+一律輸出下列表格，每個 MRW、MFlag 或 WIDLII 一列；非隱喻詞不必列出。表格後附一行統計。
+
+```markdown
+| # | 詞 | 標籤 | 語境義 | 基本義 | 理由 |
+|---|---|---|---|---|---|
+| 1 | 起飛 | MRW-indirect | 經濟開始快速成長 | 飛機離開地面升空 | 以飛行比喻成長，語境義可透過基本義理解 |
+
+統計：共 N 個詞彙單位，MRW 共 k 個（indirect a、direct b），MFlag m 個，WIDLII w 個。
+```
+@@sem
+## 邊界案例
+
+- 死隱喻（如「山腳」）仍然標 `MRW-indirect`。MIPVU 判定的是語意對比，不是新鮮度。
+- 引文中的隱喻照常標註，但在理由欄註明「引文」。
+- 使用者若給了自己的標註規範，以使用者的規範為準，並說明與本程序不同之處。
+@@prag
+## 參考檔案
+
+- `references/guideline.md`：中文特有的切分與判定細則。遇到量詞、方位詞、補語時讀。
+- `references/examples.md`：十個已標註的例句與常見分歧。第一次使用或使用者要求示範時讀。
+</script>
+
+<script>
+(function(){
+'use strict';
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+const FENCE='`'.repeat(3);
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const plain=id=>document.getElementById(id).textContent.replace(/^\n/,'');
+
+/* ---------- 小型 Markdown 轉譯器 ---------- */
+function inline(s){
+  const codes=[];
+  s=s.replace(/`([^`]+)`/g,(m,c)=>{codes.push(c);return '\u0000'+(codes.length-1)+'\u0000';});
+  s=esc(s);
+  s=s.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>')
+     .replace(/(^|[^*])\*([^*\s][^*]*)\*/g,'$1<em>$2</em>')
+     .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g,(m,t,u)=>{
+        const safe=/^(https?:|\.{0,2}\/|[\w-]+\/|#)/i.test(u)&&!/^javascript:/i.test(u);
+        return '<a href="'+(safe?u:'#')+'" rel="noopener">'+t+'</a>';});
+  return s.replace(/\u0000(\d+)\u0000/g,(m,i)=>'<code>'+esc(codes[+i])+'</code>');
+}
+function parseList(lines,i){
+  const items=[];
+  while(i<lines.length){
+    const m=lines[i].match(/^(\s*)([-*]|\d+\.)(?:\s+(.*))?$/);
+    if(m){items.push({ind:m[1].length,ord:/\d/.test(m[2]),text:(m[3]||'').trim()});i++;continue;}
+    if(items.length&&/^\s{2,}\S/.test(lines[i])){items[items.length-1].text+=' '+lines[i].trim();i++;continue;}
+    break;
+  }
+  let html='';const st=[];
+  for(const it of items){
+    while(st.length&&it.ind<st[st.length-1].ind){html+='</li></'+st.pop().tag+'>';}
+    const top=st[st.length-1];
+    if(!top||it.ind>top.ind){const tag=it.ord?'ol':'ul';st.push({ind:it.ind,tag});html+='<'+tag+'><li>';}
+    else html+='</li><li>';
+    html+=it.text?inline(it.text):'<span class="md-empty">（空白項目）</span>';
+  }
+  while(st.length)html+='</li></'+st.pop().tag+'>';
+  return {html,i};
+}
+function md(src){
+  const lines=src.replace(/\r/g,'').split('\n');const out=[];let i=0;let para=[];
+  const flush=()=>{if(para.length){out.push('<p>'+inline(para.join(''))+'</p>');para=[];}};
+  if(lines[0]==='---'){const j=lines.indexOf('---',1);if(j>0){out.push('<div class="md-fm"><div class="md-fm-tag">YAML frontmatter</div><pre>'+esc(lines.slice(1,j).join('\n'))+'</pre></div>');i=j+1;}}
+  while(i<lines.length){
+    const L=lines[i];
+    if(/^\s*```/.test(L)){
+      flush();const lang=L.trim().slice(3).trim();const buf=[];i++;
+      while(i<lines.length&&!/^\s*```/.test(lines[i])){buf.push(lines[i]);i++;}
+      const closed=i<lines.length;i++;
+      out.push('<pre class="md-code'+(closed?'':' unclosed')+'">'+(lang?'<span class="md-lang">'+esc(lang)+'</span>':'')+'<code>'+esc(buf.join('\n'))+'</code></pre>');continue;
+    }
+    if(/^\s*<!--/.test(L)){flush();const buf=[L];while(!/-->/.test(lines[i])&&i<lines.length-1){i++;buf.push(lines[i]);}i++;out.push('<div class="md-comment">'+esc(buf.join(' '))+'</div>');continue;}
+    const h=L.match(/^(#{1,6})\s+(.*)$/);
+    if(h){flush();const n=h[1].length;out.push('<h'+n+' class="md-h">'+inline(h[2])+'</h'+n+'>');i++;continue;}
+    if(/^\s*(-{3,}|\*{3,})\s*$/.test(L)){flush();out.push('<hr>');i++;continue;}
+    if(/^\s*>/.test(L)){flush();const buf=[];while(i<lines.length&&/^\s*>/.test(lines[i])){buf.push(lines[i].replace(/^\s*>\s?/,''));i++;}out.push('<blockquote>'+inline(buf.join(''))+'</blockquote>');continue;}
+    if(/^\s*\|.*\|\s*$/.test(L)&&i+1<lines.length&&/^\s*\|?\s*:?-{3,}/.test(lines[i+1])){
+      flush();const cells=r=>r.trim().replace(/^\|/,'').replace(/\|$/,'').split('|').map(c=>c.trim());
+      const head=cells(L);i+=2;const rows=[];
+      while(i<lines.length&&/^\s*\|.*\|\s*$/.test(lines[i])){rows.push(cells(lines[i]));i++;}
+      out.push('<div class="md-tablewrap"><table><thead><tr>'+head.map(c=>'<th>'+inline(c)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+r.map(c=>'<td>'+inline(c)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>');continue;
+    }
+    if(/^\s*([-*]|\d+\.)(\s|$)/.test(L)){flush();const r=parseList(lines,i);out.push(r.html);i=r.i;continue;}
+    if(!L.trim()){flush();i++;continue;}
+    para.push(L.trim());i++;
+  }
+  flush();return out.join('\n');
+}
+
+/* ---------- 三層檢查（與 tools/skill_lint.py 相同的規則） ---------- */
+const ALLOWED=['name','description','license','allowed-tools','metadata','compatibility'];
+const WHEN=/使用者|凡|每當|如果|若|時[，,、]|情況|whenever|use (this )?when|when the user/i;
+const BOUND=/不用於|不適用|不要|勿用|避免|不處理|do not|don't|not for/i;
+function parseFM(src){
+  src=src.replace(/\r/g,'');
+  if(!src.startsWith('---'))return {err:'檔案第一行必須是 ---，YAML frontmatter 才會被辨認',body:src};
+  const m=src.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
+  if(!m)return {err:'找不到結尾的 ---，frontmatter 沒有關上',body:src};
+  const fm={};let key=null,block=[];
+  for(const line of m[1].split('\n')){
+    if(key&&(/^\s+/.test(line)||!line.trim())){block.push(line.trim());continue;}
+    if(key){fm[key]=block.filter(Boolean).join(' ');key=null;block=[];}
+    if(!line.trim()||/^\s*#/.test(line))continue;
+    if(/^\s/.test(line))continue;
+    const kv=line.match(/^([A-Za-z_-]+):(?:\s+(.*))?$/);
+    if(!kv)return {err:'YAML 無法解析：「'+line.slice(0,24)+'」不是「鍵: 值」的形式',body:m[2]};
+    let v=(kv[2]||'').trim();
+    if(['>','|','>-','|-',''].includes(v)){key=kv[1];fm[kv[1]]='';continue;}
+    if(/^".*"$/.test(v)){v=v.slice(1,-1).replace(/\\"/g,'"');}
+    else if(/^'.*'$/.test(v)){v=v.slice(1,-1).replace(/''/g,"'");}
+    else if(/:\s/.test(v)||/\s#/.test(v)||/^[\[\]{}&*!|>%@`]/.test(v)){
+      return {err:'YAML 無法解析：'+kv[1]+' 的值含有半形冒號加空格或其他特殊字元；請把整段值用雙引號包起來',body:m[2]};
+    }
+    fm[kv[1]]=v;
+  }
+  if(key)fm[key]=block.filter(Boolean).join(' ');
+  return {fm,body:m[2]};
+}
+function lint(src){
+  const F=[];const add=(layer,level,msg)=>F.push({layer,level,msg});
+  const {fm,body,err}=parseFM(src);
+  if(err)add('syn','error',err);
+  else{
+    const unk=Object.keys(fm).filter(k=>!ALLOWED.includes(k));
+    if(unk.length)add('syn','error','frontmatter 有規格以外的鍵：'+unk.join('、')+'（自訂資訊請放在 metadata 底下）');
+    const name=(fm.name||'').trim();
+    if(!name)add('syn','error','缺少 name');
+    else{
+      if(!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(name))add('syn','error','name「'+name+'」只能用小寫英文字母、數字與單一連字號，且不可以連字號開頭或結尾');
+      if(name.length>64)add('syn','error','name 共 '+name.length+' 個字元，上限 64');
+    }
+    const d=fm.description||'';
+    if(!d.trim())add('syn','error','缺少 description，模型無從判斷何時使用這個技能');
+    else{
+      if([...d].length>1024)add('syn','error','description 共 '+[...d].length+' 個字元，上限 1024');
+      if(/[<>]/.test(d))add('syn','error','description 不可含角括號 < >');
+    }
+    if(!F.some(f=>f.layer==='syn'))add('syn','ok','frontmatter 符合規格');
+  }
+  // 語意
+  const b=body||'';
+  const fences=(b.match(/^\s*```/gm)||[]).length;
+  if(fences%2)add('sem','warn','有一個程式碼區塊沒有關上（``` 的數量是奇數），之後的內容都會被當成程式碼');
+  const prose=b.replace(/^\s*```[\s\S]*?^\s*```/gm,'');
+  const heads=[...prose.matchAll(/^(#{1,6})\s+(.+)$/gm)].map(m=>[m[1].length,m[2].trim()]);
+  const h1=heads.filter(h=>h[0]===1).length;
+  if(h1!==1)add('sem','warn','一級標題應恰好一個，目前 '+h1+' 個');
+  for(let k=1;k<heads.length;k++)if(heads[k][0]>heads[k-1][0]+1)add('sem','warn','標題跳級：「'+heads[k-1][1]+'」(H'+heads[k-1][0]+') 之後直接接「'+heads[k][1]+'」(H'+heads[k][0]+')');
+  if(!/^\s*\d+\.\s+\S/m.test(prose))add('sem','warn','沒有編號清單；程序的步驟有先後，建議用 1. 2. 3.');
+  if(!/^\s*\|.+\|\s*\n\s*\|?\s*:?-{3,}/m.test(prose))add('sem','warn','沒有表格；標註類技能通常需要一張標籤定義表');
+  if(!fences)add('sem','warn','沒有程式碼區塊；輸出格式最好給一個可照抄的樣板');
+  if(/<!--/.test(b)||/^\s*[-*]\s*$|^\s*\d+\.\s*$|^\|(\s*\|)+\s*$/m.test(prose))add('sem','warn','還有樣板殘留：註解、空白清單項或空白表格列');
+  const nl=b.split('\n').length;if(nl>500)add('sem','warn','內文 '+nl+' 行，超過建議的 500 行；長篇細則請移到 references/');
+  if(!F.some(f=>f.layer==='sem'))add('sem','ok','內文結構完整：標題、程序、標籤表、輸出樣板都在');
+  // 語用
+  if(fm&&fm.description&&fm.description.trim()){
+    const d=fm.description;const n=[...d].length;
+    if(n<50)add('prag','warn','description 只有 '+n+' 字；太短容易觸發不足，請補上使用者會說的話');
+    if(!WHEN.test(d))add('prag','warn','description 只說了做什麼，沒說何時用；觸發條件是語用資訊，必須寫在這裡');
+    if(!BOUND.test(d))add('prag','warn','description 沒有寫不適用的情況；相鄰任務容易誤觸發');
+    if(/(^|[，。、\s])我(會|可以|將)/.test(d))add('prag','warn','description 用了第一人稱；建議用「本技能」或直接描述任務');
+    const imp=(b.match(/\bMUST\b|\bNEVER\b|\bALWAYS\b|務必|必須|一定要|絕對/g)||[]).length;
+    if(imp>=5&&!/因為|以免|理由|原因|because|so that/i.test(b))add('prag','warn','內文有 '+imp+' 個強制語卻沒有任何理由；說明原因比加重語氣有效');
+    if(!F.some(f=>f.layer==='prag'))add('prag','ok','description 同時說明了做什麼、何時用、何時不用');
+  }
+  return {findings:F,heads,fm:fm||{},prose};
+}
+const LAYER={syn:['句法','c-syn'],sem:['語意','c-sem'],prag:['語用','c-prag']};
+function lintHTML(F){
+  return ['syn','sem','prag'].map(l=>{
+    const g=F.filter(f=>f.layer===l);if(!g.length)return '';
+    return '<div class="lg"><div class="lh '+LAYER[l][1]+'">'+LAYER[l][0]+'</div><ul>'+g.map(f=>'<li class="'+f.level+'">'+esc(f.msg)+'</li>').join('')+'</ul></div>';
+  }).join('');
+}
+
+/* ---------- hero：句讀 ---------- */
+const jb=$('#judou-btn'),jd=$('#judou');
+jb.addEventListener('click',()=>{const on=!jd.classList.contains('on-judou');jd.classList.toggle('on-judou',on);jb.setAttribute('aria-pressed',on);jb.textContent=on?'拿掉句讀':'加上句讀';});
+
+/* ---------- 一：兩種讀者 ---------- */
+const viewSrc=plain('src-view');const vb=$('#viewbox');
+function setView(v){
+  $$('[data-view]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.view===v));
+  if(v==='human'){vb.className='md';vb.innerHTML=md(viewSrc);}
+  else{vb.className='';vb.innerHTML='<pre class="rawview">'+esc(viewSrc)+'</pre>';}
+}
+$$('[data-view]').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));
+setView('human');
+
+/* ---------- 二：即時編輯器 ---------- */
+const edDefault=plain('src-editor');const ed=$('#ed-src');
+function edUpdate(){
+  const s=ed.value;const r=lint(s);
+  $('#ed-render').innerHTML=md(s);
+  $('#ed-lint').innerHTML=lintHTML(r.findings);
+  let prev=0;
+  $('#ed-outline').innerHTML='<div class="ol-h">文件大綱</div>'+(r.heads.length?r.heads.map(([n,t])=>{const skip=prev&&n>prev+1;prev=n;return '<div class="it'+(skip?' skip':'')+'" style="padding-left:'+(n-1)*1.1+'em">'+'#'.repeat(n)+' '+esc(t)+(skip?'　跳級':'')+'</div>';}).join(''):'<div class="it">（沒有標題）</div>');
+  const d=(r.fm.description||'');
+  const done={
+    skip:r.heads.length>0&&!r.findings.some(f=>f.msg.startsWith('標題跳級')),
+    ol:/^\s*\d+\.\s+\S/m.test(r.prose),
+    table:/^\s*\|.*斷言.*\|\s*$/m.test(r.prose)&&/^\s*\|.*指令.*\|\s*$/m.test(r.prose),
+    fence:/```[a-z]*\n\s*\|/.test(s),
+    desc:WHEN.test(d)&&BOUND.test(d)&&[...d].length>=50
+  };
+  $$('#tasks li').forEach(li=>li.classList.toggle('done',!!done[li.dataset.k]));
+}
+ed.value=edDefault;ed.addEventListener('input',edUpdate);
+ed.addEventListener('keydown',e=>{if(e.key==='Tab'){e.preventDefault();const p=ed.selectionStart;ed.setRangeText('  ',p,ed.selectionEnd,'end');edUpdate();}});
+$('#ed-reset').addEventListener('click',()=>{ed.value=edDefault;edUpdate();});
+$$('[data-ed]').forEach(b=>b.addEventListener('click',()=>{
+  $$('[data-ed]').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  $('#ed-render').hidden=b.dataset.ed!=='render';$('#ed-lint').hidden=b.dataset.ed!=='lint';
+}));
+edUpdate();
+
+/* ---------- 三：評點 ---------- */
+const NOTES=[
+ ['syn','句法','frontmatter 是 YAML，不是 Markdown。三條橫線必須是檔案的第一行，<code>name</code> 只能用小寫英文、數字與連字號，而且要和資料夾同名。'],
+ ['prag','語用','全檔最重要的一段。模型決定要不要讀這份技能時，看得到的只有 name 與這段話。三句分工：做什麼、何時用、何時不用。「即使對方沒有提到 MIPVU」是為了對抗觸發不足：使用者通常只說「比喻」，不會說術語。'],
+ ['syn','句法','規格允許的其他鍵只有 <code>license</code>、<code>allowed-tools</code>、<code>compatibility</code>、<code>metadata</code>。課程名稱、版本這類自訂資訊一律收在 <code>metadata</code> 底下，否則驗證會失敗。'],
+ ['sem','語意','開頭先說「為什麼」。模型知道理由，遇到規範沒寫到的情況才推得出合理做法；只給命令，它只能逐字比對。'],
+ ['prag','語用','讀到這裡時，技能已經被載入了。這一節的作用是讓模型判斷「載入之後要不要照程序走」，例如使用者只問理論時就不必逐詞標註。觸發條件本身仍然必須寫在 description。'],
+ ['sem','語意','表格把每個標籤的名稱、定義、例子對齊成欄，定義之間可以逐一比較。這是標註規範的核心：定義要讓第二位標註者獨立得出同樣的結果。標籤名用行內程式碼，提示模型逐字照寫，不要自行改寫成「間接隱喻」。'],
+ ['sem','語意','步驟有先後，所以用編號清單。每一步只做一件事。第 4 步明寫「不以歷史上較早為理由」，把最常見的誤判直接寫進程序，而不是留給模型自己發現。'],
+ ['prag','語用','指向參考檔的句子，等於第三層的觸發條件：遇到什麼情況、去讀哪一個檔。沒有這一句，<code>references/guideline.md</code> 就算放在資料夾裡也不會被讀。'],
+ ['syn','句法','輸出格式放進程式碼區塊，告訴模型「這裡的東西要照抄，不是要詮釋的指示」。外層標上 <code>markdown</code>，內層的表格就不會和本文的表格混在一起。'],
+ ['sem','語意','邊界案例是規範裡最有資訊量的部分，因為它記錄了標註者真正會猶豫的地方。每一條都附上決定的理由。'],
+ ['prag','語用','檔案清單在每一項後面寫明讀取時機，而不只是列檔名。這讓第三層載入成為有條件的，而不是一次全讀。']
+];
+(function(){
+  const raw=plain('src-anat');const parts=raw.split(/^@@(\w+)\n/m).slice(1);
+  const host=$('#anat');let html='';
+  for(let k=0,n=0;k<parts.length;k+=2,n++){
+    const c=parts[k],text=parts[k+1].replace(/\n+$/,'');const note=NOTES[n]||[c,'',''];
+    html+='<div class="blk" data-c="'+note[0]+'"><pre>'+esc(text)+'</pre><div class="pi"><div class="tag">'+note[1]+'</div>'+note[2]+'</div></div>';
+  }
+  host.innerHTML=html;
+})();
+$$('[data-f]').forEach(b=>b.addEventListener('click',()=>{
+  $$('[data-f]').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  $$('.blk').forEach(k=>k.classList.toggle('dim',b.dataset.f!=='all'&&k.dataset.c!==b.dataset.f));
+}));
+
+/* ---------- 四：三層載入 ---------- */
+const LOADS=[
+ [[1],'只有第一層。這是概念問題，不是標註任務；description 的「不用於隱喻理論的概念講解」讓模型直接回答，不必讀內文。'],
+ [[1,2],'第一、二層。請求落在「找出、標記隱喻」的情境裡，模型讀入 SKILL.md，照程序逐詞標註。新聞句沒有量詞或方位詞的難題，不需要第三層。'],
+ [[1,2,3],'三層全部。請求觸發技能後，內文寫著「量詞……最容易出錯，動手前先讀 references/guideline.md」，模型因此讀入細則第 2 節，才知道「片」要在計量與形狀聯想之間判斷，拿不準時標 WIDLII。']
+];
+$$('.req button').forEach(b=>b.addEventListener('click',()=>{
+  $$('.req button').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  const [lv,why]=LOADS[+b.dataset.r];
+  [1,2,3].forEach(n=>$('#L'+n).classList.toggle('in',lv.includes(n)));
+  $('#why-load').textContent=why;
+}));
+
+/* ---------- 五：觸發練習 ---------- */
+const DESC=parseFM(plain('src-anat').replace(/^@@\w+\n/gm,'')).fm.description;
+$('#desc-show').textContent=DESC;
+const QZ=[
+ ['幫我把這段新聞裡的隱喻都標出來：「央行出手打房，市場瞬間降溫。」',1,'典型的標註請求，直接落在「找出、標記」的情境。'],
+ ['「經濟起飛」的「起飛」算隱喻嗎？',1,'沒有出現「標註」二字，但詢問單一詞的隱喻地位，description 第二句明確涵蓋。'],
+ ['隱喻和轉喻有什麼不同？',0,'概念講解，被第三句排除。若觸發，模型會白白讀入一份標註程序。'],
+ ['請統計這三篇社論的隱喻密度，換算成每千詞。',1,'「統計」寫在 description 裡；密度計算需要先逐詞標註，正是本技能的工作。'],
+ ['幫我寫一段用很多比喻的手搖飲廣告文案。',0,'共享「比喻」這個詞，但任務是生成而非標註。這是最有診斷力的負例。'],
+ ['這句「他像一陣風」，「像」要怎麼標？',1,'問的是 MFlag 的標法。使用者用的是「怎麼標」，沒有提到任何術語。'],
+ ['Find all the metaphors in this English paragraph.',0,'任務相同，語言不同。description 排除英文文本；若你認為應該觸發，就得改寫 description，而不是期待模型自行變通。'],
+ ['這篇散文用了哪些比喻？列出來並說明本體和喻體。',1,'可以爭論。「本體、喻體」是修辭學框架，不是 MIPVU 的；但「找出比喻用法」落在 description 內。這類案例最適合放進你的測試集，逼你決定邊界。']
+];
+let answered=0,correct=0;
+$('#quiz').innerHTML=QZ.map((q,i)=>'<div class="q" data-i="'+i+'"><div class="qt">'+esc(q[0])+'</div><div class="qb"><button data-a="1">會觸發</button><button data-a="0">不會觸發</button></div><div class="qr"></div></div>').join('');
+$$('#quiz .q').forEach(card=>{
+  const q=QZ[+card.dataset.i];
+  $$('button',card).forEach(btn=>btn.addEventListener('click',()=>{
+    if(card.classList.contains('answered'))return;
+    const ok=+btn.dataset.a===q[1];answered++;if(ok)correct++;
+    btn.classList.add(ok?'pick-right':'pick-wrong');
+    if(!ok)$$('button',card).find(x=>+x.dataset.a===q[1]).classList.add('pick-right');
+    $$('button',card).forEach(x=>x.disabled=true);
+    card.classList.add('answered');
+    $('.qr',card).textContent=(q[1]?'應該觸發。':'不應觸發。')+q[2];
+    $('#score').textContent='已作答 '+answered+'／'+QZ.length+'，判斷正確 '+correct+' 題。';
+  }));
+});
+
+/* ---------- 六：產生器 ---------- */
+const EX={
+ name:'speech-act-zh',
+ what:'依 Searle 的五分類為中文對話逐句標註言語行為，並標出字面語氣與實際語力不一致的間接言語行為。',
+ when:'凡使用者要求標註對話、訊息或逐字稿中的言語行為或語力，或詢問某句話其實是在要求、承諾、抱怨什麼，都應使用本技能，即使對方沒有提到 Searle 或言語行為。',
+ not:'不用於言語行為理論的概念講解、情緒或情感極性分析，以及禮貌策略的評估。',
+ title:'中文言語行為標註',
+ why:'同一句話的字面形式與實際語力經常不一致，例如用疑問句提出請求。本技能要求每個判定都寫出推論過程，讓第二位標註者能夠複核。',
+ uses:'使用者貼上一段對話或聊天紀錄，要求標註每句的言語行為。\n使用者問某句話「其實是在要求什麼」或「算不算承諾」。\n使用者提供既有標註，請你複核分歧。',
+ labels:[['assertive','說話者承諾某命題為真','明天會下雨。'],['directive','試圖讓聽者做某事','可以把窗戶關上嗎？'],['commissive','說話者承諾未來做某事','我下週一定交。'],['expressive','表達說話者的心理狀態','真抱歉讓你久等。'],['declaration','說出即改變制度性事實','我宣布會議開始。']],
+ steps:'以話輪為單位切分；一個話輪含多個子句時，逐句處理。\n判斷字面語氣：直述、疑問或祈使。\n判斷實際語力，從標籤集選一個。\n字面語氣與語力不一致時，「間接」欄填「是」，並在理由欄寫出推論，例如「問能力，實為請求」。\n一句兼具兩種語力時，取主要語力，次要的寫在理由欄。\n缺乏語境無法判斷時，語力填 uncertain，並寫明需要哪些語境。',
+ format:'| # | 原句 | 字面語氣 | 語力 | 間接 | 理由 |\n|---|---|---|---|---|---|\n| 1 | 你可以幫我開門嗎？ | 疑問 | directive | 是 | 問能力，實為請求 |',
+ edge:'客套語「改天請你吃飯」：多數語境下是 expressive 而非 commissive，理由欄註明「客套」。\n反問句「你不覺得很吵嗎？」：字面為疑問，語力多為 directive 或 expressive，依後續話輪判斷。\n使用者提供自己的標籤集時，以使用者的為準。'
+};
+let labels=[];
+const F=id=>$('#f-'+id);
+function renderLabels(){
+  $('#f-labels').innerHTML=labels.map((r,i)=>'<div class="lrow" data-i="'+i+'"><input class="mono" aria-label="標籤名" placeholder="標籤" value="'+esc(r[0])+'"><input aria-label="定義" placeholder="定義" value="'+esc(r[1])+'"><input aria-label="例子" placeholder="例子" value="'+esc(r[2])+'"><button aria-label="刪除這一列" title="刪除">×</button></div>').join('');
+  $$('#f-labels .lrow').forEach(row=>{
+    const i=+row.dataset.i;
+    $$('input',row).forEach((inp,k)=>inp.addEventListener('input',()=>{labels[i][k]=inp.value;gen();}));
+    $('button',row).addEventListener('click',()=>{labels.splice(i,1);renderLabels();gen();});
+  });
+}
+function grow(t){t.style.height='auto';t.style.height=(t.scrollHeight+2)+'px';}
+function fill(o){
+  ['name','what','when','not','title','why','uses','steps','format','edge'].forEach(k=>F(k).value=o[k]||'');
+  labels=(o.labels||[]).map(r=>r.slice());renderLabels();gen();
+  $$('#form textarea').forEach(grow);
+}
+const end=s=>{s=s.trim();return s&&!/[。．.！？!?]$/.test(s)?s+'。':s;};
+const lines=s=>s.split('\n').map(x=>x.trim()).filter(Boolean);
+function yamlStr(s){return (/:\s|\s#|^[\[\]{}&*!|>%@`'"]/.test(s))?'"'+s.replace(/\\/g,'\\\\').replace(/"/g,'\\"')+'"':s;}
+let genText='';
+function gen(){
+  const desc=[end(F('what').value),end(F('when').value),end(F('not').value)].join('');
+  const out=['---','name: '+F('name').value.trim(),'description: '+yamlStr(desc),'---','','# '+(F('title').value.trim()||'未命名技能'),''];
+  if(F('why').value.trim())out.push(F('why').value.trim(),'');
+  const u=lines(F('uses').value);if(u.length)out.push('## 何時使用','',...u.map(x=>'- '+x),'');
+  const L=labels.filter(r=>r.some(c=>c.trim()));
+  if(L.length)out.push('## 標籤集','','| 標籤 | 定義 | 例子 |','|---|---|---|',...L.map(r=>'| '+(r[0].trim()?'`'+r[0].trim()+'`':'')+' | '+r[1].trim()+' | '+r[2].trim()+' |'),'');
+  const st=lines(F('steps').value);if(st.length)out.push('## 標註程序','',...st.map((x,i)=>(i+1)+'. '+x),'');
+  if(F('format').value.trim())out.push('## 輸出格式','',FENCE+'markdown',F('format').value.replace(/\s+$/,''),FENCE,'');
+  const ed=lines(F('edge').value);if(ed.length)out.push('## 邊界案例','',...ed.map(x=>'- '+x),'');
+  genText=out.join('\n').replace(/\n+$/,'\n');
+  $('#gen').textContent=genText;
+  $('#gen-render').innerHTML=md(genText);
+  $('#gen-lint').innerHTML=lintHTML(lint(genText).findings);
+}
+['name','what','when','not','title','why','uses','steps','format','edge'].forEach(k=>F(k).addEventListener('input',e=>{gen();if(e.target.tagName==='TEXTAREA')grow(e.target);}));
+$('#add-label').addEventListener('click',()=>{labels.push(['','','']);renderLabels();gen();const rows=$$('#f-labels .lrow input.mono');if(rows.length)rows[rows.length-1].focus();});
+$('#b-example').addEventListener('click',()=>fill(EX));
+$('#b-clear').addEventListener('click',()=>fill({labels:[['','','']]}));
+$$('[data-o]').forEach(b=>b.addEventListener('click',()=>{
+  $$('[data-o]').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  $('#gen').hidden=b.dataset.o!=='src';$('#gen-render').hidden=b.dataset.o!=='render';
+}));
+const status=t=>{$('#status').textContent=t;clearTimeout(status.t);status.t=setTimeout(()=>$('#status').textContent='',2600);};
+$('#b-copy').addEventListener('click',async()=>{
+  try{await navigator.clipboard.writeText(genText);status('已複製到剪貼簿。');}
+  catch(e){const r=document.createRange();r.selectNodeContents($('#gen'));const s=getSelection();s.removeAllRanges();s.addRange(r);status('瀏覽器不允許直接複製，已選取全文，請按 Ctrl+C 或 ⌘C。');}
+});
+$('#b-dl').addEventListener('click',()=>{
+  try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([genText],{type:'text/markdown;charset=utf-8'}));a.download='SKILL.md';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);status('已下載 SKILL.md；請放進名為 '+(F('name').value.trim()||'your-skill')+' 的資料夾。');}
+  catch(e){status('無法下載，請改用「複製」。');}
+});
+fill(EX);
+
+/* ---------- 七：常見失誤 ---------- */
+const PITS=[
+ ['description 只寫做什麼',
+  'description: 依 MIPVU 標註中文隱喻。',
+  'description: 依簡化版 MIPVU 為中文文本做隱喻標註……凡使用者要求找出、標記或統計中文文本裡的隱喻，或詢問某個詞是否為比喻用法，都應使用本技能，即使對方沒有提到 MIPVU。不用於……',
+  '模型只在看到 description 時決定要不要讀內文。使用者多半說「比喻」「這個詞算不算」，不會說 MIPVU。只寫功能，等於只寫了釋義的上半句。'],
+ ['用粗體冒充標題',
+  '**標註程序**\n先通讀……\n\n**輸出格式**\n請輸出表格……',
+  '## 標註程序\n\n1. 通讀全文……\n\n## 輸出格式\n\n請輸出表格……',
+  '粗體只是強調，不會進入文件大綱。模型與讀者都靠 ## 定位話題；粗體標題在長文件裡等於沒有路標。'],
+ ['程序寫成一整段',
+  '先通讀全文然後切分詞彙單位接著查基本義如果和語境義不同就標 MRW 遇到比較詞另外處理最後輸出表格。',
+  '1. 通讀全文。\n2. 切分詞彙單位。\n3. 查基本義，與語境義比較。\n4. 兩者有別，標 `MRW-indirect`。\n5. 比較詞標 `MFlag`。',
+  '一整段裡，步驟的邊界要靠「然後、接著」推斷，漏一步也看不出來。編號清單把順序與數量都標在表面，模型也較少跳步。'],
+ ['同一條規則寫在兩處，而且互相矛盾',
+  '## 標註程序\n2. 四字格成語拆開逐字判定。\n……\n## 邊界案例\n- 成語整體視為一個單位。',
+  '## 標註程序\n2. 切分詞彙單位，細則見 references/guideline.md 第 1 節。\n……\n（成語的處理只寫在 guideline.md）',
+  '這是 Markdown 層最典型的風險：文件不斷累加，舊指示沒刪。一條規則只寫一處，其他地方用指向的。模型遇到矛盾不會報錯，只會挑一條，而且每次挑的可能不同。'],
+ ['堆疊命令而不說理由',
+  '你必須逐詞判定。務必寫理由。絕對不可以跳過量詞。一定要查辭典。MUST use the table.',
+  '每個判定都要留下理由，因為隱喻判定的分歧多半來自基本義的選擇；有理由，第二位標註者才能複核。',
+  '大寫與「絕對」能提高單一規則的權重，卻讓模型在規則之外無從推論。說明為什麼，模型遇到沒寫到的情況時才會往對的方向猜。'],
+ ['把所有例句塞進主檔',
+  '## 例句\n1. 臺灣經濟在七〇年代起飛……\n2. ……\n（以下 120 句）',
+  '## 參考檔案\n\n- `references/examples.md`：已標註例句與常見分歧。第一次使用或使用者要求示範時讀。',
+  '內文一觸發就整份讀入，每多一句例子，所有任務都要付出脈絡成本。大量例句移到第三層，並寫明何時讀。'],
+ ['輸出格式沒有圍起來',
+  '## 輸出格式\n\n| # | 詞 | 標籤 | 理由 |\n|---|---|---|---|\n| 1 | 起飛 | MRW-indirect | …… |',
+  '## 輸出格式\n\n```markdown\n| # | 詞 | 標籤 | 理由 |\n|---|---|---|---|\n| 1 | 起飛 | MRW-indirect | …… |\n```',
+  '沒有圍起來的樣板，和技能本身的標籤表看起來是同一種東西。程式碼區塊明確標出「這是要照抄的輸出」，格式漂移因此少很多。']
+];
+$('#pits').innerHTML=PITS.map(p=>'<details class="pit"><summary>'+esc(p[0])+'</summary><div class="pair"><div class="side bad"><div class="sh">改寫前</div><pre>'+esc(p[1])+'</pre></div><div class="side good"><div class="sh">改寫後</div><pre>'+esc(p[2])+'</pre></div></div><p class="exp">'+esc(p[3])+'</p></details>').join('');
+
+/* ---------- 九：檢核表 ---------- */
+const KEY='s10-check';let saved={};
+try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')||{};}catch(e){saved={};}
+$$('#check input').forEach(cb=>{
+  cb.checked=!!saved[cb.dataset.c];
+  cb.addEventListener('change',()=>{saved[cb.dataset.c]=cb.checked;try{localStorage.setItem(KEY,JSON.stringify(saved));}catch(e){}});
+});
+
+/* ---------- 目錄高亮 ---------- */
+const links=$$('.toc a');
+if('IntersectionObserver' in window&&links.length){
+  const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){links.forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+e.target.id));}});},{rootMargin:'-20% 0px -70% 0px'});
+  $$('main section').forEach(s=>io.observe(s));
+}
+})();
+</script>
+</body>
+</html>

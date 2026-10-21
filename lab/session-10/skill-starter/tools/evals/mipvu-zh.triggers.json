@@ -1,0 +1,35 @@
+{
+  "skill_md": "../../mipvu-zh/SKILL.md",
+  "neighbors": [
+    {
+      "name": "zh-segmentation",
+      "description": "依中研院標準為中文文本斷詞並標記詞性。使用者要求斷詞、分詞、標詞性，或詢問某串文字該怎麼切時使用。不用於語意或修辭層次的分析。"
+    },
+    {
+      "name": "rhetoric-copywriting",
+      "description": "撰寫或潤飾帶有修辭手法的中文文案，包括比喻、排比、對偶。使用者要求寫廣告詞、標語、講稿，或想讓文字更生動時使用。不用於分析或標註既有文本。"
+    },
+    {
+      "name": "zh-en-translation",
+      "description": "在中文與英文之間翻譯，保留語域與修辭效果。使用者要求翻譯、改寫成另一種語言，或比較譯法時使用。"
+    },
+    {
+      "name": "sentiment-zh",
+      "description": "為中文評論或社群貼文標註情感極性與強度。使用者要求判斷正負面、情緒、態度時使用。不用於隱喻或修辭分析。"
+    }
+  ],
+  "queries": [
+    {"query": "幫我把這段新聞裡的隱喻都標出來：「央行今天出手打房，市場瞬間降溫。」", "should_trigger": true},
+    {"query": "「經濟起飛」的「起飛」算隱喻嗎？", "should_trigger": true},
+    {"query": "請統計這三篇社論的隱喻密度，換算成每千詞。", "should_trigger": true},
+    {"query": "這句「他像一陣風」，「像」要怎麼標？", "should_trigger": true},
+    {"query": "我和同學對「心裡」的「裡」要不要算 MRW 意見不同，你怎麼看？", "should_trigger": true},
+    {"query": "這篇散文用了哪些比喻？列出來並說明本體和喻體。", "should_trigger": true},
+    {"query": "隱喻和轉喻有什麼不同？", "should_trigger": false},
+    {"query": "幫我寫一段用很多比喻的手搖飲廣告文案。", "should_trigger": false},
+    {"query": "把這首詩翻成英文，盡量保留比喻。", "should_trigger": false},
+    {"query": "Find all the metaphors in this English paragraph.", "should_trigger": false},
+    {"query": "這則留言是正面還是負面？「這家店真的是地雷。」", "should_trigger": false},
+    {"query": "「冷靜下來」要怎麼斷詞？", "should_trigger": false}
+  ]
+}
