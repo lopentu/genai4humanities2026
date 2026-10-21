@@ -125,3 +125,18 @@ sessions:
       - name: "v1 探索器（設計對照）"
         file: "zh-tokenizer-v1.html"
         desc: "保留的初版三欄比較。看它為什麼會把字形差異誤報成詞彙差異"
+
+  - id: session-10
+    title: "Session 10"
+    blurb: "用 Markdown 寫 Skill：把標註規範交給模型"
+    subtitle: "Markdown 標記、SKILL.md 結構，與 description 的語用"
+    items:
+      - name: "用 Markdown 寫 Skill"
+        file: "skill-markdown-lab.html"
+        desc: "九個符號與即時編輯器、評點一份 SKILL.md、三層載入、觸發練習、技能產生器、七種常見失誤"
+      - name: "起手包（zip）"
+        file: "skill-starter.zip"
+        desc: "範例技能 mipvu-zh、空白樣板、skill_lint.py 與 trigger_eval.py"
+      - name: "範例技能原始檔"
+        file: "skill-starter/mipvu-zh/SKILL.md"
+        desc: "簡化版 MIPVU 中文隱喻標註，含 references/ 細則與例句"
